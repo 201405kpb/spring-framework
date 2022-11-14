@@ -409,20 +409,15 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	 * @param bean the bean instance
 	 * @param postProcessors the post-processor candidates
 	 */
-	public static boolean hasApplicableProcessors(Object bean, List<BeanPostProcessor> postProcessors) {
+	public static boolean hasApplicableProcessors(Object bean, List<DestructionAwareBeanPostProcessor> postProcessors) {
 		if (!CollectionUtils.isEmpty(postProcessors)) {
 			//遍历集合
-			for (BeanPostProcessor processor : postProcessors) {
-				//如果属于DestructionAwareBeanPostProcessor类型
-				if (processor instanceof DestructionAwareBeanPostProcessor) {
-					//强转
-					DestructionAwareBeanPostProcessor dabpp = (DestructionAwareBeanPostProcessor) processor;
-					//调用requiresDestruction方法，用于判断确定给定的 bean 实例是否需要此后处理器进行销毁回调
-					//常见的实现就是InitDestroyAnnotationBeanPostProcessor，它会判断该实例所属的类中是否存在@PreDestroy注解的方法
-					//如果存在就返回true，不存在就返回false，当bean销毁的时候就会调用postProcessBeforeDestruction方法回调注解方法
-					if (dabpp.requiresDestruction(bean)) {
-						return true;
-					}
+			for (DestructionAwareBeanPostProcessor processor : postProcessors) {
+				//调用requiresDestruction方法，用于判断确定给定的 bean 实例是否需要此后处理器进行销毁回调
+				//常见的实现就是InitDestroyAnnotationBeanPostProcessor，它会判断该实例所属的类中是否存在@PreDestroy注解的方法
+				//如果存在就返回true，不存在就返回false，当bean销毁的时候就会调用postProcessBeforeDestruction方法回调注解方法
+				if (processor.requiresDestruction(bean)) {
+					return true;
 				}
 			}
 		}

@@ -123,7 +123,7 @@ public class PropertySourceProcessor {
 		 * 该集合在setLocations方法中就初始化了著名的systemProperties — JVM系统属性属性源以及systemEnvironment - 系统环境属性源
 		 * 在根据environment替换占位符的时候，就是从这个属性源集合中依次遍历、查找的，因此systemProperties — JVM系统属性属性源的优先级最高
 		 */
-		MutablePropertySources propertySources = ((ConfigurableEnvironment) this.environment).getPropertySources();
+		MutablePropertySources propertySources = this.environment.getPropertySources();
 		/*
 		 * 如果属性源名称集合中已包含该名称name，那么就扩展这个名字的属性源
 		 * 因为一个@PropertySource可能指定多个配置文件
