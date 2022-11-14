@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
  * Context that gets passed along a bean definition parsing process,
  * encapsulating all relevant configuration as well as state.
  * Nested inside an {@link XmlReaderContext}.
+ * 通过bean定义解析过程传递的上下文，封装所有相关配置和状态。
  *
  * @author Rob Harrop
  * @author Juergen Hoeller

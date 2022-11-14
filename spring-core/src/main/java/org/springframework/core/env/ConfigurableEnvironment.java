@@ -79,6 +79,7 @@ public interface ConfigurableEnvironment extends Environment, ConfigurableProper
 	 * with zero arguments to clear the current set of active profiles. Use
 	 * {@link #addActiveProfile} to add a profile while preserving the existing set.
 	 * @throws IllegalArgumentException if any profile is null, empty or whitespace-only
+	 * 设置激活的组集合
 	 * @see #addActiveProfile
 	 * @see #setDefaultProfiles
 	 * @see org.springframework.context.annotation.Profile

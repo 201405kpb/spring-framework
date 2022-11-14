@@ -95,16 +95,30 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 		AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary(candidateAdvisors);
 	}
 
+	/**
+	 * 是否需要跳过对给定的bean进行自动代理
+	 * 如果不应考虑对给定bean由此后处理器进行自动代理，则子类应重写此方法以返回 true。
+	 */
 	@Override
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
 		// TODO: Consider optimization by caching the list of the aspect names
+		/*
+		 * 查找bean工厂的所有Advisor类型的通知器bean定义并且初始化，返回Advisor实例的集合。在解析<aop:config/>标签时，
+		 * <aop:advisor/>标签的DefaultBeanFactoryPointcutAdvisor，<aop:declare-parents/>标签的DeclareParentsAdvisor，
+		 * 通知标签的AspectJPointcutAdvisor，他们都属于Advisor，也就是通知器，通常一个切入点和一个通知方法就组成通知器
+		 */
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
+		/*
+		 * 如果存在AspectJPointcutAdvisor类型的通知器实例，并且当前的bean属于这个通知器的切面方法类bean
+		 * 那么不应该拦截切面方法类的方法，直接返回true，表示跳过
+		 */
 		for (Advisor advisor : candidateAdvisors) {
-			if (advisor instanceof AspectJPointcutAdvisor pointcutAdvisor &&
-					pointcutAdvisor.getAspectName().equals(beanName)) {
+			if (advisor instanceof AspectJPointcutAdvisor &&
+					((AspectJPointcutAdvisor) advisor).getAspectName().equals(beanName)) {
 				return true;
 			}
 		}
+		//否则调用父类AbstractAutoProxyCreator的方法
 		return super.shouldSkip(beanClass, beanName);
 	}
 

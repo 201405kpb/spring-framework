@@ -140,6 +140,7 @@ public abstract class BeanFactoryAnnotationUtils {
 
 	/**
 	 * Check whether the named bean declares a qualifier of the given name.
+	 * // 检查beanName这个Bean是否匹配。或者标注了@Qualifier注解，名称是否匹配
 	 * @param qualifier the qualifier to match
 	 * @param beanName the name of the candidate bean
 	 * @param beanFactory the factory from which to retrieve the named bean
@@ -152,10 +153,12 @@ public abstract class BeanFactoryAnnotationUtils {
 			Predicate<String> qualifier, String beanName, @Nullable BeanFactory beanFactory) {
 
 		// Try quick bean name or alias match first...
+		// 若BeanName匹配，那就快速返回
 		if (qualifier.test(beanName)) {
 			return true;
 		}
 		if (beanFactory != null) {
+			// 若有alias别名匹配上了，也可以快速返回
 			for (String alias : beanFactory.getAliases(beanName)) {
 				if (qualifier.test(alias)) {
 					return true;
@@ -164,10 +167,12 @@ public abstract class BeanFactoryAnnotationUtils {
 			try {
 				Class<?> beanType = beanFactory.getType(beanName);
 				if (beanFactory instanceof ConfigurableBeanFactory cbf) {
+					// 拿到和父类（若存在）合并后的定义信息
 					BeanDefinition bd = cbf.getMergedBeanDefinition(beanName);
 					// Explicit qualifier metadata on bean definition? (typically in XML definition)
 					if (bd instanceof AbstractBeanDefinition abd) {
 						AutowireCandidateQualifier candidate = abd.getQualifier(Qualifier.class.getName());
+						// 如果有@Qualifier 并且匹配上了  就返回true
 						if (candidate != null) {
 							Object value = candidate.getAttribute(AutowireCandidateQualifier.VALUE_KEY);
 							if (value != null && qualifier.test(value.toString())) {
@@ -176,6 +181,7 @@ public abstract class BeanFactoryAnnotationUtils {
 						}
 					}
 					// Corresponding qualifier on factory method? (typically in configuration class)
+					// 若FactoryMethod工厂方法里有此注解，匹配上了也返回true
 					if (bd instanceof RootBeanDefinition rbd) {
 						Method factoryMethod = rbd.getResolvedFactoryMethod();
 						if (factoryMethod != null) {
@@ -187,6 +193,7 @@ public abstract class BeanFactoryAnnotationUtils {
 					}
 				}
 				// Corresponding qualifier on bean implementation class? (for custom user types)
+				// 若自己本类上标注了此注解，匹配上了  肯定也是返回true的...
 				if (beanType != null) {
 					Qualifier targetAnnotation = AnnotationUtils.getAnnotation(beanType, Qualifier.class);
 					if (targetAnnotation != null) {

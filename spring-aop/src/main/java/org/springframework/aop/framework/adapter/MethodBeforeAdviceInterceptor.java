@@ -50,11 +50,25 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 		this.advice = advice;
 	}
 
-
+	/**
+	 * MethodBeforeAdviceInterceptor前置通知拦截器的方法
+	 * <p>
+	 * 原理很简单，在目标方法调用之前调用前置通知方法即可
+	 *
+	 * @param mi 当前ReflectiveMethodInvocation对象
+	 * @return 调用下一次proceed方法的返回结果
+	 */
 	@Override
-	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		//通过当前通知实例调用前置通知方法，此时目标方法未被执行
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+		/*
+		 * 继续调用mi.proceed()
+		 * 这里的mi就是当前的ReflectiveMethodInvocation对象，也就是递归调用的逻辑
+		 * 下一次调用，将会调用下一个拦截器的invoke方法（如果存在）
+		 * 当最后一个拦截器执行完毕时，才会通过invokeJoinpoint()反射执行被代理的方法（目标方法）
+		 * 然后开始返回
+		 */
 		return mi.proceed();
 	}
 

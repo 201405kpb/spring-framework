@@ -51,20 +51,37 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	private static final long serialVersionUID = 7930414337282325166L;
 
 
+	/**
+	 * 根据配置类型选择创建AopProxy的类型
+	 * @param config the AOP configuration in the form of an
+	 * AdvisedSupport object
+	 *
+	 * @return
+	 * @throws AopConfigException
+	 */
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+		//如果isOptimize返回true，即optimize属性为true，表示CGLIB代理应该主动进行优化，默认false
+		//或者，如果isProxyTargetClass返回true，即proxyTargetClass属性为true，表示应该使用CGLIB代理，默认false
+		//或者，如果hasNoUserSuppliedProxyInterfaces返回true，表示没有可使用的代理接口或者只有一个代理接口并且属于SpringProxy接口体系
+		//即校验interfaces集合，这个集合就是在此前evaluateProxyInterfaces方法中加入的接口集合
 		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+			//获取目标类型
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
-			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass) || ClassUtils.isLambdaClass(targetClass)) {
+			//如果目标类型是接口，或者目标类型就是Proxy类型
+			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
+				//那么采用JDK的AopProxy，proxyFactory作为构造器参数
 				return new JdkDynamicAopProxy(config);
 			}
+			//默认采用CGLIB的AopProxy，proxyFactory作为构造器参数
 			return new ObjenesisCglibAopProxy(config);
-		}
-		else {
+		} else {
+			//以上三个条件都不满足
+			//否则，采用JDK的AopProxy，proxyFactory作为构造器参数
 			return new JdkDynamicAopProxy(config);
 		}
 	}
@@ -73,9 +90,12 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	 * Determine whether the supplied {@link AdvisedSupport} has only the
 	 * {@link org.springframework.aop.SpringProxy} interface specified
 	 * (or no proxy interfaces specified at all).
+	 * 确定是否没有可使用的代理接口，或者只有一个代理接口并且属于SpringProxy接口体系
 	 */
 	private boolean hasNoUserSuppliedProxyInterfaces(AdvisedSupport config) {
+		//获取内部的interfaces集合，这个集合就是在此前evaluateProxyInterfaces方法中加入的接口集合
 		Class<?>[] ifcs = config.getProxiedInterfaces();
+		//如果是一个空集合，表示没有可使用的代理接口，或者只有一个代理接口并且属于SpringProxy接口体系，那么返回true
 		return (ifcs.length == 0 || (ifcs.length == 1 && SpringProxy.class.isAssignableFrom(ifcs[0])));
 	}
 

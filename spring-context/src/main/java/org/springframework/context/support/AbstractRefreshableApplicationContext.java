@@ -116,18 +116,29 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * This implementation performs an actual refresh of this context's underlying
 	 * bean factory, shutting down the previous bean factory (if any) and
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
+	 * 首先会尝试关闭以前的 beanFactory（如果存在），并初始化一个新的 beanFactory，然后解析XML文件，获取bean的定义存入beanFactory中。
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// 如果 ApplicationContext 中已经加载过 BeanFactory 了，销毁所有 Bean，关闭 BeanFactory
+		// 注意，应用中 BeanFactory 本来就是可以多个的，这里可不是说应用全局是否有 BeanFactory，而是当前
+		// ApplicationContext 是否有 BeanFactory
 		if (hasBeanFactory()) {
+			//销毁beanFactory中的所有Bean
 			destroyBeans();
+			//关闭beanFactory
 			closeBeanFactory();
 		}
 		try {
+			// 初始化一个 DefaultListableBeanFactory
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			// 用于 BeanFactory 的序列化
 			beanFactory.setSerializationId(getId());
+			// 设置 BeanFactory 的两个配置属性：是否允许 Bean 覆盖、是否允许循环引用
 			customizeBeanFactory(beanFactory);
+			// 加载 Bean 到 BeanFactory 中
 			loadBeanDefinitions(beanFactory);
+			//为beanFactory属性赋值，新的beanFactory初始化完毕
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
@@ -136,6 +147,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	}
 
 	@Override
+	// 取消刷新
 	protected void cancelRefresh(BeansException ex) {
 		DefaultListableBeanFactory beanFactory = this.beanFactory;
 		if (beanFactory != null) {
@@ -145,6 +157,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	}
 
 	@Override
+	//关闭工厂
 	protected final void closeBeanFactory() {
 		DefaultListableBeanFactory beanFactory = this.beanFactory;
 		if (beanFactory != null) {
@@ -156,14 +169,21 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	/**
 	 * Determine whether this context currently holds a bean factory,
 	 * i.e. has been refreshed at least once and not been closed yet.
+	 *  确定此容器中是否已存在beanFactory
 	 */
 	protected final boolean hasBeanFactory() {
+		//如果beanFactory不为null那么返回true
 		return (this.beanFactory != null);
 	}
 
+	/**
+	 * 返回容器内部的BeanFactory（DefaultListableBeanFactory是实际类型），调用该方法时要求BeanFactory不能为null
+	 */
 	@Override
 	public final ConfigurableListableBeanFactory getBeanFactory() {
+		//返回当前容器内部的beanFactory
 		DefaultListableBeanFactory beanFactory = this.beanFactory;
+		//如果beanFactory为null（没有初始化或者被关闭了），那么抛出IllegalStateException异常
 		if (beanFactory == null) {
 			throw new IllegalStateException("BeanFactory not initialized or already closed - " +
 					"call 'refresh' before accessing beans via the ApplicationContext");
@@ -182,24 +202,28 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	/**
 	 * Create an internal bean factory for this context.
 	 * Called for each {@link #refresh()} attempt.
+	 * 为此上下文容器创建内部 beanFactory，每次refresh都会尝试创建新的 beanFactory
 	 * <p>The default implementation creates a
 	 * {@link org.springframework.beans.factory.support.DefaultListableBeanFactory}
 	 * with the {@linkplain #getInternalParentBeanFactory() internal bean factory} of this
 	 * context's parent as parent bean factory. Can be overridden in subclasses,
 	 * for example to customize DefaultListableBeanFactory's settings.
-	 * @return the bean factory for this context
+	 * @return the bean factory for this context 此上下文容器内部的beanFactory，DefaultListableBeanFactory类型
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowBeanDefinitionOverriding
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowEagerClassLoading
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowCircularReferences
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 */
 	protected DefaultListableBeanFactory createBeanFactory() {
+		//根据父工厂创建一个beanFactory
+		//非web环境下，工厂的父工厂默认为null，web环境下，Spring的beanFactory就是Spring MVC的beanFactory的父工厂
 		return new DefaultListableBeanFactory(getInternalParentBeanFactory());
 	}
 
 	/**
 	 * Customize the internal bean factory used by this context.
 	 * Called for each {@link #refresh()} attempt.
+	 * 配置beanFactory是否允许 BeanDefinition 覆盖、是否允许循环引用。
 	 * <p>The default implementation applies this context's
 	 * {@linkplain #setAllowBeanDefinitionOverriding "allowBeanDefinitionOverriding"}
 	 * and {@linkplain #setAllowCircularReferences "allowCircularReferences"} settings,
@@ -212,10 +236,13 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
+		// 设置 BeanFactory 的两个配置属性：是否允许 Bean 覆盖、是否允许循环引用
 		if (this.allowBeanDefinitionOverriding != null) {
+			// 是否允许 Bean 定义覆盖
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
 		if (this.allowCircularReferences != null) {
+			// 是否允许 Bean 间的循环依赖
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}
 	}

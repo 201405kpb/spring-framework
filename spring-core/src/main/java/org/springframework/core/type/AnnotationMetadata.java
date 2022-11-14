@@ -28,6 +28,7 @@ import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 /**
  * Interface that defines abstract access to the annotations of a specific
  * class, in a form that does not require that class to be loaded yet.
+ * 该接口定义了对特定类的注释的抽象访问，其形式不要求加载该类
  *
  * @author Juergen Hoeller
  * @author Mark Fisher

@@ -212,30 +212,56 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 	}
 
 
+	/**
+	 * 检查所有bean定义，替换占位符
+	 * @param beanFactoryToProcess
+	 * @param valueResolver
+	 */
 	protected void doProcessProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			StringValueResolver valueResolver) {
 
+		/*
+		 * 创建一个用于遍历BeanDefinition对象的访问者类，可以访问给定bean定义的属性
+		 * 特别是其中包含的属性值和构造函数参数值，在遍历的同时解析值中的占位符
+		 */
 		BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
-
+		//获取所有已注册的beanName数组
 		String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
+		/*
+		 * 1 遍历beanName数组，获取bean定义，解析替换内部属性值中的占位符
+		 */
 		for (String curName : beanNames) {
 			// Check that we're not parsing our own bean definition,
 			// to avoid failing on unresolvable placeholders in properties file locations.
+			//如果当前遍历的beanName不等于当前注册的PropertySourcesPlaceholderConfigurer的beanName
+			//并且是同一个beanFactory，那么可以解析其中的占位符
 			if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
+				//获取bean定义
 				BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
 				try {
+					/*
+					 * 遍历给定的 Bean 定义对象属性，包括MutablePropertyValues属性值和ConstructorArgumentValues构造器值
+					 * 对遍历的每一个值使用valueResolver替换其中的占位符
+					 * 支持占位符的属性有:
+					 * 1 <bean/>的标签的parent属性、class属性、factory-bean属性、factory-method属性
+					 * 2 <property/>标签的value、<constructor-arg/>标签的value
+					 */
 					visitor.visitBeanDefinition(bd);
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					throw new BeanDefinitionStoreException(bd.getResourceDescription(), curName, ex.getMessage(), ex);
 				}
 			}
 		}
-
-		// New in Spring 2.5: resolve placeholders in alias target names and aliases as well.
+		/*
+		 * 2 Spring 2.5 中的新功能：也解析别名映射缓存aliasMap中的 value-目标名称和key-别名 中的占位符。
+		 */
 		beanFactoryToProcess.resolveAliases(valueResolver);
 
-		// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
+		/*
+		 * 3 Spring 3.0 中的新功能：将当前的valueResolver加入embeddedValueResolvers中，用于后续比如@Value、@Resource注解中的占位符解析，
+		 * 注意这里并没有立即解析，因为invokeBeanFactoryPostProcessors方法调用的时候，bean的相关注解还没有被解析，
+		 * 在后面的finishBeanFactoryInitialization方法中才会用到
+		 */
 		beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
 	}
 

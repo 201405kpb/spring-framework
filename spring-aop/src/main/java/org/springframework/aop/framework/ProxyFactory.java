@@ -76,6 +76,7 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	/**
 	 * Create a ProxyFactory for the specified {@code TargetSource},
 	 * making the proxy implement the specified interface.
+	 * 根据此proxyFactory的创建新代理对象
 	 * @param proxyInterface the interface that the proxy should implement
 	 * @param targetSource the TargetSource that the proxy should invoke
 	 */

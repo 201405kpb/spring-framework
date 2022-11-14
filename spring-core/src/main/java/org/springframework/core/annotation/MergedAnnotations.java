@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * Provides access to a collection of merged annotations, usually obtained
  * from a source such as a {@link Class} or {@link Method}.
  *
+ *
  * <p>Each merged annotation represents a view where the attribute values may be
  * "merged" from different source values, typically:
  *

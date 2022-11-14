@@ -172,8 +172,16 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 		return null;
 	}
 
+	/**
+	 * 处理@PostConstruct、@PreDestroy注解
+	 * @param beanDefinition
+	 * @param beanType
+	 * @return
+	 */
 	private LifecycleMetadata findInjectionMetadata(RootBeanDefinition beanDefinition, Class<?> beanType) {
+		//获取生命周期相关的元数据对象，LifecycleMetadata是该类的内部类，内部持有当前的class以及对应的具有@PostConstruct、@PreDestroy注解的方法
 		LifecycleMetadata metadata = findLifecycleMetadata(beanType);
+		//检查配置信息
 		metadata.checkConfigMembers(beanDefinition);
 		return metadata;
 	}
@@ -231,40 +239,59 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 	}
 
 
+	/**
+	 * 获取LifecycleMetadata
+	 *
+	 * @param clazz bean的类型
+	 * @return LifecycleMetadata对象，内部持有当前的class以及对应的具有@PostConstruct、@PreDestroy注解的方法
+	 */
 	private LifecycleMetadata findLifecycleMetadata(Class<?> clazz) {
+		//如果lifecycleMetadataCache缓存为null
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
+			// 创建该类型的LifecycleMetadata
 			return buildLifecycleMetadata(clazz);
 		}
 		// Quick check on the concurrent map first, with minimal locking.
+		//否则，查询缓存
 		LifecycleMetadata metadata = this.lifecycleMetadataCache.get(clazz);
+		//如果存在该类型的缓存，从缓存获取
 		if (metadata == null) {
 			synchronized (this.lifecycleMetadataCache) {
+				//加锁之后再次获取，防止并发
 				metadata = this.lifecycleMetadataCache.get(clazz);
+				//如果metadata为null
 				if (metadata == null) {
+					// 构建生命周期元数据
 					metadata = buildLifecycleMetadata(clazz);
 					this.lifecycleMetadataCache.put(clazz, metadata);
 				}
 				return metadata;
 			}
 		}
+		//如果缓存不为null，那么直接返回缓存
 		return metadata;
 	}
+
 
 	private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
 		if (!AnnotationUtils.isCandidateClass(clazz, Arrays.asList(this.initAnnotationType, this.destroyAnnotationType))) {
 			return this.emptyLifecycleMetadata;
 		}
-
+		// 实例化后的回调方法（@PostConstruct)
 		List<LifecycleElement> initMethods = new ArrayList<>();
+		//销毁前的回调方法(@PreDestroy)
 		List<LifecycleElement> destroyMethods = new ArrayList<>();
+		// 获取正在处理的目标类
 		Class<?> targetClass = clazz;
 
 		do {
+			// 保证每一轮循环搜索到相关方法
 			final List<LifecycleElement> currInitMethods = new ArrayList<>();
 			final List<LifecycleElement> currDestroyMethods = new ArrayList<>();
-
+			//反射获取当前类中的所有方法
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 当前方法包含initAnnotationType 类型 （@PostConstruct)
 				if (this.initAnnotationType != null && method.isAnnotationPresent(this.initAnnotationType)) {
 					LifecycleElement element = new LifecycleElement(method);
 					currInitMethods.add(element);
@@ -272,6 +299,7 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 						logger.trace("Found init method on class [" + clazz.getName() + "]: " + method);
 					}
 				}
+				// 当前方法包含destroyAnnotationType 类型 (@PreDestroy)
 				if (this.destroyAnnotationType != null && method.isAnnotationPresent(this.destroyAnnotationType)) {
 					currDestroyMethods.add(new LifecycleElement(method));
 					if (logger.isTraceEnabled()) {
@@ -280,12 +308,17 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 				}
 			});
 
+			//currInitMethods集合整体添加到initMethods集合的开头
 			initMethods.addAll(0, currInitMethods);
+			//currDestroyMethods集合整体添加到destroyMethods集合的开头
 			destroyMethods.addAll(currDestroyMethods);
+			//获取下一个目标类型，是当前类型的父类型
 			targetClass = targetClass.getSuperclass();
 		}
+		//如果目标类型不为null并且不是Object.class类型，那么继续循环，否则结束循环
 		while (targetClass != null && targetClass != Object.class);
-
+		//如果initMethods和destroyMethods都是空集合，那么返回一个空的LifecycleMetadata实例
+		//否则返回一个新LifecycleMetadata，包含当前的class以及对应的找到的initMethods和destroyMethods
 		return (initMethods.isEmpty() && destroyMethods.isEmpty() ? this.emptyLifecycleMetadata :
 				new LifecycleMetadata(clazz, initMethods, destroyMethods));
 	}
@@ -329,26 +362,41 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 			this.destroyMethods = destroyMethods;
 		}
 
+		/**
+		 * 检查配置，设置相关的方法到checkedInitMethods和checkedDestroyMethods中，后续直接调用
+		 * 同时设置到mbd的externallyManagedInitMethods中，防止重复调用同一个方法
+		 * @param beanDefinition 当前bean定义
+		 */
 		public void checkConfigMembers(RootBeanDefinition beanDefinition) {
+			//创建被检查的初始化回调方法集合
 			Set<LifecycleElement> checkedInitMethods = new LinkedHashSet<>(this.initMethods.size());
+			//遍历检查initMethods
 			for (LifecycleElement element : this.initMethods) {
+				//获取标识符
 				String methodIdentifier = element.getIdentifier();
+				//如果mbd的externallyManagedInitMethods不包含当前回调方法
 				if (!beanDefinition.isExternallyManagedInitMethod(methodIdentifier)) {
+					//设置到mbd的externallyManagedInitMethods中
 					beanDefinition.registerExternallyManagedInitMethod(methodIdentifier);
+					//设置到checkedInitMethods中
 					checkedInitMethods.add(element);
 					if (logger.isTraceEnabled()) {
-						logger.trace("Registered init method on class [" + this.targetClass.getName() + "]: " + methodIdentifier);
+						logger.trace("Registered init method on class [" + this.targetClass.getName() + "]: " + element);
 					}
 				}
 			}
 			Set<LifecycleElement> checkedDestroyMethods = new LinkedHashSet<>(this.destroyMethods.size());
 			for (LifecycleElement element : this.destroyMethods) {
+				//获取标识符
 				String methodIdentifier = element.getIdentifier();
+				//如果mbd的externallyManagedInitMethods不包含当前回调方法
 				if (!beanDefinition.isExternallyManagedDestroyMethod(methodIdentifier)) {
+					//设置到mbd的externallyManagedInitMethods中
 					beanDefinition.registerExternallyManagedDestroyMethod(methodIdentifier);
+					//设置到checkedInitMethods中
 					checkedDestroyMethods.add(element);
 					if (logger.isTraceEnabled()) {
-						logger.trace("Registered destroy method on class [" + this.targetClass.getName() + "]: " + methodIdentifier);
+						logger.trace("Registered destroy method on class [" + this.targetClass.getName() + "]: " + element);
 					}
 				}
 			}
@@ -395,6 +443,7 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 
 	/**
 	 * Class representing injection information about an annotated method.
+	 * 一个LifecycleElement对象封装了一个回调方法，及其标识符，标识符用于方法重复调用
 	 */
 	private static class LifecycleElement {
 
@@ -403,10 +452,13 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 		private final String identifier;
 
 		public LifecycleElement(Method method) {
+			//如果方法参数不为0，那么抛出异常，从这里可知，初始化和销毁回调方法都不能有参数
 			if (method.getParameterCount() != 0) {
 				throw new IllegalStateException("Lifecycle method annotation requires a no-arg method: " + method);
 			}
 			this.method = method;
+			//计算identifier
+			//如果是私有方法，则标识符为：该方法的全路径名，如果是非私有方法，则标识符为该方法简单名字
 			this.identifier = (Modifier.isPrivate(method.getModifiers()) ?
 					ClassUtils.getQualifiedMethodName(method) : method.getName());
 		}

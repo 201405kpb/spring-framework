@@ -58,6 +58,13 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 		}
 	};
 
+	/**
+	 * ExposeInvocationInterceptor的属性
+	 * <p>
+	 * 一个ThreadLocal对象，内部保存着当前线程递归调用中的ReflectiveMethodInvocation对象
+	 * 用于将MethodInvocation暴露出来，后面的拦截器可以方便的通过ExposeInvocationInterceptor.currentInvocation()
+	 * 静态方法快速获取当前ReflectiveMethodInvocation对象
+	 */
 	private static final ThreadLocal<MethodInvocation> invocation =
 			new NamedThreadLocal<>("Current AOP method invocation");
 
@@ -88,15 +95,33 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 	private ExposeInvocationInterceptor() {
 	}
 
+	/**
+	 * ExposeInvocationInterceptor拦截器的invoke方法
+	 * <p>
+	 * 对于AnnotationAwareAspectJAutoProxyCreator和AspectJAwareAdvisorAutoProxyCreator自动代理创建者
+	 * 第一个拦截器就是ExposeInvocationInterceptor
+	 * <p>
+	 * 主要目的是将当前MethodInvocation，也就是ReflectiveMethodInvocation对象设置到线程本地变量中
+	 * 暴露当前MethodInvocation，方便后续拦截器可以快速获取
+	 *
+	 * @param mi 当前ReflectiveMethodInvocation对象
+	 * @return 调用下一次proceed方法的返回结果
+	 */
 	@Override
-	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		MethodInvocation oldInvocation = invocation.get();
+		//将当前MethodInvocation设置到线程本地变量中
 		invocation.set(mi);
 		try {
+			/*
+			 * 继续调用mi.proceed()
+			 * 这里的mi就是当前的ReflectiveMethodInvocation对象，也就是递归调用的逻辑
+			 * 下一次调用，将会调用第二个拦截器的invoke方法（如果存在）
+			 * 当最后一个拦截器执行完毕时，才会通过invokeJoinpoint()反射执行被代理的方法（目标方法）
+			 * 然后开始返回
+			 */
 			return mi.proceed();
-		}
-		finally {
+		} finally {
 			invocation.set(oldInvocation);
 		}
 	}

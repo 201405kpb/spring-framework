@@ -72,12 +72,16 @@ public abstract class TypeFilterUtils {
 	 */
 	public static List<TypeFilter> createTypeFiltersFor(AnnotationAttributes filterAttributes, Environment environment,
 			ResourceLoader resourceLoader, BeanDefinitionRegistry registry) {
-
+		//用于保存解析出来的类型过滤器
 		List<TypeFilter> typeFilters = new ArrayList<>();
+		//获取type属性值
 		FilterType filterType = filterAttributes.getEnum("type");
-
+		/*
+		 * 获取classes属性值，遍历
+		 */
 		for (Class<?> filterClass : filterAttributes.getClassArray("classes")) {
 			switch (filterType) {
+				//添加注解类型过滤器
 				case ANNOTATION -> {
 					Assert.isAssignable(Annotation.class, filterClass,
 							"@ComponentScan ANNOTATION type filter requires an annotation type");
@@ -85,7 +89,9 @@ public abstract class TypeFilterUtils {
 					Class<Annotation> annotationType = (Class<Annotation>) filterClass;
 					typeFilters.add(new AnnotationTypeFilter(annotationType));
 				}
+				//添加类或者接口的类型过滤器
 				case ASSIGNABLE_TYPE -> typeFilters.add(new AssignableTypeFilter(filterClass));
+				//添加自定义类型过滤器
 				case CUSTOM -> {
 					Assert.isAssignable(TypeFilter.class, filterClass,
 							"@ComponentScan CUSTOM type filter requires a TypeFilter implementation");
@@ -93,20 +99,27 @@ public abstract class TypeFilterUtils {
 							environment, resourceLoader, registry);
 					typeFilters.add(filter);
 				}
+				//其他类型的过滤器将抛出异常
 				default ->
 					throw new IllegalArgumentException("Filter type not supported with Class value: " + filterType);
 			}
 		}
 
+		/*
+		 * 获取pattern属性值，遍历
+		 */
 		for (String expression : filterAttributes.getStringArray("pattern")) {
 			switch (filterType) {
+				//创建一个AspectJTypeFilter，expression应该是一个AspectJ表达式，通过该表达式匹配类或者接口（及其子类、子接口）
 				case ASPECTJ -> typeFilters.add(new AspectJTypeFilter(expression, resourceLoader.getClassLoader()));
+				//创建一个RegexPatternTypeFilter，expression应该是一个正则表达式，通过该表达式匹配类或者接口（及其子类、子接口）
 				case REGEX -> typeFilters.add(new RegexPatternTypeFilter(Pattern.compile(expression)));
+				//其他类型的过滤器将抛出异常
 				default ->
 					throw new IllegalArgumentException("Filter type not supported with String pattern: " + filterType);
 			}
 		}
-
+		//返回解析出来的类型过滤器集合
 		return typeFilters;
 	}
 

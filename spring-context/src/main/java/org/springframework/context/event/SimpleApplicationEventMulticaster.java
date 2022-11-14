@@ -131,15 +131,32 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		multicastEvent(event, resolveDefaultEventType(event));
 	}
 
+	/**
+	 * 将给定的应用程序事件广播到到适当的监听器
+	 * @param event the event to multicast
+	 * @param eventType the type of event (can be {@code null})
+	 */
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+		//获取解析的类型，如果eventType为null那么将当前事件的class作为类型（通常用于本来就是ApplicationEvent类型的事件）
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+		//获取任务执行器，SimpleApplicationEventMulticaster可以指定一个事件任务执行器和一个异常处理器，用于实现异步事件
 		Executor executor = getTaskExecutor();
+		/*
+		 * 根据事件和事件类型获取可以支持该事件的监听器并依次进行调用，这里获取的监听器并不一定都会执行
+		 */
 		for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
 			if (executor != null) {
+				/*
+				 * 如果执行器不为null，那么通过执行器异步的执行监听器的调用，默认就是null
+				 */
 				executor.execute(() -> invokeListener(listener, event));
-			}
-			else {
+			} else {
+				/*
+				 * 否则，直接在调用线程中执行监听器的调用，这样的话，实际上发布事件和接收事件并处理的线程就是同一个线程
+				 * 许多开发者预期发布事件与接收事件并处理的操作是真正异步、解耦的，如果有这样的需求，则一定要注意这一点
+				 * 当前如果不在这里设置执行器，在监听器方法上使用@Async注解也能实现异步事件处理，这是很常用的！
+				 */
 				invokeListener(listener, event);
 			}
 		}
@@ -170,9 +187,16 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		}
 	}
 
+	/**
+	 * 真正的调用listener的方法
+	 * @param listener
+	 * @param event
+	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			//调用listener的onApplicationEvent方法传播事件，这个方法就是处理事件的方法，不同的ApplicationListener有不同的实现
+			//如果是ApplicationListenerMethodAdapter，即@EventListener方法监听器，那么首先会检验condition规则，只有符合规则才会真正的执行
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {

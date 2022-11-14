@@ -108,9 +108,12 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	 * @see #setWrappedInstance
 	 */
 	protected AbstractNestablePropertyAccessor(boolean registerDefaultEditors) {
+		//如果registerDefaultEditors为true，那么注册默认的Editor
 		if (registerDefaultEditors) {
+			//调用父类PropertyEditorRegistrySupport的方法
 			registerDefaultEditors();
 		}
+		//设置父类TypeConverterSupport的属性，用于将属性值转换为目标类型的内部帮助器类。
 		this.typeConverterDelegate = new TypeConverterDelegate(this);
 	}
 
@@ -249,32 +252,61 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 
 	@Override
 	public void setPropertyValue(PropertyValue pv) throws BeansException {
+
+		/*
+		 * 获取当前属性内部的PropertyTokenHolder，第一次注入时默认为null
+		 * PropertyTokenHolder主要用于保存属性的名称、路径，以及集合的索引等信息
+		 *
+		 * 如果某复合属性路径的最终目的是为集合或者数组的某个索引"直接赋值"或者为map的key的value赋值，即结尾是[ ]的形式
+		 * 那么内部的keys数组属性保存最后追踪的索引，其他情况下内部的keys属性为null
+		 */
 		PropertyTokenHolder tokens = (PropertyTokenHolder) pv.resolvedTokens;
+		//如果tokens为null，那么需要获取
 		if (tokens == null) {
+			//获取属性名
 			String propertyName = pv.getName();
 			AbstractNestablePropertyAccessor nestedPa;
 			try {
+				/*
+				 * 获取属性访问器。顾名思义，Spring通过属性访问器访问、操作属性的，类型为AbstractNestablePropertyAccessor
+				 * 它的特点是支持嵌套属性的赋值，比如为某个集合属性的某个索引赋值或者某个对象属性的属性赋值，可以解析特殊符号，比如"."、"[ ]"等
+				 * 这一点，我们在IoC学习的时候的"name复合属性名称注入"部分已经介绍如何使用了
+				 *
+				 * 如果不存在属性分隔符"."，默认就是返回当前的BeanWrapperImpl实例（不解析key中的路径分隔符，比如"map[my.key]"，算作没有）
+				 */
 				nestedPa = getPropertyAccessorForPropertyPath(propertyName);
-			}
-			catch (NotReadablePropertyException ex) {
+			} catch (NotReadablePropertyException ex) {
 				throw new NotWritablePropertyException(getRootClass(), this.nestedPath + propertyName,
 						"Nested property in path '" + propertyName + "' does not exist", ex);
 			}
+			//获取PropertyTokenHolder
 			tokens = getPropertyNameTokens(getFinalPath(nestedPa, propertyName));
+			//如果路径中没有属性分隔符"."，那么保存resolvedTokens属性
 			if (nestedPa == this) {
 				pv.getOriginalPropertyValue().resolvedTokens = tokens;
 			}
+			//委托属性访问器设置属性
 			nestedPa.setPropertyValue(tokens, pv);
-		}
-		else {
+		} else {
+			//如果tokens不为null，那么直接使用当前的bw设置属性
 			setPropertyValue(tokens, pv);
 		}
 	}
 
+
+	/**
+	 * 通过属性访问器设置属性
+	 *
+	 * @param tokens 当前属性的PropertyTokenHolder
+	 * @param pv     当前属性包装类
+	 */
 	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException {
+		//如果某复合属性路径的最终目的是为集合或者数组的某个索引"直接赋值"或者为map的key的value赋值，即结尾是[ ]的形式
+		//那么keys不为null，这种情况下的属性注入，调用processKeyedProperty方法，很少用到
 		if (tokens.keys != null) {
 			processKeyedProperty(tokens, pv);
 		}
+		//其他情况下的属性注入，调用processLocalProperty，一般都是这个逻辑
 		else {
 			processLocalProperty(tokens, pv);
 		}
@@ -413,40 +445,48 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		return propValue;
 	}
 
+	/**
+	 3. 一般情况下的属性setter注入
+	 */
 	private void processLocalProperty(PropertyTokenHolder tokens, PropertyValue pv) {
+		//获取属性处理器，用于反射获取、调用属性的getter和setter方法
 		PropertyHandler ph = getLocalPropertyHandler(tokens.actualName);
+		//不存在或者不可写
 		if (ph == null || !ph.isWritable()) {
+			//如果属性是Optional类型，则直接返回，其他情况下则抛出异常
 			if (pv.isOptional()) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Ignoring optional value for property '" + tokens.actualName +
 							"' - property not found on bean class [" + getRootClass().getName() + "]");
 				}
 				return;
+			} else {
+				throw createNotWritablePropertyException(tokens.canonicalName);
 			}
-			if (this.suppressNotWritablePropertyException) {
-				// Optimization for common ignoreUnknown=true scenario since the
-				// exception would be caught and swallowed higher up anyway...
-				return;
-			}
-			throw createNotWritablePropertyException(tokens.canonicalName);
 		}
 
 		Object oldValue = null;
 		try {
+			//获取原始属性值，对于在上面的applyPropertyValues方法中
+			//对于String的值还是TypedStringValue，并且isConverted为true，对于其他复杂类型，则是解析后的值，并且isConverted为false
 			Object originalValue = pv.getValue();
+			//转换后的值
 			Object valueToApply = originalValue;
+			//如果有转换的必要，第一次进来时conversionNecessary属性为null，所有都必要
 			if (!Boolean.FALSE.equals(pv.conversionNecessary)) {
+				//如果已转换
 				if (pv.isConverted()) {
+					//注解获取转换后的值
 					valueToApply = pv.getConvertedValue();
 				}
+				//如果需要转换，那么转换
 				else {
 					if (isExtractOldValueForEditor() && ph.isReadable()) {
 						try {
 							oldValue = ph.getValue();
-						}
-						catch (Exception ex) {
-							if (ex instanceof PrivilegedActionException pae) {
-								ex = pae.getException();
+						} catch (Exception ex) {
+							if (ex instanceof PrivilegedActionException) {
+								ex = ((PrivilegedActionException) ex).getException();
 							}
 							if (logger.isDebugEnabled()) {
 								logger.debug("Could not read previous value of property '" +
@@ -454,23 +494,23 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 							}
 						}
 					}
+					//转换类型，内部调用了convertIfNecessary方法
 					valueToApply = convertForProperty(
 							tokens.canonicalName, oldValue, originalValue, ph.toTypeDescriptor());
 				}
+				//最后判断转换后的值是否不等于转换前的值，并将结果设置为conversionNecessary属性的值
 				pv.getOriginalPropertyValue().conversionNecessary = (valueToApply != originalValue);
 			}
+			//最后通过ph反射调用setter方法设置值
 			ph.setValue(valueToApply);
-		}
-		catch (TypeMismatchException ex) {
+		} catch (TypeMismatchException ex) {
 			throw ex;
-		}
-		catch (InvocationTargetException ex) {
+		} catch (InvocationTargetException ex) {
 			PropertyChangeEvent propertyChangeEvent = new PropertyChangeEvent(
 					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
 			if (ex.getTargetException() instanceof ClassCastException) {
 				throw new TypeMismatchException(propertyChangeEvent, ph.getPropertyType(), ex.getTargetException());
-			}
-			else {
+			} else {
 				Throwable cause = ex.getTargetException();
 				if (cause instanceof UndeclaredThrowableException) {
 					// May happen e.g. with Groovy-generated methods
@@ -478,8 +518,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				}
 				throw new MethodInvocationException(propertyChangeEvent, cause);
 			}
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			PropertyChangeEvent pce = new PropertyChangeEvent(
 					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
 			throw new MethodInvocationException(pce, ex);

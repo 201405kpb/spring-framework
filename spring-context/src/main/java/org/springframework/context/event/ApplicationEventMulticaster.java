@@ -40,6 +40,7 @@ public interface ApplicationEventMulticaster {
 
 	/**
 	 * Add a listener to be notified of all events.
+	 * 添加监听器以接收所有的事件通知
 	 * @param listener the listener to add
 	 * @see #removeApplicationListener(ApplicationListener)
 	 * @see #removeApplicationListeners(Predicate)
@@ -48,6 +49,7 @@ public interface ApplicationEventMulticaster {
 
 	/**
 	 * Add a listener bean to be notified of all events.
+	 * 添加监听器以接收所有的事件通知，参数是监听器bean名称
 	 * @param listenerBeanName the name of the listener bean to add
 	 * @see #removeApplicationListenerBean(String)
 	 * @see #removeApplicationListenerBeans(Predicate)
@@ -56,6 +58,7 @@ public interface ApplicationEventMulticaster {
 
 	/**
 	 * Remove a listener from the notification list.
+	 * 从通知列表中删除监听器
 	 * @param listener the listener to remove
 	 * @see #addApplicationListener(ApplicationListener)
 	 * @see #removeApplicationListeners(Predicate)
@@ -64,6 +67,7 @@ public interface ApplicationEventMulticaster {
 
 	/**
 	 * Remove a listener bean from the notification list.
+	 * 从通知列表中删除监听器
 	 * @param listenerBeanName the name of the listener bean to remove
 	 * @see #addApplicationListenerBean(String)
 	 * @see #removeApplicationListenerBeans(Predicate)
@@ -102,6 +106,7 @@ public interface ApplicationEventMulticaster {
 	 * Remove all listeners registered with this multicaster.
 	 * <p>After a remove call, the multicaster will perform no action
 	 * on event notification until new listeners are registered.
+	 * * 删除注册到代理上的所有监听器，在remove调用之后，代理不会对事件通知执行任何操作直到有新的监听器注册
 	 * @see #removeApplicationListeners(Predicate)
 	 */
 	void removeAllListeners();
@@ -110,6 +115,7 @@ public interface ApplicationEventMulticaster {
 	 * Multicast the given application event to appropriate listeners.
 	 * <p>Consider using {@link #multicastEvent(ApplicationEvent, ResolvableType)}
 	 * if possible as it provides better support for generics-based events.
+	 * 将应用程序事件广播到对应的监听器上
 	 * @param event the event to multicast
 	 */
 	void multicastEvent(ApplicationEvent event);

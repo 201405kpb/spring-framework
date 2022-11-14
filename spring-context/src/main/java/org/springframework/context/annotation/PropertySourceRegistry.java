@@ -53,23 +53,31 @@ class PropertySourceRegistry {
 
 	/**
 	 * Process the given <code>@PropertySource</code> annotation metadata.
+	 * 处理给定的@PropertySource注解元数据
 	 * @param propertySource metadata for the <code>@PropertySource</code> annotation found
 	 * @throws IOException if loading a property source failed
 	 */
 	void processPropertySource(AnnotationAttributes propertySource) throws IOException {
+		//获取name属性，表示属性源的名称
 		String name = propertySource.getString("name");
 		if (!StringUtils.hasLength(name)) {
 			name = null;
 		}
+		//获取encoding属性，表示编码字符集
 		String encoding = propertySource.getString("encoding");
 		if (!StringUtils.hasLength(encoding)) {
 			encoding = null;
 		}
+		//获取本地配置文件的路径字符串数组，一个@PropertySource注解可以引入多个属性配置文件
 		String[] locations = propertySource.getStringArray("value");
+		//断言只有有一个文件路径
 		Assert.isTrue(locations.length > 0, "At least one @PropertySource(value) location is required");
+		//获取ignoreResourceNotFound属性的值，表示是否允许配置文件找不到
 		boolean ignoreResourceNotFound = propertySource.getBoolean("ignoreResourceNotFound");
 
+		//获取factory属性的值，也就是PropertySourceFactory的class，用来创建属性源，默认值就是PropertySourceFactory.class
 		Class<? extends PropertySourceFactory> factoryClass = propertySource.getClass("factory");
+		//获取PropertySourceFactory，用于创建属性源工厂
 		Class<? extends PropertySourceFactory> factorClassToUse =
 				(factoryClass != PropertySourceFactory.class ? factoryClass : null);
 		PropertySourceDescriptor descriptor = new PropertySourceDescriptor(Arrays.asList(locations), ignoreResourceNotFound, name,

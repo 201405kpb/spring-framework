@@ -59,10 +59,16 @@ public class CandidateComponentsIndex {
 
 	private static MultiValueMap<String, Entry> parseIndex(List<Properties> content) {
 		MultiValueMap<String, Entry> index = new LinkedMultiValueMap<>();
+		//遍历Properties
 		for (Properties entry : content) {
 			entry.forEach((type, values) -> {
+				//按照","拆分value为stereotypes数组
 				String[] stereotypes = ((String) values).split(",");
+				//遍历stereotypes数组
 				for (String stereotype : stereotypes) {
+					//将stereotype作为key，一个新Entry作为value加入到index映射中，这里的Entry是CandidateComponentsIndex的一个内部类
+					//注意，由于是LinkedMultiValueMap类型的映射，它非常特别，对于相同的key，它的value不会被替换，而是采用一个LinkedList将value都保存起来
+					//比如，如果有两个键值对，key都为a，value分别为b、c，那么添加两个键值对之后，map中仍然只有一个键值对，key为a，但是value是一个LinkedList，内部有两个值，即b和c
 					index.add(stereotype, new Entry((String) type));
 				}
 			});
@@ -73,19 +79,26 @@ public class CandidateComponentsIndex {
 
 	/**
 	 * Return the candidate types that are associated with the specified stereotype.
+	 * 返回满足条件的bean类型（全路径类名）
 	 * @param basePackage the package to check for candidates
 	 * @param stereotype the stereotype to use
 	 * @return the candidate types associated with the specified {@code stereotype}
 	 * or an empty set if none has been found for the specified {@code basePackage}
 	 */
 	public Set<String> getCandidateTypes(String basePackage, String stereotype) {
+		//获取使用指定注解或者类(接口)的全路径名的作为key的value集合
 		List<Entry> candidates = this.index.get(stereotype);
+		//如果candidates不为
 		if (candidates != null) {
+			//使用lambda的并行流处理，如果当前bean类型属于指定的包路径中，则表示满足条件，并且收集到set集合中
 			return candidates.parallelStream()
+					//匹配包路径
 					.filter(t -> t.match(basePackage))
+					//获取type，实际上就是文件的key，即bean组件的类的全路径类名
 					.map(t -> t.type)
 					.collect(Collectors.toSet());
 		}
+		//返回空集合
 		return Collections.emptySet();
 	}
 

@@ -96,7 +96,11 @@ public class AnnotationTypeFilter extends AbstractTypeHierarchyTraversingFilter 
 
 	@Override
 	protected boolean matchSelf(MetadataReader metadataReader) {
+		//获取注解元数据
 		AnnotationMetadata metadata = metadataReader.getAnnotationMetadata();
+		//check 注解及其派生注解中是否包含@Component
+		//获取当前类的注解 metadata.hasAnnotation    @Controller
+		//获取当前类的注解及其派生注解 metadata.hasAnnotation   @Controller包含的@Component\@Documented等等
 		return metadata.hasAnnotation(this.annotationType.getName()) ||
 				(this.considerMetaAnnotations && metadata.hasMetaAnnotation(this.annotationType.getName()));
 	}

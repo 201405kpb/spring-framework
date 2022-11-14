@@ -60,14 +60,29 @@ public class AspectJAroundAdvice extends AbstractAspectJAdvice implements Method
 		return true;
 	}
 
+	/**
+	 * 它和其他通知的较大区别就是，invoke方法内部并没有调用MethodInvocation的proceed()方法
+	 * 而是将MethodInvocation包装成为一个ProceedingJoinPoint，作为环绕通知的参数给使用者
+	 * 然后使用者在通知方法中可以调用ProceedingJoinPoint的proceed()方法，其内部还是调用被包装的
+	 * MethodInvocation的proceed()方法，这样就将递归调用正常延续了下去
+	 *
+	 * @param mi 当前ReflectiveMethodInvocation对象
+	 * @return 调用环绕通知的返回结果
+	 */
 	@Override
-	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		//如果不属于ProxyMethodInvocation，那么抛出异常
+		//ReflectiveMethodInvocation属于该类型
 		if (!(mi instanceof ProxyMethodInvocation pmi)) {
 			throw new IllegalStateException("MethodInvocation is not a Spring ProxyMethodInvocation: " + mi);
 		}
+		//将当前MethodInvocation封装成为一个ProceedingJoinPoint连接点
+		//ProceedingJoinPoint类型的连接点只能是环绕通知被使用，因为该连接点可以调用proceed()方法
+		//其内部还是调用被包装的MethodInvocation的proceed()方法，这样就将递归调用正常延续了下去
 		ProceedingJoinPoint pjp = lazyGetProceedingJoinPoint(pmi);
+		//获取当前jpMatch
 		JoinPointMatch jpm = getJoinPointMatch(pmi);
+		//调用invokeAdviceMethod方法，最终会调用invokeAdviceMethodWithGivenArgs方法
 		return invokeAdviceMethod(pjp, jpm, null, null);
 	}
 
@@ -76,9 +91,12 @@ public class AspectJAroundAdvice extends AbstractAspectJAdvice implements Method
 	 * instantiating it lazily if it hasn't been bound to the thread already.
 	 * @param rmi the current Spring AOP ReflectiveMethodInvocation,
 	 * which we'll use for attribute binding
+	 * 当前的ReflectiveMethodInvocation，将用于参数绑定
 	 * @return the ProceedingJoinPoint to make available to advice methods
+	 * 环绕通知的ProceedingJoinPoint参数
 	 */
 	protected ProceedingJoinPoint lazyGetProceedingJoinPoint(ProxyMethodInvocation rmi) {
+		//实际类型为MethodInvocationProceedingJoinPoint
 		return new MethodInvocationProceedingJoinPoint(rmi);
 	}
 

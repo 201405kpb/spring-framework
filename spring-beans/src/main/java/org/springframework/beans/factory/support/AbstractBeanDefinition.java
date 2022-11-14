@@ -282,6 +282,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Override settings in this bean definition (presumably a copied parent
 	 * from a parent-child inheritance relationship) from the given bean
 	 * definition (presumably the child).
+	 * 合并、覆盖bean定义
 	 * <ul>
 	 * <li>Will override beanClass if specified in the given bean definition.
 	 * <li>Will always take {@code abstract}, {@code scope},
@@ -295,61 +296,78 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * </ul>
 	 */
 	public void overrideFrom(BeanDefinition other) {
+		//1 覆盖beanClass属性，即XML的class属性
 		if (StringUtils.hasLength(other.getBeanClassName())) {
 			setBeanClassName(other.getBeanClassName());
 		}
+		//2 覆盖scope属性
 		if (StringUtils.hasLength(other.getScope())) {
 			setScope(other.getScope());
 		}
+		//3 覆盖scope属性abstract属性
 		setAbstract(other.isAbstract());
+		//4 覆盖factoryBeanName属性，即XML的factory-bean属性
 		if (StringUtils.hasLength(other.getFactoryBeanName())) {
 			setFactoryBeanName(other.getFactoryBeanName());
 		}
+		//5 覆盖factoryMethodName属性，即XML的factory-method属性
 		if (StringUtils.hasLength(other.getFactoryMethodName())) {
 			setFactoryMethodName(other.getFactoryMethodName());
 		}
+		//覆盖role属性，source属性、attributes属性
 		setRole(other.getRole());
 		setSource(other.getSource());
 		copyAttributesFrom(other);
 
-		if (other instanceof AbstractBeanDefinition otherAbd) {
+
+		if (other instanceof AbstractBeanDefinition) {
+			AbstractBeanDefinition otherAbd = (AbstractBeanDefinition) other;
+			//7 覆盖beanClass属性，就是通过全路径的className获取Class对象
 			if (otherAbd.hasBeanClass()) {
 				setBeanClass(otherAbd.getBeanClass());
 			}
+			//覆盖全部的自己设置了值的同名<constructor-arg>标签属性
 			if (otherAbd.hasConstructorArgumentValues()) {
 				getConstructorArgumentValues().addArgumentValues(other.getConstructorArgumentValues());
 			}
+			//覆盖全部的自己设置了值的同名<property>标签属性
 			if (otherAbd.hasPropertyValues()) {
 				getPropertyValues().addPropertyValues(other.getPropertyValues());
 			}
+			//覆盖全部的自己设置了值的同名<lookup-method>、<replaced-method>标签属性
 			if (otherAbd.hasMethodOverrides()) {
 				getMethodOverrides().addOverrides(otherAbd.getMethodOverrides());
 			}
+			//覆盖lazyInit属性，即XML的lazy-init属性
 			Boolean lazyInit = otherAbd.getLazyInit();
 			if (lazyInit != null) {
 				setLazyInit(lazyInit);
 			}
+			//覆盖autowire属性，即XML的autowire属性
 			setAutowireMode(otherAbd.getAutowireMode());
 			setDependencyCheck(otherAbd.getDependencyCheck());
+			//覆盖dependsOn属性，即XML的depends-on属性
 			setDependsOn(otherAbd.getDependsOn());
+			//覆盖autowireCandidate属性，即XML的autowire-candidate属性
 			setAutowireCandidate(otherAbd.isAutowireCandidate());
+			//覆盖primary属性，即XML的primary属性
 			setPrimary(otherAbd.isPrimary());
+			//覆盖qualifier属性
 			copyQualifiersFrom(otherAbd);
 			setInstanceSupplier(otherAbd.getInstanceSupplier());
 			setNonPublicAccessAllowed(otherAbd.isNonPublicAccessAllowed());
 			setLenientConstructorResolution(otherAbd.isLenientConstructorResolution());
-			if (otherAbd.getInitMethodNames() != null) {
-				setInitMethodNames(otherAbd.getInitMethodNames());
+			if (otherAbd.getInitMethodName() != null) {
+				setInitMethodName(otherAbd.getInitMethodName());
 				setEnforceInitMethod(otherAbd.isEnforceInitMethod());
 			}
-			if (otherAbd.getDestroyMethodNames() != null) {
-				setDestroyMethodNames(otherAbd.getDestroyMethodNames());
+			if (otherAbd.getDestroyMethodName() != null) {
+				setDestroyMethodName(otherAbd.getDestroyMethodName());
 				setEnforceDestroyMethod(otherAbd.isEnforceDestroyMethod());
 			}
 			setSynthetic(otherAbd.isSynthetic());
 			setResource(otherAbd.getResource());
-		}
-		else {
+		} else {
 			getConstructorArgumentValues().addArgumentValues(other.getConstructorArgumentValues());
 			getPropertyValues().addPropertyValues(other.getPropertyValues());
 			setLazyInit(other.isLazyInit());
@@ -357,21 +375,32 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		}
 	}
 
+
+
 	/**
 	 * Apply the provided default values to this bean.
+	 * 将提供的默认值应用于此 bean。
 	 * @param defaults the default settings to apply
 	 * @since 2.5
 	 */
 	public void applyDefaults(BeanDefinitionDefaults defaults) {
+		//lazyInit属性
 		Boolean lazyInit = defaults.getLazyInit();
 		if (lazyInit != null) {
 			setLazyInit(lazyInit);
 		}
+		//设置autowire属性模式
 		setAutowireMode(defaults.getAutowireMode());
+		//设置dependencyCheck属性，表示属性强制检查，就是XML的dependency-check属性
+		//然而这个属性早在spring3.0的时候就被废弃了，代替它的就是构造器注入或者@Required
 		setDependencyCheck(defaults.getDependencyCheck());
+		//设置initMethodName属性，就是XML的init-method属性
 		setInitMethodName(defaults.getInitMethodName());
+		//设置enforceInitMethod属性为false，表示是否强制init方法不能为null，默认true
 		setEnforceInitMethod(false);
+		//设置destroyMethodName属性，就是XML的destroy-method属性
 		setDestroyMethodName(defaults.getDestroyMethodName());
+		//设置enforceDestroyMethod属性为false，表示是否强制destroy方法不能为null，默认true
 		setEnforceDestroyMethod(false);
 	}
 
@@ -594,24 +623,30 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	/**
 	 * Return the resolved autowire code,
 	 * (resolving AUTOWIRE_AUTODETECT to AUTOWIRE_CONSTRUCTOR or AUTOWIRE_BY_TYPE).
+	 * 返回已解析的自动装配类型
 	 * @see #AUTOWIRE_AUTODETECT
 	 * @see #AUTOWIRE_CONSTRUCTOR
 	 * @see #AUTOWIRE_BY_TYPE
 	 */
 	public int getResolvedAutowireMode() {
+		//是否是自动选择注入模式，Spring 3.0开始，不推荐使用该模式，而是使用注解的方式
 		if (this.autowireMode == AUTOWIRE_AUTODETECT) {
 			// Work out whether to apply setter autowiring or constructor autowiring.
 			// If it has a no-arg constructor it's deemed to be setter autowiring,
 			// otherwise we'll try constructor autowiring.
+			//如果它有无参构造器，则byType自动注入，否则将尝试构造器自动注入(constructor)。
 			Constructor<?>[] constructors = getBeanClass().getConstructors();
 			for (Constructor<?> constructor : constructors) {
+				//如果存在无参构造器，那么使用byType自动注入
 				if (constructor.getParameterCount() == 0) {
 					return AUTOWIRE_BY_TYPE;
 				}
 			}
+			//否则使用constructor自动注入
 			return AUTOWIRE_CONSTRUCTOR;
 		}
 		else {
+			//如果指定了自动注入的类型，那么就返回指定的类型，默认不自动注入
 			return this.autowireMode;
 		}
 	}
@@ -1157,10 +1192,12 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	/**
 	 * Validate and prepare the method overrides defined for this bean.
 	 * Checks for existence of a method with the specified name.
+	 * 验证并准备为此 bean 定义的方法重写。检查是否存在具有指定名称的方法。
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	public void prepareMethodOverrides() throws BeanDefinitionValidationException {
 		// Check that lookup methods exist and determine their overloaded status.
+		//检查是否存在查找方法并确定其重载状态
 		if (hasMethodOverrides()) {
 			getMethodOverrides().getOverrides().forEach(this::prepareMethodOverride);
 		}
@@ -1170,16 +1207,21 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Validate and prepare the given method override.
 	 * Checks for existence of a method with the specified name,
 	 * marking it as not overloaded if none found.
-	 * @param mo the MethodOverride object to validate
+	 * 验证并准备给定的方法重写。
+	 * 检查具有指定名称的方法是否存在，以及如果找到一个同名方法，则将该方法标记为未重载来避免参数检查的开销。
+	 * @param mo the MethodOverride object to validate 要验证的MethodOverride对象
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	protected void prepareMethodOverride(MethodOverride mo) throws BeanDefinitionValidationException {
+		//在当前Class中获取具有给定方法名的方法的数量
 		int count = ClassUtils.getMethodCountForName(getBeanClass(), mo.getMethodName());
 		if (count == 0) {
 			throw new BeanDefinitionValidationException(
 					"Invalid method override: no method with name '" + mo.getMethodName() +
 					"' on class [" + getBeanClassName() + "]");
 		}
+		//如果数量为0，那么将当前MethodOverride对象的overloaded属性设置为false
+		//表示不存在重载方法，用来避免后续的参数类型检查的开销
 		else if (count == 1) {
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
 			mo.setOverloaded(false);

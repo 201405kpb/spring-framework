@@ -48,34 +48,73 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 	private static final Advice EMPTY_ADVICE = new Advice() {};
 
 
+	/**
+	 * 切入点
+	 */
 	private final AspectJExpressionPointcut declaredPointcut;
 
+	/**
+	 * 切面类class
+	 */
 	private final Class<?> declaringClass;
 
+	/**
+	 * 通知方法名
+	 */
 	private final String methodName;
 
+	/**
+	 * 参数类型数组
+	 */
 	private final Class<?>[] parameterTypes;
 
+	/**
+	 * 通知方法
+	 */
 	private transient Method aspectJAdviceMethod;
 
+	/**
+	 * 当前ReflectiveAspectJAdvisorFactory工厂对象
+	 */
 	private final AspectJAdvisorFactory aspectJAdvisorFactory;
 
+	/**
+	 * 切面类实例工厂，用于获取切面类实例单例
+	 */
 	private final MetadataAwareAspectInstanceFactory aspectInstanceFactory;
 
+	/**
+	 *  声明的顺序，目前Spring 5.2.8版本都是固定0
+	 */
 	private final int declarationOrder;
 
+	/**
+	 * 切面名，就是beanName
+	 */
 	private final String aspectName;
 
+	/**
+	 * 切入点
+	 */
 	private final Pointcut pointcut;
 
+	/**
+	 * 是否配置了懒加载，默认false
+	 */
 	private final boolean lazy;
 
 	@Nullable
 	private Advice instantiatedAdvice;
 
+	/**
+	 * 是否为 BeforeAdvice
+	 */
 	@Nullable
 	private Boolean isBeforeAdvice;
 
+	/**
+	 * 是否为 AfterAdvice
+	 */
 	@Nullable
 	private Boolean isAfterAdvice;
 
@@ -93,7 +132,7 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 		this.aspectInstanceFactory = aspectInstanceFactory;
 		this.declarationOrder = declarationOrder;
 		this.aspectName = aspectName;
-
+		//切面是否配置了懒加载，一般没有
 		if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// Static part of the pointcut is a lazy type.
 			Pointcut preInstantiationPointcut = Pointcuts.union(
@@ -106,6 +145,7 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 					this.declaredPointcut, preInstantiationPointcut, aspectInstanceFactory);
 			this.lazy = true;
 		}
+		//这是大部分切面类的配置，即单例
 		else {
 			// A singleton aspect.
 			this.pointcut = this.declaredPointcut;

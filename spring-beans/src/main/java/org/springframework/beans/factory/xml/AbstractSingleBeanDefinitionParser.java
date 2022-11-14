@@ -51,6 +51,8 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 	 * Creates a {@link BeanDefinitionBuilder} instance for the
 	 * {@link #getBeanClass bean Class} and passes it to the
 	 * {@link #doParse} strategy method.
+	 * 通过BeanDefinitionBuilder以及标签元素的各种属性构建一个GenericBeanDefinition的骨干实现
+	 * 不同标签的自有属性的解析是通过内部的doParse方法解析的，这个方法由具体的解析器子类实现
 	 * @param element the element that is to be parsed into a single BeanDefinition
 	 * @param parserContext the object encapsulating the current state of the parsing process
 	 * @return the BeanDefinition resulting from the parsing of the supplied {@link Element}
@@ -60,32 +62,45 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 	 */
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		//获取一个builder
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+		//获取element的parentName属性，默认返回null，子类PropertyPlaceholderBeanDefinitionParser没有重写
 		String parentName = getParentName(element);
 		if (parentName != null) {
 			builder.getRawBeanDefinition().setParentName(parentName);
 		}
+		/*
+		 * 获取element的Class，默认返回null，子类PropertyPlaceholderBeanDefinitionParser重写了该方法
+		 * 默认返回PropertySourcesPlaceholderConfigurer.class
+		 */
 		Class<?> beanClass = getBeanClass(element);
 		if (beanClass != null) {
 			builder.getRawBeanDefinition().setBeanClass(beanClass);
-		}
-		else {
+		} else {
 			String beanClassName = getBeanClassName(element);
 			if (beanClassName != null) {
 				builder.getRawBeanDefinition().setBeanClassName(beanClassName);
 			}
 		}
+		//设置源
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
+		//内部bean设置为和外部bean的相同的scope作用域属性
 		BeanDefinition containingBd = parserContext.getContainingBeanDefinition();
 		if (containingBd != null) {
 			// Inner bean definition must receive same scope as containing bean.
 			builder.setScope(containingBd.getScope());
 		}
+		//判断< beans/>的default-lazy-init属性，即是否延迟初始化
 		if (parserContext.isDefaultLazyInit()) {
 			// Default-lazy-init applies to custom bean definitions as well.
 			builder.setLazyInit(true);
 		}
+		/*
+		 * 调用doParse方法继续解析
+		 * 不同标签的自有属性的解析是通过内部的doParse方法解析的，这个方法由具体的解析器子类实现
+		 */
 		doParse(element, parserContext, builder);
+		//构建一个GenericBeanDefinition
 		return builder.getBeanDefinition();
 	}
 

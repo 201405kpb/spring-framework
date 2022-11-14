@@ -74,70 +74,117 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 
 	private final Map<String, Set<String>> metaAnnotationTypesCache = new ConcurrentHashMap<>();
 
-
+	/**
+	 * 支持@Component以及它所有的派生注解，以及JavaEE的javax.annotation.@ManagedBean、以及JSR 330的javax.inject.@Named注解
+	 * 从注解中获取设置的beanName，如果没有设置，则使用Spring自己的规则生成beanName
+	 */
 	@Override
 	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+		//如果definition属于AnnotatedBeanDefinition，一般都是这个逻辑
 		if (definition instanceof AnnotatedBeanDefinition) {
+			//从类上的注解中查找指定的 beanName，就是看有没有设置注解的value属性值
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
 				return beanName;
 			}
 		}
-		// Fallback: generate a unique default bean name.
+		//否则自动生成唯一的默认 bean 名称。
 		return buildDefaultBeanName(definition, registry);
 	}
 
 	/**
 	 * Derive a bean name from one of the annotations on the class.
+	 * 从类上的符合条件的注解中查找指定的 beanName
+	 * 支持@Component以及它所有的派生注解，以及JavaEE的javax.annotation.@ManagedBean、以及JSR 330的javax.inject.@Named注解
 	 * @param annotatedDef the annotation-aware bean definition
 	 * @return the bean name, or {@code null} if none is found
 	 */
 	@Nullable
 	protected String determineBeanNameFromAnnotation(AnnotatedBeanDefinition annotatedDef) {
+		//获取此 bean 定义的 bean 类的注解元数据
 		AnnotationMetadata amd = annotatedDef.getMetadata();
+		//获取该类上的全部注解的全路径名称集合
 		Set<String> types = amd.getAnnotationTypes();
+		//保存获取到的beanName，以及用于多个beanName的唯一性校验
 		String beanName = null;
+		/*遍历所有注解，获取beanName，并进行beanName唯一性校验*/
 		for (String type : types) {
+			//返回一个包含该注解的全部属性的映射实例，属性名 -> 属性值
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(amd, type);
 			if (attributes != null) {
+				//设置 注解全路径名称 -> 注解上的元注解全路径名集合 的map缓存
 				Set<String> metaTypes = this.metaAnnotationTypesCache.computeIfAbsent(type, key -> {
+					/*
+					 * 获取该注解上的除了四个元注解之外的元注解集合
+					 * 比如@Service获取到的就是[org.springframework.stereotype.Component,org.springframework.stereotype.Indexed]
+					 * 比如@Component获取到的就是[org.springframework.stereotype.Indexed]
+					 * 比如@Description获取到的就是[]
+					 */
 					Set<String> result = amd.getMetaAnnotationTypes(key);
+					//如果是空的，那么存入空集合
 					return (result.isEmpty() ? Collections.emptySet() : result);
 				});
+				/*
+				 * 当前注解是否有资格作为获取组件名称的候选注解
+				 */
 				if (isStereotypeWithNameValue(type, metaTypes, attributes)) {
+					//如果有资格，那么获取value属性的值
 					Object value = attributes.get("value");
-					if (value instanceof String strVal) {
+					//如果是String类型
+					if (value instanceof String) {
+						String strVal = (String) value;
+						//如果不为空
 						if (StringUtils.hasLength(strVal)) {
+							//如果beanName不为null，并且此前的beanName和刚获取的beanName不相等，那么抛出异常
+							//即，如果设置了多个beanName，那么必须相等
 							if (beanName != null && !strVal.equals(beanName)) {
 								throw new IllegalStateException("Stereotype annotations suggest inconsistent " +
 										"component names: '" + beanName + "' versus '" + strVal + "'");
 							}
+							//beanName保存strVal
 							beanName = strVal;
 						}
 					}
 				}
 			}
 		}
+		//返回beanName
 		return beanName;
 	}
 
 	/**
 	 * Check whether the given annotation is a stereotype that is allowed
 	 * to suggest a component name through its annotation {@code value()}.
+	 * 检查给定注解是否有资格作为获取组件名称的候选注解
 	 * @param annotationType the name of the annotation class to check
 	 * @param metaAnnotationTypes the names of meta-annotations on the given annotation
 	 * @param attributes the map of attributes for the given annotation
 	 * @return whether the annotation qualifies as a stereotype with component name
 	 */
 	protected boolean isStereotypeWithNameValue(String annotationType,
-			Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
-
+												Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
+		/*
+		 * 判断isStereotype：
+		 *  1 annotationType注解类型是否是"org.springframework.stereotype.Component"，即是否是@Component注解
+		 *  2 或者metaAnnotationTypes注解上的元注解类型集合中是否包含"org.springframework.stereotype.Component"，即当前注解是否将@Component注解当成元注解
+		 *  3 或者annotationType注解类型是否是"javax.annotation.ManagedBean"，即是否是JavaEE的@ManagedBean注解
+		 *  4 或者annotationType注解类型是否是"javax.inject.Named"，即是否是JSR 330的@Named注解
+		 *
+		 * 以上条件满足一个，isStereotype即为true
+		 */
 		boolean isStereotype = annotationType.equals(COMPONENT_ANNOTATION_CLASSNAME) ||
 				metaAnnotationTypes.contains(COMPONENT_ANNOTATION_CLASSNAME) ||
-				annotationType.equals("jakarta.annotation.ManagedBean") ||
-				annotationType.equals("jakarta.inject.Named");
-
+				annotationType.equals("javax.annotation.ManagedBean") ||
+				annotationType.equals("javax.inject.Named");
+		/*
+		 * 继续判断：
+		 *  1 如果isStereotype为true
+		 *  2 并且给定注解的属性映射集合attributes不为null
+		 *  3 并且给定注解的属性映射集合attributes中具有value属性
+		 *
+		 *  以上条件都满足，那么给定注解就有资格作为获取组件名称的候选注解
+		 */
 		return (isStereotype && attributes != null && attributes.containsKey("value"));
 	}
 

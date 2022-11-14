@@ -47,6 +47,7 @@ public interface SmartFactoryBean<T> extends FactoryBean<T> {
 	 * <p>The prototype status of the FactoryBean itself will generally
 	 * be provided by the owning {@link BeanFactory}; usually, it has to be
 	 * defined as singleton there.
+	 *
 	 * <p>This method is supposed to strictly check for independent instances;
 	 * it should not return {@code true} for scoped objects or other
 	 * kinds of non-singleton, non-independent objects. For this reason,

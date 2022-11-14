@@ -56,6 +56,11 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 		return false;
 	}
 
+	/**
+	 * 将指定的属性检索为原始字符串，即不解析嵌套占位符
+	 * @param key the property name to resolve 占位符
+	 * @return 解析结果
+	 */
 	@Override
 	@Nullable
 	public String getProperty(String key) {
@@ -74,27 +79,47 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 		return getProperty(key, String.class, false);
 	}
 
+	/**
+	 * 通过key获取属性值
+	 *
+	 * @param key                       占位符变量，即属性key
+	 * @param targetValueType           返回值类型
+	 * @param resolveNestedPlaceholders 是否解析嵌套占位符
+	 * @return 解析后的值
+	 */
 	@Nullable
 	protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
+		//如果属性源不为null，在调用getEnvironment方法获取环境对象的时候propertySources就被初始化了，肯定是不为null的
+		//并且还通过customizePropertySources方法被设置了系统(systemEnvironment)和JVM(systemProperties)属性源
 		if (this.propertySources != null) {
+			//propertySources实现了Iterable，是一个可迭代的对象，相当于一个列表
+			//每一个列表元素代表一个属性源，这个属性源就相当于一个map，存放的是属性键值对
 			for (PropertySource<?> propertySource : this.propertySources) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Searching for key '" + key + "' in PropertySource '" +
 							propertySource.getName() + "'");
 				}
+				//获取属性源里key对应的value
 				Object value = propertySource.getProperty(key);
+				//选用第一个不为null的匹配key的属性值
 				if (value != null) {
-					if (resolveNestedPlaceholders && value instanceof String string) {
-						value = resolveNestedPlaceholders(string);
+					//如果需要递归解析value中的嵌套占位符比如${}，并且value属于String类型
+					if (resolveNestedPlaceholders && value instanceof String) {
+						//那么递归解析
+						value = resolveNestedPlaceholders((String) value);
 					}
+					//记录日志
 					logKeyFound(key, propertySource, value);
+					//调用父类AbstractPropertyResolver中的方法：如有必要，将给定值转换为指定的目标类型并返回
 					return convertValueIfNecessary(value, targetValueType);
 				}
 			}
 		}
+		//记录日志
 		if (logger.isTraceEnabled()) {
 			logger.trace("Could not find key '" + key + "' in any property source");
 		}
+		//propertySources为null，那么直接返回null，因为没有任何属性源
 		return null;
 	}
 

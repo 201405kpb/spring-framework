@@ -50,6 +50,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * {@link GenericApplicationListener} adapter that delegates the processing of
@@ -221,19 +222,25 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 	/**
 	 * Process the specified {@link ApplicationEvent}, checking if the condition
 	 * matches and handling a non-null result, if any.
+	 * 处理指定的应用程序事件，检查condition条件是否匹配并处理非空结果（如果有）。
 	 */
 	public void processEvent(ApplicationEvent event) {
+		//根据事件解析出调用方法需要传递的参数，如果为null，那么不会调用对应的@EventListener方法
 		Object[] args = resolveArguments(event);
+		//是否应该执行对应的@EventListener方法
 		if (shouldHandle(event, args)) {
+			//根据给定的参数执行对应的方法，获取方法的执行结果
 			Object result = doInvoke(args);
+			//如果返回值不为null，那么继续处理结果，会把结果作为事件继续发布
+			//直到返回null，这也是@EventListener方法的特性
 			if (result != null) {
 				handleResult(result);
-			}
-			else {
+			} else {
 				logger.trace("No result object given - no result to handle");
 			}
 		}
 	}
+
 
 	/**
 	 * Resolve the method arguments to use for the specified {@link ApplicationEvent}.
@@ -261,13 +268,19 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 		return new Object[] {event};
 	}
 
+	/**
+	 * 处理@EventListener方法的返回值
+	 * @param result
+	 */
 	@SuppressWarnings({ "deprecation", "unchecked" })
 	protected void handleResult(Object result) {
+		//判断引入了响应式的类一般是没有引入的
 		if (reactiveStreamsPresent && new ReactiveResultHandler().subscribeToPublisher(result)) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Adapted to reactive result: " + result);
 			}
 		}
+		//判断是否是CompletionStage类型，该结果用于异步计算，一般不是
 		else if (result instanceof CompletionStage<?> completionStage) {
 			completionStage.whenComplete((event, ex) -> {
 				if (ex != null) {
@@ -278,6 +291,7 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 				}
 			});
 		}
+		//判断是否是ListenableFuture类型，如果是，那么执行回调
 		else if (result instanceof org.springframework.util.concurrent.ListenableFuture<?> listenableFuture) {
 			listenableFuture.addCallback(this::publishEvents, this::handleAsyncError);
 		}
@@ -286,26 +300,38 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 		}
 	}
 
+	/**
+	 * 处理普通返回值
+	 */
 	private void publishEvents(Object result) {
+		//如果是数组类型
 		if (result.getClass().isArray()) {
+			//那么将每一个元素作为一个事件依次发布
 			Object[] events = ObjectUtils.toObjectArray(result);
 			for (Object event : events) {
 				publishEvent(event);
 			}
 		}
+		//如果是Collection类型
 		else if (result instanceof Collection<?> events) {
+			//那么将每一个元素作为一个事件依次发布
 			for (Object event : events) {
 				publishEvent(event);
 			}
-		}
-		else {
+		} else {
+			//如果是其它类型，那么将返回值作为事件直接发布
 			publishEvent(result);
 		}
 	}
 
+	/**
+	 * 发布事件
+	 */
 	private void publishEvent(@Nullable Object event) {
+		//要求事件不为null
 		if (event != null) {
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
+			//发布事件
 			this.applicationContext.publishEvent(event);
 		}
 	}
@@ -314,16 +340,29 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 		logger.error("Unexpected error occurred in asynchronous listener", t);
 	}
 
+	/**
+	 * 是否应该执行@EventListener方法
+	 * 如果设置了@EventListener的condition条件属性，那么判断是否匹配条件，如果匹配那么返回true，否则返回false
+	 *
+	 * @param event 事件
+	 * @param args  方法参数
+	 * @return true表示应该执行，false表示不应该执行
+	 */
 	private boolean shouldHandle(ApplicationEvent event, @Nullable Object[] args) {
+		//如果方法参数为null，则返回false，即不执行
 		if (args == null) {
 			return false;
 		}
+		//获取@EventListener的condition条件属性
 		String condition = getCondition();
+		//如果设置了该属性的值
 		if (StringUtils.hasText(condition)) {
 			Assert.notNull(this.evaluator, "EventExpressionEvaluator must not be null");
+			//那么判断是否匹配条件，如果匹配那么返回true，否则返回false
 			return this.evaluator.condition(
 					condition, event, this.targetMethod, this.methodKey, args, this.applicationContext);
 		}
+		//默认返回true
 		return true;
 	}
 

@@ -39,8 +39,19 @@ public class AspectJMethodBeforeAdvice extends AbstractAspectJAdvice implements 
 	}
 
 
+	/**
+	 * 调用前置通知
+	 *
+	 * @param method 目标方法
+	 * @param args   方法参数
+	 * @param target 目标对象
+	 */
 	@Override
 	public void before(Method method, Object[] args, @Nullable Object target) throws Throwable {
+		//内部调用的invokeAdviceMethod方法
+		//getJoinPointMatch用于获取当前连接点匹配结果，用于通知方法的参数匹配和传递，一般都是null
+		//如果expression中配置了args()的PCD并且需要通知方法需要传递参数，那么JoinPointMatch不为null
+		//如果有其他能够传参的PCD，那么jpMatch也不会为null，比如@annotation()的PCD就能传递方法上的注解作为参数
 		invokeAdviceMethod(getJoinPointMatch(), null, null);
 	}
 

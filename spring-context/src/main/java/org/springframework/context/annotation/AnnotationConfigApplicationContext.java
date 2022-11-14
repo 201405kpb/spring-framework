@@ -55,19 +55,29 @@ import org.springframework.util.Assert;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
+	/**
+	 * 注解Bean定义读取器
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
+	/**
+	 * 类路径Bean定义扫描器
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
 	/**
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 *  默认构造函数，初始化一个空容器，容器不包含任何 Bean 信息，需要在稍后通过调用其register()
+	 * 	方法注册配置类，并调用refresh()方法刷新容器，触发容器对注解Bean的载入、解析和注册过程
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// BeanDefinition解析器用来解析带注解的bean
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// bean的扫描器 用来扫描类
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -86,10 +96,14 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * from the given component classes and automatically refreshing the context.
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
+	 * 最常用的构造函数，通过将涉及到的配置类传递给该构造函数，以实现将相应配置类中的Bean自动注册到容器中
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		//调用无参构造函数，初始化AnnotatedBeanDefinitionReader 和 ClassPathBeanDefinitionScanner
 		this();
+		//注册解析传入的配置类
 		register(componentClasses);
+		//调用容器的refresh方法初始化容器
 		refresh();
 	}
 
@@ -99,9 +113,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * and automatically refreshing the context.
 	 * @param basePackages the packages to scan for component classes
 	 */
+	//该构造函数会自动扫描以给定的包及其子包下的所有类，并自动识别所有的Spring Bean，将其注册到容器中
 	public AnnotationConfigApplicationContext(String... basePackages) {
+		//调用无参构造函数，初始化AnnotatedBeanDefinitionReader 和 ClassPathBeanDefinitionScanner
 		this();
+		//扫描包、注册bean
 		scan(basePackages);
+		//调用容器的refresh方法初始化容器
 		refresh();
 	}
 
@@ -155,6 +173,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * Register one or more component classes to be processed.
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.
+	 * 注册要处理的一个或多个组件类。请注意，必须调用refresh方法才能使上下文完全处理新的类。
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
 	 * @see #scan(String...)
@@ -165,6 +184,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
+		//通过AnnotatedBeanDefinitionReader注册组件类
 		this.reader.register(componentClasses);
 		registerComponentClass.end();
 	}
@@ -173,6 +193,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * Perform a scan within the specified base packages.
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.
+	 * 调用类路径Bean定义扫描器入口方法
 	 * @param basePackages the packages to scan for component classes
 	 * @see #register(Class...)
 	 * @see #refresh()
@@ -191,6 +212,16 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	// Adapt superclass registerBean calls to AnnotatedBeanDefinitionReader
 	//---------------------------------------------------------------------
 
+	/**
+	 * 注册要处理的一个或多个组件类。注册是幂等的，多次添加同一组件类没有其他效果
+	 * @param beanName the name of the bean (may be {@code null})
+	 * @param beanClass the class of the bean
+	 * @param supplier a callback for creating an instance of the bean (in case
+	 * of {@code null}, resolving a public constructor to be autowired instead)
+	 * @param customizers one or more callbacks for customizing the factory's
+	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
+	 * @param <T>
+	 */
 	@Override
 	public <T> void registerBean(@Nullable String beanName, Class<T> beanClass,
 			@Nullable Supplier<T> supplier, BeanDefinitionCustomizer... customizers) {

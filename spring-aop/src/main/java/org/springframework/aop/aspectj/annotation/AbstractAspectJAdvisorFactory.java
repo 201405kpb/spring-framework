@@ -74,12 +74,19 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	 * if it has the @Aspect annotation, and was not compiled by ajc. The reason for this latter test
 	 * is that aspects written in the code-style (AspectJ language) also have the annotation present
 	 * when compiled by ajc with the -1.5 flag, yet they cannot be consumed by Spring AOP.
+	 * 是否是Aspect切面组件类，即类上是否标注了@Aspect注解
 	 */
 	@Override
 	public boolean isAspect(Class<?> clazz) {
+		//如果类上具有@Aspect注解，并且不是通过AspectJ编译器（ajc）编译的源码
 		return (hasAspectAnnotation(clazz) && !compiledByAjc(clazz));
 	}
 
+	/**
+	 * 类上是否具有@Aspect注解
+	 * @param clazz
+	 * @return
+	 */
 	private boolean hasAspectAnnotation(Class<?> clazz) {
 		return (AnnotationUtils.findAnnotation(clazz, Aspect.class) != null);
 	}
@@ -87,12 +94,15 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	/**
 	 * We need to detect this as "code-style" AspectJ aspects should not be
 	 * interpreted by Spring AOP.
+	 * AJC编译器的编译后的字段特征，将会加上"ajc$"前缀
 	 */
 	private boolean compiledByAjc(Class<?> clazz) {
 		// The AJTypeSystem goes to great lengths to provide a uniform appearance between code-style and
 		// annotation-style aspects. Therefore there is no 'clean' way to tell them apart. Here we rely on
 		// an implementation detail of the AspectJ compiler.
+		//通过判断字段名是否被修改为"ajc$"，来判断是否使用了AspectJ编译器（AJC）
 		for (Field field : clazz.getDeclaredFields()) {
+			//如果有一个字段名以"ajc$"为前缀，那么就算采用AJC编译器
 			if (field.getName().startsWith(AJC_MAGIC)) {
 				return true;
 			}
@@ -100,24 +110,34 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		return false;
 	}
 
+	/**
+	 * 校验切面类
+	 * @param aspectClass 切面类的类型
+	 */
 	@Override
 	public void validate(Class<?> aspectClass) throws AopConfigException {
-		// If the parent has the annotation and isn't abstract it's an error
-		Class<?> superclass = aspectClass.getSuperclass();
-		if (superclass.getAnnotation(Aspect.class) != null &&
-				!Modifier.isAbstract(superclass.getModifiers())) {
+		// 如果父类具有@Aspect注解且不是抽象的，则抛出异常："cannot extend concrete aspect"
+		if (aspectClass.getSuperclass().getAnnotation(Aspect.class) != null &&
+				!Modifier.isAbstract(aspectClass.getSuperclass().getModifiers())) {
 			throw new AopConfigException("[" + aspectClass.getName() + "] cannot extend concrete aspect [" +
-					superclass.getName() + "]");
+					aspectClass.getSuperclass().getName() + "]");
 		}
-
+		/*
+		 * 获取当前切面类的AjType，即返回给定 Java 类型的 AspectJ 运行时类型表示形式
+		 * AjType是AspectJ程序中切面类的运行时表示形式，区别于 java.lang.class，
+		 * 可以获取从中获取理解切入点、通知、declare和其他 AspectJ 类型的成员
+		 */
 		AjType<?> ajType = AjTypeSystem.getAjType(aspectClass);
+		//如果不是切面类，抛出异常
 		if (!ajType.isAspect()) {
 			throw new NotAnAtAspectException(aspectClass);
 		}
+		//如果切面类的生命周期，即@Aspect注解的value属性值被设置为"percflow()"，那么抛出异常
 		if (ajType.getPerClause().getKind() == PerClauseKind.PERCFLOW) {
 			throw new AopConfigException(aspectClass.getName() + " uses percflow instantiation model: " +
 					"This is not supported in Spring AOP.");
 		}
+		//如果切面类的生命周期，即@Aspect注解的value属性值被设置为"percflowbelow()"，那么抛出异常
 		if (ajType.getPerClause().getKind() == PerClauseKind.PERCFLOWBELOW) {
 			throw new AopConfigException(aspectClass.getName() + " uses percflowbelow instantiation model: " +
 					"This is not supported in Spring AOP.");
@@ -127,12 +147,15 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	/**
 	 * Find and return the first AspectJ annotation on the given method
 	 * (there <i>should</i> only be one anyway...).
+	 * 查找并返回给定方法上的第一个 AspectJ 注解，方法上理应只有一个AspectJ注解
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected static AspectJAnnotation<?> findAspectJAnnotationOnMethod(Method method) {
+		//顺序遍历查找：Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class
 		for (Class<?> clazz : ASPECTJ_ANNOTATION_CLASSES) {
 			AspectJAnnotation<?> foundAnnotation = findAnnotation(method, (Class<Annotation>) clazz);
+			//找到之后就返回
 			if (foundAnnotation != null) {
 				return foundAnnotation;
 			}
@@ -140,13 +163,21 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		return null;
 	}
 
+	/**
+	 * 在给定方法上查找给定类型的AspectJ 注解
+	 *
+	 * @param method    通知方法
+	 * @param toLookFor 需要查找的AspectJ 注解类型
+	 * @return 结果，没找到就返回null
+	 */
 	@Nullable
 	private static <A extends Annotation> AspectJAnnotation<A> findAnnotation(Method method, Class<A> toLookFor) {
+		//通用查找注解的方法，找到之后返回该注解，找不到就返回null
 		A result = AnnotationUtils.findAnnotation(method, toLookFor);
 		if (result != null) {
+			//找到之后封装为一个AspectJAnnotation
 			return new AspectJAnnotation<>(result);
-		}
-		else {
+		} else {
 			return null;
 		}
 	}

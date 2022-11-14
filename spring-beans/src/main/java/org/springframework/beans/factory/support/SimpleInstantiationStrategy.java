@@ -66,6 +66,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		// Don't override the class with CGLIB if no overrides.
+		//如果不存在方法覆写，那就使用 java 反射进行实例化，否则使用 CGLIB,
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
@@ -76,6 +77,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}
 					try {
+						// 获取默认的无参构造器
 						constructorToUse = clazz.getDeclaredConstructor();
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
@@ -84,10 +86,12 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
+			// 利用构造方法进行实例化
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {
 			// Must generate CGLIB subclass.
+			// 存在方法覆写，利用 CGLIB 来完成实例化，需要依赖于 CGLIB 生成子类
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}
@@ -105,11 +109,14 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			final Constructor<?> ctor, Object... args) {
-
+		// 没有方法覆盖，直接使用反射实例化即可
 		if (!bd.hasMethodOverrides()) {
 			return BeanUtils.instantiateClass(ctor, args);
 		}
 		else {
+			// 使用 CGLIB 创建代理对象
+			//方法覆盖，在调用目标方法的时候，对调用过程进行拦截，调用实现增强功能的拦截器，返回原来实例的代理
+			//所以要用cglib动态代理
 			return instantiateWithMethodInjection(bd, beanName, owner, ctor, args);
 		}
 	}
@@ -131,11 +138,14 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			@Nullable Object factoryBean, final Method factoryMethod, Object... args) {
 
 		try {
+			// 通过反射设置访问权限
 			ReflectionUtils.makeAccessible(factoryMethod);
-
+			// 获取原有的Method 对象
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
+				// 设置当前 Method
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				// 使用 factoryBean 实例化对象
 				Object result = factoryMethod.invoke(factoryBean, args);
 				if (result == null) {
 					result = new NullBean();

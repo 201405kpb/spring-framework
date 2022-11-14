@@ -49,11 +49,13 @@ public abstract class BeanFactoryUtils {
 	/**
 	 * Separator for generated bean names. If a class name or parent name is not
 	 * unique, "#1", "#2" etc will be appended, until the name becomes unique.
+	 * 内部生成BeanName的分隔符，如果不唯一后面会一直加这个符号
 	 */
 	public static final String GENERATED_BEAN_NAME_SEPARATOR = "#";
 
 	/**
 	 * Cache from name with factory bean prefix to stripped name without dereference.
+	 * 判断这个Bean是不是工厂Bean  FactoryBean
 	 * @since 5.1
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
@@ -63,6 +65,7 @@ public abstract class BeanFactoryUtils {
 	/**
 	 * Return whether the given name is a factory dereference
 	 * (beginning with the factory dereference prefix).
+	 * 得到真实的Bean的名称（兼容工厂Bean的情况）
 	 * @param name the name of the bean
 	 * @return whether the given name is a factory dereference
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
@@ -74,16 +77,21 @@ public abstract class BeanFactoryUtils {
 	/**
 	 * Return the actual bean name, stripping out the factory dereference
 	 * prefix (if any, also stripping repeated factory prefixes if found).
+	 * 对FactoryBean的转义定义，因为如果使用bean的名字检索FactoryBean得到的对象是工厂生成的对象，如果需要得到工厂本身，需要转义
+	 *
 	 * @param name the name of the bean
 	 * @return the transformed name
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		//如果不是以"&" 前缀开头，返回原值
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
+		// 如果beanName带有 "&" 前缀，则去掉所有的"&" 前缀
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
+			//循环去掉所有的"&" 前缀
 			do {
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
 			}
@@ -95,6 +103,7 @@ public abstract class BeanFactoryUtils {
 	/**
 	 * Return whether the given name is a bean name which has been generated
 	 * by the default naming strategy (containing a "#..." part).
+	 * 是否是BeanDefinitionReaderUtils#generateBeanName生成出来的Bean名字
 	 * @param name the name of the bean
 	 * @return whether the given name is a generated bean name
 	 * @see #GENERATED_BEAN_NAME_SEPARATOR
@@ -124,6 +133,7 @@ public abstract class BeanFactoryUtils {
 	/**
 	 * Count all beans in any hierarchy in which this factory participates.
 	 * Includes counts of ancestor bean factories.
+	 * 包含祖先（父工厂） bean的总数目
 	 * <p>Beans that are "overridden" (specified in a descendant factory
 	 * with the same name) are only counted once.
 	 * @param lbf the bean factory
@@ -136,6 +146,7 @@ public abstract class BeanFactoryUtils {
 
 	/**
 	 * Return all bean names in the factory, including ancestor factories.
+	 * bean的所有的名称(会做去重处理)
 	 * @param lbf the bean factory
 	 * @return the array of matching bean names, or an empty array if none
 	 * @see #beanNamesForTypeIncludingAncestors
@@ -150,6 +161,7 @@ public abstract class BeanFactoryUtils {
 	 * <p>Does consider objects created by FactoryBeans, which means that FactoryBeans
 	 * will get initialized. If the object created by the FactoryBean doesn't match,
 	 * the raw FactoryBean itself will be matched against the type.
+	 * 显然依赖的方法都是ListableBeanFactory#getBeanNamesForType
 	 * <p>This version of {@code beanNamesForTypeIncludingAncestors} automatically
 	 * includes prototypes and FactoryBeans.
 	 * @param lbf the bean factory
@@ -163,7 +175,9 @@ public abstract class BeanFactoryUtils {
 		String[] result = lbf.getBeanNamesForType(type);
 		if (lbf instanceof HierarchicalBeanFactory hbf) {
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory pbf) {
+				// 递归去获取
 				String[] parentResult = beanNamesForTypeIncludingAncestors(pbf, type);
+				// 做名字的合并、去重处理
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}
@@ -179,6 +193,11 @@ public abstract class BeanFactoryUtils {
 	 * will be matched against the type. If "allowEagerInit" is not set,
 	 * only raw FactoryBeans will be checked (which doesn't require initialization
 	 * of each FactoryBean).
+	 * <p>
+	 * 获取给定类型的所有 bean 名称，包括在祖先工厂中定义的 bean 名称。将返回唯一名称，以防被覆盖的 bean 定义。
+	 * 如果设置了allowEagerInit标志为true，则考虑FactoryBean创建的对象，这意味着FactoryBean将被初始化。
+	 * 如果FactoryBean创建的对象不匹配，则原始FactoryBean本身将根据类型进行匹配。
+	 * 如果没有设置allowEagerInit，将只检查原始的FactoryBean(这不需要初始化每个FactoryBean)。
 	 * @param lbf the bean factory
 	 * @param type the type that beans must match (as a {@code ResolvableType})
 	 * @param includeNonSingletons whether to include prototype or scoped beans too
@@ -196,11 +215,15 @@ public abstract class BeanFactoryUtils {
 			ListableBeanFactory lbf, ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
+		//调用getBeanNamesForType查找匹配给定类型的beanName
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
 		if (lbf instanceof HierarchicalBeanFactory hbf) {
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory pbf) {
+				//递归调用该方法，从父工厂中查找匹配给定类型的beanName
 				String[] parentResult = beanNamesForTypeIncludingAncestors(
 						pbf, type, includeNonSingletons, allowEagerInit);
+				//将给定的 bean 名称结果与给定的从父工厂获取的 bean 名称结果合并
+				//合并规则是：包括所有本地 bean 名称结果 + 本地结果不包含并且本地 bean factory中不包含的该名称bean实例或bean定义的 父 bean 名称结果
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}
@@ -258,6 +281,7 @@ public abstract class BeanFactoryUtils {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+
 		if (lbf instanceof HierarchicalBeanFactory hbf) {
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory pbf) {
 				String[] parentResult = beanNamesForTypeIncludingAncestors(

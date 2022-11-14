@@ -143,52 +143,57 @@ public abstract class PropertiesLoaderSupport {
 	/**
 	 * Return a merged Properties instance containing both the
 	 * loaded properties and properties set on this FactoryBean.
+	 * 返回包含此工厂中设置的外部属性文件的属性合并之后的属性集合实例
 	 */
 	protected Properties mergeProperties() throws IOException {
+		//合并属性集合
 		Properties result = new Properties();
-
+		//localOverride属性默认false，因此不会覆盖
 		if (this.localOverride) {
 			// Load properties from file upfront, to let local properties override.
 			loadProperties(result);
 		}
-
+		//如果本地属性不为null
 		if (this.localProperties != null) {
+			//那么合并属性，因此相同key的属性将会覆盖
 			for (Properties localProp : this.localProperties) {
 				CollectionUtils.mergePropertiesIntoMap(localProp, result);
 			}
 		}
-
+		//加载本地配置的属性文件中的属性
 		if (!this.localOverride) {
-			// Load properties from file afterwards, to let those properties override.
+			//从本地文件文件加载属性，以允许这些属性重写。
 			loadProperties(result);
 		}
 
 		return result;
 	}
 
+
 	/**
 	 * Load properties into the given instance.
+	 * 将本地文件中的属性加载到给定的实例中。
 	 * @param props the Properties instance to load into
 	 * @throws IOException in case of I/O errors
 	 * @see #setLocations
 	 */
 	protected void loadProperties(Properties props) throws IOException {
+		//遍历加载进来的文件Resource资源
 		if (this.locations != null) {
 			for (Resource location : this.locations) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Loading properties file from " + location);
 				}
 				try {
+					//将Resource资源中的属性键值对加载到给定的props集合中
 					PropertiesLoaderUtils.fillProperties(
 							props, new EncodedResource(location, this.fileEncoding), this.propertiesPersister);
-				}
-				catch (FileNotFoundException | UnknownHostException | SocketException ex) {
+				} catch (FileNotFoundException | UnknownHostException ex) {
 					if (this.ignoreResourceNotFound) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Properties resource not found: " + ex.getMessage());
 						}
-					}
-					else {
+					} else {
 						throw ex;
 					}
 				}

@@ -196,6 +196,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Return whether the XML parser should be XML namespace aware.
+	 *  XML解析器是否支持XML名称空间
 	 */
 	public boolean isNamespaceAware() {
 		return this.namespaceAware;
@@ -301,6 +302,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Load bean definitions from the specified XML file.
+	 * 从指定的xml文件中加载bean definitions
 	 * @param resource the resource descriptor for the XML file
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
@@ -312,9 +314,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Load bean definitions from the specified XML file.
+	 * 从指定的 XML 文件对应的Resource资源中加载 bean 定义。
 	 * @param encodedResource the resource descriptor for the XML file,
 	 * allowing to specify an encoding to use for parsing the file
-	 * @return the number of bean definitions found
+	 * 编码后的resource资源
+	 * @return the number of bean definitions found 找到的bean 定义的数量
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 */
 	public int loadBeanDefinitions(EncodedResource encodedResource) throws BeanDefinitionStoreException {
@@ -323,15 +327,19 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			logger.trace("Loading XML bean definitions from " + encodedResource);
 		}
 
+		//resourcesCurrentlyBeingLoaded是一个ThreadLocal，里面存放Resource包装类的set集合
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 
+		//如果set中已有这个元素则返回false，进入该条件抛出异常
 		if (!currentResources.add(encodedResource)) {
 			throw new BeanDefinitionStoreException(
+					//检测到循环加载某个Resource，需要检查导入的definitions
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
 
 		try (InputStream inputStream = encodedResource.getResource().getInputStream()) {
 			InputSource inputSource = new InputSource(inputStream);
+			//没有设置编码集，跳过
 			if (encodedResource.getEncoding() != null) {
 				inputSource.setEncoding(encodedResource.getEncoding());
 			}
@@ -342,7 +350,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 					"IOException parsing XML document from " + encodedResource.getResource(), ex);
 		}
 		finally {
+			//资源加载完毕，移除该Resource
 			currentResources.remove(encodedResource);
+			//如果集合中已经没有了其他Resource，移除集合
 			if (currentResources.isEmpty()) {
 				this.resourcesCurrentlyBeingLoaded.remove();
 			}
@@ -376,8 +386,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Actually load bean definitions from the specified XML file.
-	 * @param inputSource the SAX InputSource to read from
-	 * @param resource the resource descriptor for the XML file
+	 * 真正的从指定xml文件中加载bean definitions
+	 * @param inputSource the SAX InputSource to read from 要从中读取数据的SAX 输入源
+	 * @param resource the resource descriptor for the XML file  XML 文件的资源描述符，一个Resource
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 * @see #doLoadDocument
@@ -387,7 +398,17 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
+			/*
+			 * 1 使用sax解析，使用DocumentLoader和entityResolver继续解析resource资源
+			 * 使其成为一个Document文档对象，一个Document对应着一个XML
+			 *
+			 * Document是属于w3c中的东西（位于JDK的rt.jar中），有了Document，就能很方便的解析XML中的标签了
+			 * 因为Document封装了XML文件中标签，属性，值等等数据，形成一个树形状，称为DOM树，根标签就是DOM树的根节点
+			 */
 			Document doc = doLoadDocument(inputSource, resource);
+			/*
+			 * 2 继续解析doc文档，将里面的bean定义解析出来并注册到容器中，返回找到的bean定义数量
+			 */
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -421,12 +442,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Actually load the specified document using the configured DocumentLoader.
-	 * @param inputSource the SAX InputSource to read from
-	 * @param resource the resource descriptor for the XML file
-	 * @return the DOM Document
+	 * @param inputSource the SAX InputSource to read from --从中读取的SAX输入源
+	 * @param resource the resource descriptor for the XML file --xml文件的资源描述符
+	 * @return the DOM Document DOM文档对象
 	 * @throws Exception when thrown from the DocumentLoader
 	 * @see #setDocumentLoader
 	 * @see DocumentLoader#loadDocument
+	 *
+	 * 使用配置好的DocumentLoader文档加载器加载指定的文档
 	 */
 	protected Document doLoadDocument(InputSource inputSource, Resource resource) throws Exception {
 		return this.documentLoader.loadDocument(inputSource, getEntityResolver(), this.errorHandler,
@@ -443,9 +466,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	protected int getValidationModeForResource(Resource resource) {
 		int validationModeToUse = getValidationMode();
+		//如果手动指定了验证模式，则使用指定的验证模式
 		if (validationModeToUse != VALIDATION_AUTO) {
 			return validationModeToUse;
 		}
+		//如果没指定，则自动检测
 		int detectedMode = detectValidationMode(resource);
 		if (detectedMode != VALIDATION_AUTO) {
 			return detectedMode;
@@ -453,6 +478,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		// Hmm, we didn't get a clear indication... Let's assume XSD,
 		// since apparently no DTD declaration has been found up until
 		// detection stopped (before finding the document's root tag).
+		// 如果实在不能判断验证模式是那种就使用XSD方式，
+		// 因为检测完后还是没有发现DTD模式的声明（在查找document的根标签之前)。
+		// 值为3
 		return VALIDATION_XSD;
 	}
 
@@ -495,11 +523,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	/**
 	 * Register the bean definitions contained in the given DOM document.
 	 * Called by {@code loadBeanDefinitions}.
+	 * 注册包含在给定DOM文档对象中的 bean definition
+	 * 被loadBeanDefinitions方法所调用
+	 * 解析class后创建一个新的实例，并调用registerBeanDefinitions方法
 	 * <p>Creates a new instance of the parser class and invokes
 	 * {@code registerBeanDefinitions} on it.
 	 * @param doc the DOM document
 	 * @param resource the resource descriptor (for context information)
-	 * @return the number of bean definitions found
+	 * @return the number of bean definitions found 从当前配置文件加载了多少数量的 Bean
 	 * @throws BeanDefinitionStoreException in case of parsing errors
 	 * @see #loadBeanDefinitions
 	 * @see #setDocumentReaderClass
@@ -507,8 +538,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
+		//getRegistry()方法拿的是bean工厂对象，beanDefinition注册在工厂中
+		//这个方法就是返回已经被注册在工厂中的beanDefinitions数量
 		int countBefore = getRegistry().getBeanDefinitionCount();
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		//返回上个方法真正注册在工厂中的beanDefinition数量
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 
@@ -524,17 +558,21 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Create the {@link XmlReaderContext} to pass over to the document reader.
+	 * 创建一个XmlReaderContext传递给文档读取器
 	 */
 	public XmlReaderContext createReaderContext(Resource resource) {
+		//新建一个XmlReaderContext对象
 		return new XmlReaderContext(resource, this.problemReporter, this.eventListener,
 				this.sourceExtractor, this, getNamespaceHandlerResolver());
 	}
 
 	/**
 	 * Lazily create a default NamespaceHandlerResolver, if not set before.
+	 * 如果之前未设置，则创建一个默认的命名空间处理器解析器
 	 * @see #createDefaultNamespaceHandlerResolver()
 	 */
 	public NamespaceHandlerResolver getNamespaceHandlerResolver() {
+		//创建DefaultNamespaceHandlerResolver
 		if (this.namespaceHandlerResolver == null) {
 			this.namespaceHandlerResolver = createDefaultNamespaceHandlerResolver();
 		}
@@ -543,6 +581,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Create the default implementation of {@link NamespaceHandlerResolver} used if none is specified.
+	 * 创建默认的NamespaceHandlerResolver，实际类型为DefaultNamespaceHandlerResolver
 	 * <p>The default implementation returns an instance of {@link DefaultNamespaceHandlerResolver}.
 	 * @see DefaultNamespaceHandlerResolver#DefaultNamespaceHandlerResolver(ClassLoader)
 	 */

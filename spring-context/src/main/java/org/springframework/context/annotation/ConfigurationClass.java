@@ -47,25 +47,35 @@ import org.springframework.util.ClassUtils;
  * @see BeanMethod
  * @see ConfigurationClassParser
  */
+
+// 被final修饰，不可继承
 final class ConfigurationClass {
 
+	// 配置类的注解元数据信息
 	private final AnnotationMetadata metadata;
 
+	// 配置类资源
 	private final Resource resource;
 
 	@Nullable
+	// 配置类名称
 	private String beanName;
 
+	// 配置类是通过那个类导入的
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
+	// 配置类所有的被@bean注解的方法，包括他的接口和父类中被@bean标注的方法
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
 
+	// 配置类中@ImportResource注解标注的资源
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
 			new LinkedHashMap<>();
 
+	// 配置类中@import中的类，并且这个类实现了ImportBeanDefinitionRegistrar接口
 	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars =
 			new LinkedHashMap<>();
 
+	// 配置类中@bean注解标注的方法，上面还有@Condition注解，但是不满足条件，要跳过解析的方法为
 	final Set<String> skippedBeanMethods = new HashSet<>();
 
 
@@ -214,10 +224,14 @@ final class ConfigurationClass {
 		Map<String, Object> attributes = this.metadata.getAnnotationAttributes(Configuration.class.getName());
 
 		// A configuration class may not be final (CGLIB limitation) unless it declares proxyBeanMethods=false
+		//如果当前配置类具有@Configuration注解，并且proxyBeanMethods属性为true（默认就是true）
 		if (attributes != null && (Boolean) attributes.get("proxyBeanMethods")) {
+			//如果当前配置类是被final修饰的最终类，那么抛出异常："@Configuration class '%s' may not be final. Remove the final modifier to continue."
+			//因为它不能被CGLIB代理
 			if (this.metadata.isFinal()) {
 				problemReporter.error(new FinalConfigurationProblem());
 			}
+			//校验全部@Bean注解方法
 			for (BeanMethod beanMethod : this.beanMethods) {
 				beanMethod.validate(problemReporter);
 			}

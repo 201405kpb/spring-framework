@@ -42,8 +42,14 @@ public class BeanFactoryAdvisorRetrievalHelper {
 
 	private static final Log logger = LogFactory.getLog(BeanFactoryAdvisorRetrievalHelper.class);
 
+	/**
+	 * bean工厂，在构造器中被初始化
+	 */
 	private final ConfigurableListableBeanFactory beanFactory;
 
+	// 缓存机制
+	// 当前工具类的方法 findAdvisorBeans 可能被调用多次，首次调用时会发现所有的符合条件的 bean 的名称,
+	// 这些名称会缓存在这里供后续调用直接使用而不是再次从容器获取
 	@Nullable
 	private volatile String[] cachedAdvisorBeanNames;
 
@@ -61,36 +67,57 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	/**
 	 * Find all eligible Advisor beans in the current bean factory,
 	 * ignoring FactoryBeans and excluding beans that are currently in creation.
+	 * 查找并初始化当前beanFactory中所有符合条件的 Advisor bean，忽略FactoryBean并排除当前正在创建中的bean
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		// Determine list of advisor bean names, if not cached already.
+		//获取已找到的Advisor的beanName数组
 		String[] advisorNames = this.cachedAdvisorBeanNames;
+		//如果为null，表示没有缓存
 		if (advisorNames == null) {
-			// Do not initialize FactoryBeans here: We need to leave all regular beans
-			// uninitialized to let the auto-proxy creator apply to them!
+			/*
+			 * 获取全部Advisor类型的beanName数组
+			 * 这个方法我们在"IoC容器初始化(6)"的文章中已经讲过了
+			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
+			//赋值给cachedAdvisorBeanNames，缓存起来，下次直接从缓存获取
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+		//如果bean工厂中没有任何的Advisor，那么直接返回空集合
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}
-
+		//advisors用于保存找到的Advisor
 		List<Advisor> advisors = new ArrayList<>();
+		//遍历advisorNames数组
 		for (String name : advisorNames) {
+			/*
+			 * 根据通知器的beanName判断通知器bean是否合格，如果合格才能算作候选Advisor。
+			 * 该方法在BeanFactoryAdvisorRetrievalHelper中默认返回true，被子类BeanFactoryAdvisorRetrievalHelperAdapter重写，
+			 * 继而调用AbstractAdvisorAutoProxyCreator的isEligibleAdvisorBean方法判断，AbstractAdvisorAutoProxyCreator的isEligibleAdvisorBean方法同样默认返回true
+			 *
+			 * isEligibleAdvisorBean被子类DefaultAdvisorAutoProxyCreator和InfrastructureAdvisorAutoProxyCreator重写
+			 * 而AspectJAwareAdvisorAutoProxyCreator和AnnotationAwareAspectJAutoProxyCreator则没有重写
+			 *
+			 * 因此该方法主要是AspectJAwareAdvisorAutoProxyCreator和AnnotationAwareAspectJAutoProxyCreator这两个自动代理创建者会用到
+			 * 而AspectJAwareAdvisorAutoProxyCreator和AnnotationAwareAspectJAutoProxyCreator这两个自动代理创建者默认始终返回true
+			 */
 			if (isEligibleBean(name)) {
+				//当前切面bean是否正在创建中，如果是，那么跳过
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Skipping currently created advisor '" + name + "'");
 					}
-				}
-				else {
+				} else {
 					try {
+						/*
+						 * 通过beanFactory.getBean方法初始化这个切面bean，加入advisors集合中
+						 * getBean方法是IoC容器初始化的核心方法
+						 */
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
-					}
-					catch (BeanCreationException ex) {
+					} catch (BeanCreationException ex) {
 						Throwable rootCause = ex.getMostSpecificCause();
 						if (rootCause instanceof BeanCurrentlyInCreationException) {
 							BeanCreationException bce = (BeanCreationException) rootCause;
@@ -110,6 +137,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 			}
 		}
+		//返回集合
 		return advisors;
 	}
 

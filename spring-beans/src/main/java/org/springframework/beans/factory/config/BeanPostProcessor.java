@@ -63,6 +63,9 @@ public interface BeanPostProcessor {
 	 * or a custom init-method). The bean will already be populated with property values.
 	 * The returned bean instance may be a wrapper around the original.
 	 * <p>The default implementation returns the given {@code bean} as-is.
+	 * 该方法是Spring后置处理器中的方法
+	 * 该方法是在Bean实例化(new)之后，初始化(设置各种属性)之前会被调用
+	 * 在调用afterPropertiesSet方法之前会被调用
 	 * @param bean the new bean instance
 	 * @param beanName the name of the bean
 	 * @return the bean instance to use, either the original or a wrapped one;
@@ -88,6 +91,8 @@ public interface BeanPostProcessor {
 	 * {@link InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation} method,
 	 * in contrast to all other {@code BeanPostProcessor} callbacks.
 	 * <p>The default implementation returns the given {@code bean} as-is.
+	 * 在bean初始化之后会被调用
+	 * 在调用InitializingBean的afterPropertiesSet方法或者init-method指定的方法执行之后调用.
 	 * @param bean the new bean instance
 	 * @param beanName the name of the bean
 	 * @return the bean instance to use, either the original or a wrapped one;

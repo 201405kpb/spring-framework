@@ -40,6 +40,9 @@ import org.springframework.lang.Nullable;
  */
 public class DefaultConversionService extends GenericConversionService {
 
+	/**
+	 * 保存的单例实例
+	 */
 	@Nullable
 	private static volatile DefaultConversionService sharedInstance;
 
@@ -49,6 +52,7 @@ public class DefaultConversionService extends GenericConversionService {
 	 * {@linkplain DefaultConversionService#addDefaultConverters(ConverterRegistry) default converters}.
 	 */
 	public DefaultConversionService() {
+		//在构造器中添加超过20个默认的通用转换器
 		addDefaultConverters(this);
 	}
 
@@ -56,12 +60,14 @@ public class DefaultConversionService extends GenericConversionService {
 	/**
 	 * Return a shared default {@code ConversionService} instance,
 	 * lazily building it once needed.
+	 * 返回共享的默认值转换服务实例，根据需要懒加载，单例模式-懒汉模式的应用
 	 * <p><b>NOTE:</b> We highly recommend constructing individual
 	 * {@code ConversionService} instances for customization purposes.
 	 * This accessor is only meant as a fallback for code paths which
 	 * need simple type coercion but cannot access a longer-lived
 	 * {@code ConversionService} instance any other way.
 	 * @return the shared {@code ConversionService} instance (never {@code null})
+	 * 共享的转换服务实例
 	 * @since 4.3.5
 	 */
 	public static ConversionService getSharedInstance() {

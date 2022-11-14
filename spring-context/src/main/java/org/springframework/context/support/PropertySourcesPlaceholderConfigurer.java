@@ -126,11 +126,22 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 * <p>If {@link #setPropertySources} is called, <strong>environment and local properties will be
 	 * ignored</strong>. This method is designed to give the user fine-grained control over property
 	 * sources, and once set, the configurer makes no assumptions about adding additional sources.
+	 *
+	 * 配置后续用于替换${...}占位符的属性源到PropertySources中，属性源来自：
+	 * 1 所有的Environment环境变量中的属性源，比如systemEnvironment和systemProperties，setEnvironment
+	 * 2 本地配置的属性文件引入的属性源头，mergeProperties、setLocation、setLocations、setProperties
+	 * 3 通过PropertySource引入的属性源文件，setPropertySources
+	 * <p>如果setPropertySources方法已被调用并设置了值，那么所有的environment和本地属性源都被将忽略
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		/*
+		 * 如果自定义的属性源为null，那么根据environment和本地配置属性构建属性源，默认就是null
+		 */
 		if (this.propertySources == null) {
+			//新建可变的属性源集合，内部可以出有多个属性源
 			this.propertySources = new MutablePropertySources();
+			//如果environment不为null
 			if (this.environment != null) {
 				PropertyResolver propertyResolver = this.environment;
 				// If the ignoreUnresolvablePlaceholders flag is set to true, we have to create a
@@ -145,6 +156,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 					propertyResolver = resolver;
 				}
 				PropertyResolver propertyResolverToUse = propertyResolver;
+				//根据name=environmentProperties以及environment，构建一个PropertySource属性源并加入到propertySources集合尾部
 				this.propertySources.addLast(
 					new PropertySource<>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
 						@Override
@@ -156,12 +168,15 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				//根据name=localProperties以及通过mergeProperties方法加载的所有本地配置的属性源，构建一个PropertiesPropertySource属性源
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+				//默认false
 				if (this.localOverride) {
 					this.propertySources.addFirst(localPropertySource);
 				}
 				else {
+					//将加载的所有本地配置的属性源加入到propertySources集合尾部
 					this.propertySources.addLast(localPropertySource);
 				}
 			}
@@ -169,32 +184,48 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				throw new BeanInitializationException("Could not load properties", ex);
 			}
 		}
-
+		/*
+		 * 根据当前的propertySources新建一个PropertySourcesPropertyResolver
+		 * 调用processProperties方法，访问给定 bean 工厂中的每个 bean 定义，并尝试将内部的${...}占位符替换为来自给定propertySources属性源的值
+		 */
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
+		//设置appliedPropertySources属性
 		this.appliedPropertySources = this.propertySources;
 	}
 
 	/**
 	 * Visit each bean definition in the given bean factory and attempt to replace ${...} property
 	 * placeholders with values from the given properties.
+	 * 访问给定 bean 工厂中的每个 bean 定义，并尝试将内部的${...}占位符替换为来自给定属性源的值。
 	 */
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
-			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
-
+									 final ConfigurablePropertyResolver propertyResolver) throws BeansException {
+		//设置占位符的格式，可以自定义
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
 		propertyResolver.setValueSeparator(this.valueSeparator);
-
+		/*
+		 * 创建StringValueResolver的lambda对象，它的resolveStringValue方法实际上就是调用propertyResolver的方法
+		 * 如果允许忽略无法解析的没有默认值的占位符，那么调用resolvePlaceholders方法，否则调用resolveRequiredPlaceholders方法
+		 * 这两个方法我们在IoC容器第一部分setConfigLocations部分的源码中都讲过了
+		 *
+		 * 后续就是通过调用该解析器对戏那个来解析占位符的
+		 */
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :
 					propertyResolver.resolveRequiredPlaceholders(strVal));
+			//在返回解析结果在前是否应该去除前后空白字符，对应着<context:property-placeholder/>的trim-values属性
+			//没有XML的默认值，属性默认为false
 			if (this.trimValues) {
 				resolved = resolved.trim();
 			}
+			//属性值是否为nullValue，如果是那么返回null，否则直接返回解析后的值
 			return (resolved.equals(this.nullValue) ? null : resolved);
 		};
-
+		/*
+		 * 调用父类PlaceholderConfigurerSupport的方法，检查所有bean定义，替换占位符
+		 */
 		doProcessProperties(beanFactoryToProcess, valueResolver);
 	}
 

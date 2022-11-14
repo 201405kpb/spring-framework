@@ -42,13 +42,29 @@ public class AspectJAfterAdvice extends AbstractAspectJAdvice
 	}
 
 
+	/**
+	 * 使用try finally块，将mi.proceed()置于try块中，将最终通知方法的调用置于finally块中
+	 * 当无论目标方法或者前面的通知方法调用成功还是抛出异常，都会执行最终通知，因为它在finally块中
+	 * 并且最终通知在前置通知、目标方法、后置/异常通知执行之后才会执行
+	 *
+	 * @param mi 当前ReflectiveMethodInvocation对象
+	 * @return 调用下一次proceed方法的返回结果
+	 */
 	@Override
-	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			/*
+			 * 首先就继续调用mi.proceed()
+			 * 这里的mi就是当前的ReflectiveMethodInvocation对象，也就是递归调用的逻辑
+			 * 下一次调用，将会调用下一个拦截器的invoke方法（如果存在）
+			 * 当最后一个拦截器执行完毕时，才会通过invokeJoinpoint()反射执行被代理的方法（目标方法）
+			 * 然后开始返回
+			 */
 			return mi.proceed();
 		}
+		//在前置通知、目标方法、后置/异常通知执行之后才会执行最终通知，因为它在finally块中
 		finally {
+			//内部调用的invokeAdviceMethod方法，最终会调用invokeAdviceMethodWithGivenArgs方法
 			invokeAdviceMethod(getJoinPointMatch(), null, null);
 		}
 	}

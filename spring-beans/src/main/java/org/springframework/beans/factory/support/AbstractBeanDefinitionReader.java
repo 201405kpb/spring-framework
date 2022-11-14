@@ -83,21 +83,21 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 */
 	protected AbstractBeanDefinitionReader(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+		//初始化resourceLoader，实际上就是创建的DefaultListableBeanFactory实例
 		this.registry = registry;
-
+		//初始化resourceLoader
 		// Determine ResourceLoader to use.
 		if (this.registry instanceof ResourceLoader) {
 			this.resourceLoader = (ResourceLoader) this.registry;
-		}
-		else {
+		} else {
+			//将会创建一个PathMatchingResourcePatternResolver，支持模式匹配
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
-
+		//初始化environment
 		// Inherit Environment if possible
 		if (this.registry instanceof EnvironmentCapable) {
 			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
-		}
-		else {
+		} else {
 			this.environment = new StandardEnvironment();
 		}
 	}
@@ -176,16 +176,29 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	}
 
 
+	/**
+	 * 从指定的资源位置加载 bean 定义
+	 * @param resources 资源路径字符串数组
+	 * @return 找到的 bean 定义的数量
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public int loadBeanDefinitions(Resource... resources) throws BeanDefinitionStoreException {
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
+		// 注意这里是个 for 循环，也就是每个文件是一个 resource
 		for (Resource resource : resources) {
+			// 继续往下看
 			count += loadBeanDefinitions(resource);
 		}
+		// 最后返回 counter，表示总共加载了多少的 BeanDefinition
 		return count;
 	}
 
+	/**
+	 * Load bean definitions from the specified XML file.
+	 * 从指定的xml文件中加载bean definitions
+	 */
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
 		return loadBeanDefinitions(location, null);
@@ -200,6 +213,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @param actualResources a Set to be filled with the actual Resource objects
 	 * that have been resolved during the loading process. May be {@code null}
 	 * to indicate that the caller is not interested in those Resource objects.
+	 * 从指定的资源路径位置加载 bean 定义
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 * @see #getResourceLoader()
@@ -207,16 +221,31 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		/*
+		 * 1 获取resourceLoader，用来加载资源，实际上就是当前ClassPathXmlApplicationContext容器实例，支持路径字符串模式匹配
+		 * 如果是web应用，则是XmlWebApplicationContext，如果是boot项目，则可能根本就不会走这个方法
+		 */
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
-
+		/*
+		 * 如果支持资源Ant模式匹配，走这一条分支
+		 * ClassPathXmlApplicationContext和XmlWebApplicationContext都是ResourcePatternResolver的实现
+		 */
 		if (resourceLoader instanceof ResourcePatternResolver) {
-			// Resource pattern matching available.
 			try {
+				/*
+				 * 2 调用resourceLoader的方法，将给定的路径的XML文件资源解析为Resource资源对象数组
+				 * 通常一个路径对应一个XML文件，则resources数组只有一个Resource元素
+				 * 但是如果路径有模式匹配，匹配到多个资源文件，则resources数组可能有多个Resource元素
+				 */
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				/*
+				 * 3 调用AbstractBeanDefinitionReader的另一个loadBeanDefinitions方法，解析Resource资源数组，返回解析到的bean 定义数量
+				 * 这个方法我们之前的"loadBeanDefinitions(beanDefinitionReader)"中就见过了
+				 */
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -225,15 +254,19 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 					logger.trace("Loaded " + count + " bean definitions from location pattern [" + location + "]");
 				}
 				return count;
-			}
-			catch (IOException ex) {
+			} catch (IOException ex) {
 				throw new BeanDefinitionStoreException(
 						"Could not resolve bean definition resource pattern [" + location + "]", ex);
 			}
 		}
+		/*
+		 * 如果不支持资源Ant模式匹配
+		 */
 		else {
 			// Can only load single resources by absolute URL.
+			/*通过绝对URL路径加载单个资源*/
 			Resource resource = resourceLoader.getResource(location);
+			//根据Resource加载bean定义
 			int count = loadBeanDefinitions(resource);
 			if (actualResources != null) {
 				actualResources.add(resource);
@@ -245,11 +278,19 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		}
 	}
 
+	/**
+	 * Load bean definitions from the specified resources.
+	 * @param locations the resource descriptors 资源处理器，也叫做资源描述符
+	 * @return the number of bean definitions found 返回发现的bean definition数量
+	 *
+	 * 从指定资源中加载bean definitions
+	 */
 	@Override
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
 		for (String location : locations) {
+			//调用的子类XmlBeanDefinitionReader方法，进入查看
 			count += loadBeanDefinitions(location);
 		}
 		return count;

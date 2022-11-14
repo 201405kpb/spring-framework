@@ -51,6 +51,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 
 	/**
 	 * The location to look for the mapping files. Can be present in multiple JAR files.
+	 * 要查找映射文件的默认位置。可以存在于多个 JAR 文件中，即可以从jar包中加载。
 	 */
 	public static final String DEFAULT_HANDLER_MAPPINGS_LOCATION = "META-INF/spring.handlers";
 
@@ -73,6 +74,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	/**
 	 * Create a new {@code DefaultNamespaceHandlerResolver} using the
 	 * default mapping file location.
+	 * 使用默认映射文件位置创建一个DefaultNamespaceHandlerResolver
 	 * <p>This constructor will result in the thread context ClassLoader being used
 	 * to load resources.
 	 * @see #DEFAULT_HANDLER_MAPPINGS_LOCATION
@@ -84,8 +86,10 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	/**
 	 * Create a new {@code DefaultNamespaceHandlerResolver} using the
 	 * default mapping file location.
+	 * 使用默认映射文件位置创建一个DefaultNamespaceHandlerResolver
 	 * @param classLoader the {@link ClassLoader} instance used to load mapping resources
 	 * (may be {@code null}, in which case the thread context ClassLoader will be used)
+	 *  classLoader 用于加载映射资源的ClassLoader，如果为null，则使用线程上下文类加载器
 	 * @see #DEFAULT_HANDLER_MAPPINGS_LOCATION
 	 */
 	public DefaultNamespaceHandlerResolver(@Nullable ClassLoader classLoader) {
@@ -95,9 +99,11 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	/**
 	 * Create a new {@code DefaultNamespaceHandlerResolver} using the
 	 * supplied mapping file location.
+	 * 使用提供的映射文件位置创建一个新的DefaultNamespaceHandlerResolver
 	 * @param classLoader the {@link ClassLoader} instance used to load mapping resources
 	 * may be {@code null}, in which case the thread context ClassLoader will be used
-	 * @param handlerMappingsLocation the mapping file location
+	 * classLoader 用于加载映射资源的ClassLoader，如果为null，则使用线程上下文类加载器
+	 * @param handlerMappingsLocation the mapping file location 映射文件位置
 	 */
 	public DefaultNamespaceHandlerResolver(@Nullable ClassLoader classLoader, String handlerMappingsLocation) {
 		Assert.notNull(handlerMappingsLocation, "Handler mappings location must not be null");
@@ -109,21 +115,29 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	/**
 	 * Locate the {@link NamespaceHandler} for the supplied namespace URI
 	 * from the configured mappings.
+	 * 懒加载handlerMappings,并且根据给定的namespaceUri解析NamespaceHandler
 	 * @param namespaceUri the relevant namespace URI
 	 * @return the located {@link NamespaceHandler}, or {@code null} if none found
 	 */
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
+		// 获取所有已经配置的命名空间与 NamespaceHandler 处理器的映射
 		Map<String, Object> handlerMappings = getHandlerMappings();
+		// 根据 `namespaceUri` 命名空间获取 NamespaceHandler 处理器
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
+		// 对 NamespaceHandler 进行初始化，定义在 `spring.handler` 文件中，可能还没有转换成 Class 类对象
+		// 不存在
 		if (handlerOrClassName == null) {
 			return null;
 		}
+		//已经初始化
 		else if (handlerOrClassName instanceof NamespaceHandler) {
 			return (NamespaceHandler) handlerOrClassName;
 		}
+		//需要进行初始化
 		else {
+			//获得类，并创建 NamespaceHandler 对象
 			String className = (String) handlerOrClassName;
 			try {
 				Class<?> handlerClass = ClassUtils.forName(className, this.classLoader);
@@ -151,22 +165,29 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	 * Load the specified NamespaceHandler mappings lazily.
 	 */
 	private Map<String, Object> getHandlerMappings() {
+		//重检查锁，延迟加载
 		Map<String, Object> handlerMappings = this.handlerMappings;
+		// 1.如果handlerMappings已经加载过，则直接返回
 		if (handlerMappings == null) {
 			synchronized (this) {
 				handlerMappings = this.handlerMappings;
+				// 2.如果handlerMappings还没加载过，则进行加载
 				if (handlerMappings == null) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Loading NamespaceHandler mappings from [" + this.handlerMappingsLocation + "]");
 					}
 					try {
+						// 2.1 使用给定的类加载器从指定的类路径资源加载所有属性
+						//读取`handlerMappingsLocation`，也就是当前JVM环境下所有的`META-INF/spring.handlers`文件的内容都会读取到
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.handlerMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Loaded NamespaceHandler mappings: " + mappings);
 						}
 						handlerMappings = new ConcurrentHashMap<>(mappings.size());
+						// 2.2 将Properties转换成Map, mappings -> handlerMapping
 						CollectionUtils.mergePropertiesIntoMap(mappings, handlerMappings);
+						// 2.3 将加载到的所有命名空间映射放到缓存
 						this.handlerMappings = handlerMappings;
 					}
 					catch (IOException ex) {

@@ -159,15 +159,19 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	@Nullable
 	public Object proceed() throws Throwable {
 		// We start with an index of -1 and increment early.
+		//判断最后一个拦截器是否调用完毕，这里的currentInterceptorIndex是从-1开始的，因此集合size需要减去1
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+			//如果拦截器调用完毕，那么反射执行被代理的方法，也就是原始方法
 			return invokeJoinpoint();
 		}
-
+		//获取下一个要调用的拦截器，currentInterceptorIndex从-1开始，先自增再获取值
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+		/*如果是需要动态检查的拦截器，比如具有args()、@annotation()等动态参数的PCD，需要动态的分析方法参数等信息，性能较低，一般都是走下面的逻辑*/
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher dm) {
 			// Evaluate dynamic method matcher here: static part will already have
 			// been evaluated and found to match.
+			//进行动态检查
 			Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
 			if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
 				return dm.interceptor.invoke(this);
@@ -175,12 +179,18 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			else {
 				// Dynamic matching failed.
 				// Skip this interceptor and invoke the next in the chain.
+				//动态匹配失败，直接跳过此拦截器并调用链中的下一个拦截器。
 				return proceed();
 			}
 		}
+		/*如果是普通的拦截器，大部分拦截器都是普通拦截器*/
 		else {
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
+			/*
+			 * 调用拦截器自己的invoke方法，这个invoke方法中就有在目标方法前后的后增强的逻辑
+			 * 这个this指的是当前的ReflectiveMethodInvocation对象
+			 */
 			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 		}
 	}
@@ -188,6 +198,8 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	/**
 	 * Invoke the joinpoint using reflection.
 	 * Subclasses can override this to use custom invocation.
+	 * 使用反射调用连接点方法，子类可以重写它以使用自定义调用。
+	 *
 	 * @return the return value of the joinpoint
 	 * @throws Throwable if invoking the joinpoint resulted in an exception
 	 */

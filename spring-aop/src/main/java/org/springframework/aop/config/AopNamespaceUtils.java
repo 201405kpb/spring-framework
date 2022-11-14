@@ -62,21 +62,48 @@ public abstract class AopNamespaceUtils {
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 注册名为org.springframework.aop.config.internalAutoProxyCreator的beanDefinition，
+	 * 其中的class类为AspectJAwareAdvisorAutoProxyCreator，其也会被注册到bean工厂中。
+	 * AspectJAwareAdvisorAutoProxyCreator用于支持AspectJ方式的自动代理
+	 * 如果proxy-target-class=true，强制使用代理。会将proxyTargetClass保存到definition
+	 * @param parserContext
+	 * @param sourceElement
+	 */
 	public static void registerAspectJAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		// 注册名为org.springframework.aop.config.internalAutoProxyCreator的beanDefinition，其中的class类为`AspectJAwareAdvisorAutoProxyCreator`
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		// 如果指定proxy-target-class=true，则使用CGLIB代理，否则使用JDK代理
+		//其实其为AspectJAwareAdvisorAutoProxyCreator类的proxyTargetClass属性
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 如有必要，注册AnnotationAwareAspectJAutoProxyCreator
+	 * @param parserContext
+	 * @param sourceElement
+	 */
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
-
+		/*
+		 * 1 尝试注册或者升级一个名为"org.springframework.aop.config.internalAutoProxyCreator"
+		 * 类型为AnnotationAwareAspectJAutoProxyCreator的自动代理创建者的bean定义
+		 */
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		/*
+		 * 2 尝试解析<aop:aspectj-autoproxy/>标签的proxy-target-class与expose-proxy属性
+		 * proxy-target-class用于设置代理模式，默认是优先JDK动态代理，其次CGLIB代理，可以指定为CGLIB代理
+		 * expose-proxy用于暴露代理对象，主要用来解决同一个目标类的方法互相调用时代理不生效的问题
+		 */
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		/*
+		 * 3 注册组件，这里的注册是指存放到外层新建的CompositeComponentDefinition对象的内部集合中或者广播事件，而不是注册到注册表中
+		 */
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 

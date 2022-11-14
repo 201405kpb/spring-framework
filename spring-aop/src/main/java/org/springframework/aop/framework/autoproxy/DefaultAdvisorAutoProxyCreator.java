@@ -68,6 +68,7 @@ public class DefaultAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCrea
 	 * Set the prefix for bean names that will cause them to be included for
 	 * auto-proxying by this object. This prefix should be set to avoid circular
 	 * references. Default value is the bean name of this object + a dot.
+	 * 设置Advisor通知器 beanName 的前缀
 	 * @param advisorBeanNamePrefix the exclusion prefix
 	 */
 	public void setAdvisorBeanNamePrefix(@Nullable String advisorBeanNamePrefix) {
@@ -77,12 +78,18 @@ public class DefaultAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCrea
 	/**
 	 * Return the prefix for bean names that will cause them to be included
 	 * for auto-proxying by this object.
+	 * 获取Advisor通知器 beanName 的前缀
 	 */
 	@Nullable
 	public String getAdvisorBeanNamePrefix() {
 		return this.advisorBeanNamePrefix;
 	}
 
+	/**
+	 *
+	 * @param name the name of the bean in the factory.
+	 * bean实例创建完毕之后自动回调的方法，将当前创建的bean的beanName传递进来
+	 */
 	@Override
 	public void setBeanName(String name) {
 		// If no infrastructure bean name prefix has been set, override it.
@@ -91,17 +98,19 @@ public class DefaultAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCrea
 		}
 	}
 
-
 	/**
-	 * Consider {@code Advisor} beans with the specified prefix as eligible, if activated.
-	 * @see #setUsePrefix
-	 * @see #setAdvisorBeanNamePrefix
+	 *  Consider {@code Advisor} beans with the specified prefix as eligible, if activated.
+	 * 判断是否是合格的候选AdvisorBean
+	 * 如果启用前缀匹配，那么beanName匹配前缀，否则默认返回true
+	 * @param beanName 某个Advisor的beanName
 	 */
 	@Override
 	protected boolean isEligibleAdvisorBean(String beanName) {
+		//如果没有启用前缀匹配，那么直接返回true，表示合格
 		if (!isUsePrefix()) {
 			return true;
 		}
+		//那么如果prefix不为null并且当前Advisor的beanName以指定的前缀开始，那么说明合格，否则返回false
 		String prefix = getAdvisorBeanNamePrefix();
 		return (prefix != null && beanName.startsWith(prefix));
 	}

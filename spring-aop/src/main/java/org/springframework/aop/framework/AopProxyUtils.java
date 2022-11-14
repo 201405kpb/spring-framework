@@ -152,26 +152,35 @@ public abstract class AopProxyUtils {
 	 * <p>This will always add the {@link Advised} interface unless the AdvisedSupport's
 	 * {@link AdvisedSupport#setOpaque "opaque"} flag is on. Always adds the
 	 * {@link org.springframework.aop.SpringProxy} marker interface.
-	 * @param advised the proxy config
-	 * @param decoratingProxy whether to expose the {@link DecoratingProxy} interface
-	 * @return the complete set of interfaces to proxy
+	 * 确定给定 AOP 配置的代理的完整接口集
+	 * 通常，会尝试追加三个接口SpringProxy、Advised、DecoratingProxy
+	 * @param advised the proxy config  AOP配置，就是前面的proxyFactory对象
+	 * @param decoratingProxy whether to expose the {@link DecoratingProxy} interface 是否公开DecoratingProxy接口
+	 * @return the complete set of interfaces to proxy 完整的代理接口集
 	 * @since 4.3
 	 * @see SpringProxy
 	 * @see Advised
 	 * @see DecoratingProxy
 	 */
 	static Class<?>[] completeProxiedInterfaces(AdvisedSupport advised, boolean decoratingProxy) {
+		//获取proxyFactory的interfaces接口集（evaluateProxyInterfaces方法中加入的接口集合）
 		Class<?>[] specifiedInterfaces = advised.getProxiedInterfaces();
+		//如果是一个空集
 		if (specifiedInterfaces.length == 0) {
 			// No user-specified interfaces: check whether target class is an interface.
+			//获取目标类型
 			Class<?> targetClass = advised.getTargetClass();
 			if (targetClass != null) {
+				//如果目标类型是集合，那么目标类型加入到interfaces接口集中
 				if (targetClass.isInterface()) {
 					advised.setInterfaces(targetClass);
 				}
+				//如果是Proxy类型
 				else if (Proxy.isProxyClass(targetClass) || ClassUtils.isLambdaClass(targetClass)) {
+					//将目标类型实现的接口加入到interfaces接口集中
 					advised.setInterfaces(targetClass.getInterfaces());
 				}
+				//重新获取proxyFactory的interfaces接口集
 				specifiedInterfaces = advised.getProxiedInterfaces();
 			}
 		}

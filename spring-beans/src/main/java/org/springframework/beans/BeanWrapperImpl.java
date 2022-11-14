@@ -68,6 +68,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	/**
 	 * Create a new empty BeanWrapperImpl. Wrapped instance needs to be set afterwards.
 	 * Registers default editors.
+	 * 创建新的空 BeanWrapperImpl。包装实例需要随后设置。 注册默认编辑器editors。
 	 * @see #setWrappedInstance
 	 */
 	public BeanWrapperImpl() {
@@ -76,7 +77,9 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 
 	/**
 	 * Create a new empty BeanWrapperImpl. Wrapped instance needs to be set afterwards.
+	 * 创建新的空 BeanWrapperImpl。包装实例需要随后设置。
 	 * @param registerDefaultEditors whether to register default editors
+	 * 是否注册默认编辑器（如果 BeanWrapper 不需要任何类型转换，可以禁止）
 	 * (can be suppressed if the BeanWrapper won't need any type conversion)
 	 * @see #setWrappedInstance
 	 */

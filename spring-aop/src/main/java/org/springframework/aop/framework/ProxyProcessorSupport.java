@@ -96,28 +96,39 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	/**
 	 * Check the interfaces on the given bean class and apply them to the {@link ProxyFactory},
 	 * if appropriate.
+	 * 检查给定 bean 类上的接口，并将其应用于ProxyFactory
 	 * <p>Calls {@link #isConfigurationCallbackInterface} and {@link #isInternalLanguageInterface}
 	 * to filter for reasonable proxy interfaces, falling back to a target-class proxy otherwise.
+	 * <p>调用 isConfigurationCallbackInterface和isInternalLanguageInterface方法以筛选合理的代理接口
+	 * 如果没有筛选到至少一个合理的代理接口，仍然退回到基于类的CGLIB代理
+	 * </p>
 	 * @param beanClass the class of the bean
 	 * @param proxyFactory the ProxyFactory for the bean
 	 */
 	protected void evaluateProxyInterfaces(Class<?> beanClass, ProxyFactory proxyFactory) {
+		//获取当前类实现的所有接口的class数组
 		Class<?>[] targetInterfaces = ClassUtils.getAllInterfacesForClass(beanClass, getProxyClassLoader());
+		//是否具有合理的代理的接口，默认false
 		boolean hasReasonableProxyInterface = false;
+		//遍历全部接口class数组，查找是否具有合理的代理的接口
 		for (Class<?> ifc : targetInterfaces) {
+			//如果当前接口不是一个容器回调接口，并且当前接口不是内部语言接口，并且接口方法个数至少为1个（不是标志性接口）
+			//同时满足上面三个条件，当前接口就是一个合理的代理接口
 			if (!isConfigurationCallbackInterface(ifc) && !isInternalLanguageInterface(ifc) &&
 					ifc.getMethods().length > 0) {
+				//hasReasonableProxyInterface设置为true，结束循环
 				hasReasonableProxyInterface = true;
 				break;
 			}
 		}
+		//如果具有合理的代理的接口
 		if (hasReasonableProxyInterface) {
-			// Must allow for introductions; can't just set interfaces to the target's interfaces only.
+			//再次遍历全部接口class数组，将接口存入proxyFactory的interfaces集合中
 			for (Class<?> ifc : targetInterfaces) {
 				proxyFactory.addInterface(ifc);
 			}
-		}
-		else {
+		} else {
+			//如果没有合理的代理的接口，那么将proxyTargetClass改为true，表示还是走基于类的CGLIB代理
 			proxyFactory.setProxyTargetClass(true);
 		}
 	}
@@ -125,12 +136,15 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	/**
 	 * Determine whether the given interface is just a container callback and
 	 * therefore not to be considered as a reasonable proxy interface.
+	 * 判断给定的接口是否只是一个容器回调接口，如果是，那么将不被视为合理的代理接口。
 	 * <p>If no reasonable proxy interface is found for a given bean, it will get
 	 * proxied with its full target class, assuming that as the user's intention.
 	 * @param ifc the interface to check
 	 * @return whether the given interface is just a container callback
 	 */
 	protected boolean isConfigurationCallbackInterface(Class<?> ifc) {
+		//如果接口属于InitializingBean、DisposableBean、Closeable、AutoCloseable接口以及Aware接口包括其子接口之一
+		//那么这个接口就是一个容器回调接口，将不被视为合理的代理接口。
 		return (InitializingBean.class == ifc || DisposableBean.class == ifc || Closeable.class == ifc ||
 				AutoCloseable.class == ifc || ObjectUtils.containsElement(ifc.getInterfaces(), Aware.class));
 	}
@@ -138,10 +152,13 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	/**
 	 * Determine whether the given interface is a well-known internal language interface
 	 * and therefore not to be considered as a reasonable proxy interface.
+	 * 判断给定的接口是否是众所周知的内部语言接口，如果是，那么将不被视为合理的代理接口。
 	 * <p>If no reasonable proxy interface is found for a given bean, it will get
 	 * proxied with its full target class, assuming that as the user's intention.
-	 * @param ifc the interface to check
-	 * @return whether the given interface is an internal language interface
+	 * <P>如果接口的全路径名等于"groovy.lang.GroovyObject"，或者以".cglib.proxy.Factory"结尾，或者以".bytebuddy.MockAccess"结尾
+	 * 那么这个接口就是一个内部语言接口，将不被视为合理的代理接口。也就是说这种接口只能是框架内部使用，我们开发者不应该使用
+	 * @param ifc the interface to check 要检查的接口
+	 * @return whether the given interface is an internal language interface 给定的接口是否为内部语言接口
 	 */
 	protected boolean isInternalLanguageInterface(Class<?> ifc) {
 		return (ifc.getName().equals("groovy.lang.GroovyObject") ||

@@ -60,9 +60,19 @@ public class AspectJAfterReturningAdvice extends AbstractAspectJAdvice
 		setReturningNameNoCheck(name);
 	}
 
+	/**
+	 * 回调后置通知
+	 * @param returnValue the value returned by the method, if any 目标方法的返回值
+	 * @param method the method being invoked  目标方法
+	 * @param args the arguments to the method 方法参数
+	 * @param target the target of the method invocation. May be {@code null}. 目标对象
+	 * @throws Throwable
+	 */
 	@Override
 	public void afterReturning(@Nullable Object returnValue, Method method, Object[] args, @Nullable Object target) throws Throwable {
+		//如果返回值类型和当前通知方法参数需要的返回值类型匹配，那么可以调用当前通知方法，否则不会调用
 		if (shouldInvokeOnReturnValueOf(method, returnValue)) {
+			//内部调用的invokeAdviceMethod方法，最终会调用invokeAdviceMethodWithGivenArgs方法
 			invokeAdviceMethod(getJoinPointMatch(), returnValue, null);
 		}
 	}

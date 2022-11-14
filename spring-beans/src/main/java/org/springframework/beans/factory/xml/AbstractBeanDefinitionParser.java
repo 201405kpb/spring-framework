@@ -57,39 +57,72 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	public static final String NAME_ATTRIBUTE = "name";
 
 
+	/**
+	 * 基于模版方法模式，BeanDefinitionParser的parse方法（扩展标签的解析方法）的抽象骨干实现
+	 * 1 将element解析为单个BeanDefinition对象
+	 * 2 解析id属性，如果需要Spring自动生成id，那么使用DefaultBeanNameGenerator生成器
+	 * 3 根据name属性，生成别名aliases数组
+	 * 4 将bean定义、id、aliases封装成为BeanDefinitionHolder，随后调用registerBeanDefinition注册
+	 * 5 发布组件注册事件
+	 *
+	 * @param element       标签元素
+	 * @param parserContext 解析上下文
+	 * @return 解析后的bean定义
+	 */
 	@Override
 	@Nullable
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+		/*
+		 * 1 调用parseInternal方法解析标签获取bean定义，这个方法是子类实现的
+		 */
 		AbstractBeanDefinition definition = parseInternal(element, parserContext);
 		if (definition != null && !parserContext.isNested()) {
 			try {
+				/*
+				 * 2 解析id属性，如果需要Spring自动生成，那么使用DefaultBeanNameGenerator生成器
+				 */
 				String id = resolveId(element, definition, parserContext);
 				if (!StringUtils.hasText(id)) {
 					parserContext.getReaderContext().error(
 							"Id is required for element '" + parserContext.getDelegate().getLocalName(element)
 									+ "' when used as a top-level tag", element);
 				}
+				/*
+				 * 3 别名处理
+				 */
 				String[] aliases = null;
+				//是否应该解析name属性作为别名，默认true
 				if (shouldParseNameAsAliases()) {
+					//获取name属性
 					String name = element.getAttribute(NAME_ATTRIBUTE);
+					//如果具有该属性
 					if (StringUtils.hasLength(name)) {
+						//将name属性值按照","分隔成为一个数组，去除前后空白，作为别名
 						aliases = StringUtils.trimArrayElements(StringUtils.commaDelimitedListToStringArray(name));
 					}
 				}
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, id, aliases);
+				/*
+				 * 4 注册bean定义，registerBeanDefinition方法我们此前讲过了
+				 */
 				registerBeanDefinition(holder, parserContext.getRegistry());
+				/*
+				 * 5 发布组件注册事件
+				 */
+				//是否应该发布事件，默认true
 				if (shouldFireEvents()) {
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);
+					//发布组件注册事件
 					parserContext.registerComponent(componentDefinition);
 				}
-			}
-			catch (BeanDefinitionStoreException ex) {
+			} catch (BeanDefinitionStoreException ex) {
 				String msg = ex.getMessage();
 				parserContext.getReaderContext().error((msg != null ? msg : ex.toString()), element);
 				return null;
 			}
 		}
+		//返回bean定义
 		return definition;
 	}
 

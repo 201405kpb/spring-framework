@@ -60,23 +60,37 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return (isLazy(descriptor) ? (Class<?>) buildLazyResolutionProxy(descriptor, beanName, true) : null);
 	}
 
+	/**
+	 * @param descriptor 依赖项的描述符，包含MethodParameter的信息
+	 * @return 是否设置了延迟加载
+	 */
 	protected boolean isLazy(DependencyDescriptor descriptor) {
+		//获取、遍历descriptor中包装的字段，或者方法/构造器的对应参数上关联的注解
 		for (Annotation ann : descriptor.getAnnotations()) {
+			//是否含有@Lazy注解
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
+			//如果具有@Lazy注解，并且设置为true，那么返回true
 			if (lazy != null && lazy.value()) {
 				return true;
 			}
 		}
+		//获取包装的MethodParameter，即方法/构造器参数
 		MethodParameter methodParam = descriptor.getMethodParameter();
 		if (methodParam != null) {
+			//获取方法，如果参数属于构造器那么返回null
 			Method method = methodParam.getMethod();
+			//如果method为null或者返回值为null
+			//表示如果是构造器，或者是方法但是返回值为void，那么符合要求，可以进一步尝试
 			if (method == null || void.class == method.getReturnType()) {
+				//获取方法或者构造器上的@Lazy注解
 				Lazy lazy = AnnotationUtils.getAnnotation(methodParam.getAnnotatedElement(), Lazy.class);
+				//如果具有@Lazy注解，并且设置为true，那么返回true
 				if (lazy != null && lazy.value()) {
 					return true;
 				}
 			}
 		}
+		//返回false
 		return false;
 	}
 
@@ -84,6 +98,13 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return buildLazyResolutionProxy(descriptor, beanName, false);
 	}
 
+	/**
+	 * 构建延迟加载的代理对象
+	 * @param descriptor 依赖项的描述符，包含MethodParameter的信息
+	 * @param beanName
+	 * @param classOnly
+	 * @return
+	 */
 	private Object buildLazyResolutionProxy(
 			final DependencyDescriptor descriptor, final @Nullable String beanName, boolean classOnly) {
 
@@ -91,7 +112,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		Assert.state(beanFactory instanceof DefaultListableBeanFactory,
 				"BeanFactory needs to be a DefaultListableBeanFactory");
 		final DefaultListableBeanFactory dlbf = (DefaultListableBeanFactory) beanFactory;
-
+		//AOP的核心对象之一TargetSource，它表示"目标源"，包装了目标对象（被代理的对象）
 		TargetSource ts = new TargetSource() {
 			@Override
 			public Class<?> getTargetClass() {
@@ -101,8 +122,11 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 			public boolean isStatic() {
 				return false;
 			}
+
+			//获取目标对象，在代理中就是通过该方法获取目标对象并调用目标对象的方法的
 			@Override
 			public Object getTarget() {
+				//同样调用beanFactory.doResolveDependency方法去解析依赖的对象，获取目标对象，这里返回的是真正的Spring bean对象
 				Set<String> autowiredBeanNames = (beanName != null ? new LinkedHashSet<>(1) : null);
 				Object target = dlbf.doResolveDependency(descriptor, beanName, autowiredBeanNames, null);
 				if (target == null) {
@@ -133,12 +157,17 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 			}
 		};
 
+		//创建代理工厂
 		ProxyFactory pf = new ProxyFactory();
+		//设置目标源，从目标源中获取代理目标实例
 		pf.setTargetSource(ts);
+		//获取依赖类型
 		Class<?> dependencyType = descriptor.getDependencyType();
+		//如果是接口，那么加入到interfaces集合中，后面就可能会使用JDK动态代理
 		if (dependencyType.isInterface()) {
 			pf.addInterface(dependencyType);
 		}
+		//通过ProxyFactory生成代理对象，根据情况使用JDK代理或者CGLIB代理
 		ClassLoader classLoader = dlbf.getBeanClassLoader();
 		return (classOnly ? pf.getProxyClass(classLoader) : pf.getProxy(classLoader));
 	}

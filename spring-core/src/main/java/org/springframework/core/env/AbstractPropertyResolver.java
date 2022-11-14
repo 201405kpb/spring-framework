@@ -54,10 +54,19 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	private boolean ignoreUnresolvableNestedPlaceholders = false;
 
+	/**
+	 * 占位符开头的前缀
+	 */
 	private String placeholderPrefix = SystemPropertyUtils.PLACEHOLDER_PREFIX;
 
+	/**
+	 * 占位符结尾的后缀
+	 */
 	private String placeholderSuffix = SystemPropertyUtils.PLACEHOLDER_SUFFIX;
 
+	/**
+	 * 占位符变量和关联的默认值之间的分隔字符（如果有）
+	 */
 	@Nullable
 	private String valueSeparator = SystemPropertyUtils.VALUE_SEPARATOR;
 
@@ -90,6 +99,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	/**
 	 * Set the prefix that placeholders replaced by this resolver must begin with.
 	 * <p>The default is "${".
+	 *
 	 * @see org.springframework.util.SystemPropertyUtils#PLACEHOLDER_PREFIX
 	 */
 	@Override
@@ -101,6 +111,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	/**
 	 * Set the suffix that placeholders replaced by this resolver must end with.
 	 * <p>The default is "}".
+	 *
 	 * @see org.springframework.util.SystemPropertyUtils#PLACEHOLDER_SUFFIX
 	 */
 	@Override
@@ -114,6 +125,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * resolver and their associated default value, or {@code null} if no such
 	 * special character should be processed as a value separator.
 	 * <p>The default is ":".
+	 *
 	 * @see org.springframework.util.SystemPropertyUtils#VALUE_SEPARATOR
 	 */
 	@Override
@@ -128,6 +140,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * that unresolvable nested placeholders should be passed through in their unresolved
 	 * ${...} form.
 	 * <p>The default is {@code false}.
+	 *
 	 * @since 3.2
 	 */
 	@Override
@@ -140,14 +153,22 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		Collections.addAll(this.requiredProperties, requiredProperties);
 	}
 
+	/**
+	 * 校验指定的必须存在的属性是否都有对应的属性值，即是否都存在。
+	 */
 	@Override
 	public void validateRequiredProperties() {
+		//初始化一个MissingRequiredPropertiesException异常对象
 		MissingRequiredPropertiesException ex = new MissingRequiredPropertiesException();
+		//遍历必须存在的属性名集合
 		for (String key : this.requiredProperties) {
+			//从属性源中尝试获取每一个属性，如果为null，即没有获取到
 			if (this.getProperty(key) == null) {
+				//异常实例添加这个key
 				ex.addMissingRequiredProperty(key);
 			}
 		}
+		//如果异常实例中的key不为null，那么说明存在没有值的属性，那么抛出异常
 		if (!ex.getMissingRequiredProperties().isEmpty()) {
 			throw ex;
 		}
@@ -219,8 +240,9 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * {@link #resolveRequiredPlaceholders} do <i>not</i> delegate
 	 * to this method but rather perform their own handling of unresolvable
 	 * placeholders, as specified by each of those methods.
-	 * @since 3.2
+	 *
 	 * @see #setIgnoreUnresolvableNestedPlaceholders
+	 * @since 3.2
 	 */
 	protected String resolveNestedPlaceholders(String value) {
 		if (value.isEmpty()) {
@@ -230,7 +252,16 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 				resolvePlaceholders(value) : resolveRequiredPlaceholders(value));
 	}
 
+	/**
+	 * 创建属性占位符辅助对象
+	 *
+	 * @param ignoreUnresolvablePlaceholders 指示是否应忽略无法解析的占位符，true 忽略 false 抛出异常
+	 * @return
+	 */
 	private PropertyPlaceholderHelper createPlaceholderHelper(boolean ignoreUnresolvablePlaceholders) {
+		//调用PropertyPlaceholderHelper的构造器
+		//传递默认的占位符解析格式  前缀"${"   后缀"}"   占位符变量和默认值的分隔符":"
+		//ignoreUnresolvablePlaceholders=true，即在无法解析占位符的时候忽略
 		return new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix,
 				this.valueSeparator, ignoreUnresolvablePlaceholders);
 	}
@@ -241,27 +272,35 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	/**
 	 * Convert the given value to the specified target type, if necessary.
-	 * @param value the original property value
-	 * @param targetType the specified target type for property retrieval
-	 * @return the converted value, or the original value if no conversion
+	 * 如有必要，将给定值转换为指定的目标类型。
+	 *
+	 * @param value      the original property value 原始属性值
+	 * @param targetType the specified target type for property retrieval 属性检索的指定目标类型
+	 * @return the converted value, or the original value if no conversion 转换后的值，如果不需要转换则返回原始值
 	 * is necessary
 	 * @since 4.3.5
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected <T> T convertValueIfNecessary(Object value, @Nullable Class<T> targetType) {
+		//如果指定目标类型为null，那么返回原始值
 		if (targetType == null) {
 			return (T) value;
 		}
+		//获取Spring转换服务对象，这也是一个组件，用于转换类型
 		ConversionService conversionServiceToUse = this.conversionService;
+		//如果为null
 		if (conversionServiceToUse == null) {
 			// Avoid initialization of shared DefaultConversionService if
 			// no standard type conversion is needed in the first place...
+			//是否等于给定类型，一般都不相等，除了字符串类型
 			if (ClassUtils.isAssignableValue(targetType, value)) {
 				return (T) value;
 			}
+			//调用DefaultConversionService的静态方法获取共享的转换服务实例，这里是单例模式的懒汉模式应用
 			conversionServiceToUse = DefaultConversionService.getSharedInstance();
 		}
+		//实际上就是调用DefaultConversionService的convert方法，将会查找适合的转换器，并尝试转换
 		return conversionServiceToUse.convert(value, targetType);
 	}
 
@@ -269,6 +308,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	/**
 	 * Retrieve the specified property as a raw String,
 	 * i.e. without resolution of nested placeholders.
+	 *
 	 * @param key the property name to resolve
 	 * @return the property value or {@code null} if none found
 	 */

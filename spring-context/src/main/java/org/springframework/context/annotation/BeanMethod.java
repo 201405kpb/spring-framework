@@ -39,14 +39,22 @@ final class BeanMethod extends ConfigurationMethod {
 		super(metadata, configurationClass);
 	}
 
+
+	/**
+	 * 校验@Bean注解标注的方法
+	 */
 	@Override
 	public void validate(ProblemReporter problemReporter) {
+		//如果是静态方法，不需要校验，直接返回
 		if (getMetadata().isStatic()) {
 			// static @Bean methods have no constraints to validate -> return immediately
 			return;
 		}
-
+		//如果当前方法所属配置类具有@Configuration注解
 		if (this.configurationClass.getMetadata().isAnnotated(Configuration.class.getName())) {
+			//如果当前方法不能被重写，那么抛出异常："@Bean method '%s' must not be private or final; change the method's modifiers to continue"
+			//因为只有可重写的方法才能被CGLiB代理
+			//如果是final、static、private修饰的方法，那么isOverridable方法就返回true
 			if (!getMetadata().isOverridable()) {
 				// instance @Bean methods within @Configuration classes must be overridable to accommodate CGLIB
 				problemReporter.error(new NonOverridableMethodError());

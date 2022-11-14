@@ -112,6 +112,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * bean instance: to be appended to the fully-qualified bean class name,
 	 * e.g. "com.mypackage.MyClass.ORIGINAL", in order to enforce the given instance
 	 * to be returned, i.e. no proxies etc.
+	 * AutowireCapableBeanFactory的属性，初始化现有 bean 实例时"原始实例"约定的后缀
+	 * 追加到完全限定的 beanName之后，例如"com.mypackage.myClass.原始"，以便强制要返回的给定实例，即没有代理
+	 *
 	 * @since 5.1
 	 * @see #initializeBean(Object, String)
 	 * @see #applyBeanPostProcessorsBeforeInitialization(Object, String)
@@ -366,13 +369,21 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	Object resolveBeanByName(String name, DependencyDescriptor descriptor) throws BeansException;
 
 	/**
+	 *  <p>根据descriptor的依赖类型解析出与descriptor所包装的对象匹配的候选Bean对象</p>
 	 * Resolve the specified dependency against the beans defined in this factory.
+	 * <p>解析针对此工厂中定义的Bean的指定依赖关系</p>
 	 * @param descriptor the descriptor for the dependency (field/method/constructor)
+	 *                   -- 依赖项的描述符(字段/方法/构造函数)
 	 * @param requestingBeanName the name of the bean which declares the given dependency
+	 *                            -- 声明给定依赖项的bean名,即需要Field/MethodParamter所对应的bean对象来构建的Bean对象的Bean名
 	 * @return the resolved object, or {@code null} if none found
+	 * 		-- 解析的对象；如果找不到，则为null
 	 * @throws NoSuchBeanDefinitionException if no matching bean was found
+	 * 			-- 如果没有找到匹配的bean
 	 * @throws NoUniqueBeanDefinitionException if more than one matching bean was found
+	 * 			-- 如果找到多个匹配的bean
 	 * @throws BeansException if dependency resolution failed for any other reason
+	 * 			 -- 如果依赖项解析由于任何其他原因而失败
 	 * @since 2.5
 	 * @see #resolveDependency(DependencyDescriptor, String, Set, TypeConverter)
 	 */
@@ -380,16 +391,27 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName) throws BeansException;
 
 	/**
+	 * <p>根据descriptor的依赖类型解析出与descriptor所包装的对象匹配的候选Bean对象</p>
 	 * Resolve the specified dependency against the beans defined in this factory.
+	 * <p>解析针对此工厂中定义的Bean的指定依赖关系</p>
 	 * @param descriptor the descriptor for the dependency (field/method/constructor)
+	 *                   -- 依赖项的描述符(字段/方法/构造函数)
 	 * @param requestingBeanName the name of the bean which declares the given dependency
+	 *                           -- 声明给定依赖项的bean名,即需要Field/MethodParamter所对应的bean对象来构建的Bean对象的Bean名
 	 * @param autowiredBeanNames a Set that all names of autowired beans (used for
 	 * resolving the given dependency) are supposed to be added to
+	 *     -- 一个集合，所有自动装配的bean名(用于解决给定依赖关系)都应添加.即自动注入匹配成功的候选Bean名集合。
+	 *                              【当autowiredBeanNames不为null，会将所找到的所有候选Bean对象添加到该集合中,以供调用方使用】
 	 * @param typeConverter the TypeConverter to use for populating arrays and collections
+	 *    -- 用于填充数组和集合的TypeConverter
 	 * @return the resolved object, or {@code null} if none found
+	 *  -- 解析的对象；如果找不到，则为null
 	 * @throws NoSuchBeanDefinitionException if no matching bean was found
+	 *  -- 如果没有找到匹配的bean
 	 * @throws NoUniqueBeanDefinitionException if more than one matching bean was found
+	 *  -- 如果找到多个匹配的bean
 	 * @throws BeansException if dependency resolution failed for any other reason
+	 *  -- 如果依赖项解析由于任何其他原因而失败
 	 * @since 2.5
 	 * @see DependencyDescriptor
 	 */

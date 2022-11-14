@@ -57,16 +57,35 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 		setThrowingNameNoCheck(name);
 	}
 
+	/**
+	 * 使用try catch块，将mi.proceed()置于try块中，将异常通知方法的调用置于catch块中
+	 * 当目标方法或者前面的通知方法调用抛出异常时，就可能会执行异常通知
+	 * 原理很简单，在目标方法调用抛出异常之后才调用异常通知方法即可
+	 * @param mi the method invocation joinpoint 当前ReflectiveMethodInvocation对象
+	 * @return 调用下一次proceed方法的返回结果
+	 * @throws Throwable
+	 */
 	@Override
-	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			/*
+			 * 首先就继续调用mi.proceed()
+			 * 这里的mi就是当前的ReflectiveMethodInvocation对象，也就是递归调用的逻辑
+			 * 下一次调用，将会调用下一个拦截器的invoke方法（如果存在）
+			 * 当最后一个拦截器执行完毕时，才会通过invokeJoinpoint()反射执行被代理的方法（目标方法）
+			 * 然后开始返回
+			 */
 			return mi.proceed();
 		}
+		//当目标方法或者前面的通知方法调用抛出异常时，异常会被捕获
+		//就可能会执行异常通知
 		catch (Throwable ex) {
+			//如果抛出的异常类型和当前通知方法参数需要的异常类型匹配，那么可以调用当前通知方法，否则不会调用
 			if (shouldInvokeOnThrowing(ex)) {
+				//内部调用的invokeAdviceMethod方法，最终会调用invokeAdviceMethodWithGivenArgs方法
 				invokeAdviceMethod(getJoinPointMatch(), null, ex);
 			}
+			//继续抛出异常
 			throw ex;
 		}
 	}

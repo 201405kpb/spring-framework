@@ -47,6 +47,7 @@ public abstract class BeanDefinitionReaderUtils {
 	/**
 	 * Create a new GenericBeanDefinition for the given parent name and class name,
 	 * eagerly loading the bean class if a ClassLoader has been specified.
+	 * 使用给定的bean className和bean parentName属性创建GenericBeanDefinition对象。
 	 * @param parentName the name of the parent bean, if any
 	 * @param className the name of the bean class, if any
 	 * @param classLoader the ClassLoader to use for loading bean classes
@@ -56,17 +57,22 @@ public abstract class BeanDefinitionReaderUtils {
 	 */
 	public static AbstractBeanDefinition createBeanDefinition(
 			@Nullable String parentName, @Nullable String className, @Nullable ClassLoader classLoader) throws ClassNotFoundException {
-
+		//创建GenericBeanDefinition对象
 		GenericBeanDefinition bd = new GenericBeanDefinition();
+		//设置parentName属性
 		bd.setParentName(parentName);
+		//如果className不为null
 		if (className != null) {
+			//类加载器不为null
 			if (classLoader != null) {
+				//通过全路径的className获取Class对象，并设置到beanClass属性中
 				bd.setBeanClass(ClassUtils.forName(className, classLoader));
-			}
-			else {
+			} else {
+				//将className直接设置到beanClass属性中
 				bd.setBeanClassName(className);
 			}
 		}
+		//返回已创建GenericBeanDefinition对象
 		return bd;
 	}
 
@@ -151,8 +157,11 @@ public abstract class BeanDefinitionReaderUtils {
 
 	/**
 	 * Register the given bean definition with the given bean factory.
+	 * 向给定的 bean 工厂注册给定的 bean 的定义
 	 * @param definitionHolder the bean definition including name and aliases
+	 * 封装了了bean 定义、包括bean的名称和别名
 	 * @param registry the bean factory to register with
+	 * bean工厂的注册器
 	 * @throws BeanDefinitionStoreException if registration failed
 	 */
 	public static void registerBeanDefinition(
@@ -160,13 +169,18 @@ public abstract class BeanDefinitionReaderUtils {
 			throws BeanDefinitionStoreException {
 
 		// Register bean definition under primary name.
+		//注册bean definition的beanName
 		String beanName = definitionHolder.getBeanName();
+		// 注册这个 Bean
 		registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
 
 		// Register aliases for bean name, if any.
+		// 如果还有别名的话，也要根据别名全部注册一遍，不然根据别名就会找不到 Bean 了
 		String[] aliases = definitionHolder.getAliases();
 		if (aliases != null) {
 			for (String alias : aliases) {
+				// alias -> beanName 保存它们的别名信息，这个很简单，用一个 map 保存一下就可以了，
+				// 获取的时候，会先将 alias 转换为 beanName，然后再查找
 				registry.registerAlias(beanName, alias);
 			}
 		}

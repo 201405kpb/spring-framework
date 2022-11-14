@@ -61,6 +61,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * Spring environment property (e.g. a placeholder in a configuration String) isn't
 	 * resolvable otherwise. Consider switching this flag to "true" if you experience
 	 * log warnings from {@code getenv} calls coming from Spring.
+	 * 是否不允许Spring访问系统环境变量的属性名称.属性值默认为false，表示允许，设置为true，表示不允许，即从不允许通过System.getenv()获取系统环境变量。
 	 * @see #suppressGetenvAccess()
 	 */
 	public static final String IGNORE_GETENV_PROPERTY_NAME = "spring.getenv.ignore";
@@ -72,6 +73,9 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * character in variable names. Assuming that Spring's {@link SystemEnvironmentPropertySource}
 	 * is in use, this property may be specified as an environment variable as
 	 * {@code SPRING_PROFILES_ACTIVE}.
+	 *
+	 * 要设置为指定活动配置文件的属性名称,属性值可以使用,分隔
+	 *
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 */
 	public static final String ACTIVE_PROFILES_PROPERTY_NAME = "spring.profiles.active";
@@ -79,6 +83,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	/**
 	 * Name of property to set to specify profiles active by default: {@value}. Value may
 	 * be comma delimited.
+	 * 要设置为指定默认情况下处于活动状态的配置文件的属性名称。属性值可以使用,分隔
 	 * <p>Note that certain shell environments such as Bash disallow the use of the period
 	 * character in variable names. Assuming that Spring's {@link SystemEnvironmentPropertySource}
 	 * is in use, this property may be specified as an environment variable as
@@ -91,6 +96,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * Name of reserved default profile name: {@value}. If no default profile names are
 	 * explicitly and no active profile names are explicitly set, this profile will
 	 * automatically be activated by default.
+	 * 如果未显式设置默认配置文件名称，并且未显式设置活动配置文件名称，则默认情况下使用“default”作为自动激活配置文件名。
 	 * @see #getReservedDefaultProfiles
 	 * @see ConfigurableEnvironment#setDefaultProfiles
 	 * @see ConfigurableEnvironment#setActiveProfiles
@@ -102,12 +108,24 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 *  活动Profile名集合
+	 */
 	private final Set<String> activeProfiles = new LinkedHashSet<>();
 
+	/**
+	 * 默认Profile名集合
+	 */
 	private final Set<String> defaultProfiles = new LinkedHashSet<>(getReservedDefaultProfiles());
 
+	/**
+	 *  可修改属性源，实际类型为MutablePropertySources。可以看作一个列表，用来存放PropertySource属性源
+	 */
 	private final MutablePropertySources propertySources;
 
+	/**
+	 * 可配置的属性解析器，实际类型为PropertySourcesPropertyResolver类型，用于解析属性源中的属性
+	 */
 	private final ConfigurablePropertyResolver propertyResolver;
 
 
@@ -531,6 +549,10 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 		this.propertyResolver.setRequiredProperties(requiredProperties);
 	}
 
+	/**
+	 * 校验指定的必须存在的属性是否都有对应的属性值，即是否都存在。
+	 * @throws MissingRequiredPropertiesException 如果任何必需的属性无法解析（不存在）
+	 */
 	@Override
 	public void validateRequiredProperties() throws MissingRequiredPropertiesException {
 		this.propertyResolver.validateRequiredProperties();
@@ -583,8 +605,16 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 		return this.propertyResolver.resolvePlaceholders(text);
 	}
 
+	/**
+	 * 解析必须的给定文本中的占位符，默认占位符语法规则为 ${...}
+	 * @param text 原始的字符串文本
+	 * @return 已解析的字符串
+	 * @throws IllegalArgumentException
+	 */
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+		//继续调用属性解析器的resolveRequiredPlaceholders方法解析、替换给定文本中的${}占位符(默认)
+		//propertyResolver属性解析器在创建环境对象时就被创建了，并且被设置了JVM和系统属性源
 		return this.propertyResolver.resolveRequiredPlaceholders(text);
 	}
 
