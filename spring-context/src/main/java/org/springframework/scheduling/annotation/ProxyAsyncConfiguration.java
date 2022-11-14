@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 /**
  * {@code @Configuration} class that registers the Spring infrastructure beans necessary
  * to enable proxy-based asynchronous method execution.
+ * 配置类，继承了AbstractAsyncConfiguration
  *
  * @author Chris Beams
  * @author Stephane Nicoll
@@ -41,17 +42,28 @@ import org.springframework.util.Assert;
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class ProxyAsyncConfiguration extends AbstractAsyncConfiguration {
 
+	/**
+	 * 一个@Bean方法，beanName为"org.springframework.context.annotation.internalAsyncAnnotationProcessor"
+	 */
 	@Bean(name = TaskManagementConfigUtils.ASYNC_ANNOTATION_PROCESSOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public AsyncAnnotationBeanPostProcessor asyncAdvisor() {
+		//判断是否具有@EnableAsync注解
 		Assert.notNull(this.enableAsync, "@EnableAsync annotation metadata was not injected");
+		//新建一个AsyncAnnotationBeanPostProcessor实例
 		AsyncAnnotationBeanPostProcessor bpp = new AsyncAnnotationBeanPostProcessor();
+		//设置从AsyncConfigurer中获取的配置信息，包括执行器和异常处理器
 		bpp.configure(this.executor, this.exceptionHandler);
+		//获取annotation属性值，这表示自定义的异步任务注解
 		Class<? extends Annotation> customAsyncAnnotation = this.enableAsync.getClass("annotation");
+		//如果值不等于属性默认值，这说明使用者手动设置了值
 		if (customAsyncAnnotation != AnnotationUtils.getDefaultValue(EnableAsync.class, "annotation")) {
+			//那么将设置的注解作为异步任务注解，并且不会解析默认注解
 			bpp.setAsyncAnnotationType(customAsyncAnnotation);
 		}
+		//设置proxyTargetClass属性，它决定了采用什么样的代理
 		bpp.setProxyTargetClass(this.enableAsync.getBoolean("proxyTargetClass"));
+		//设置order属性，它决定了后处理执行顺序
 		bpp.setOrder(this.enableAsync.<Integer>getNumber("order"));
 		return bpp;
 	}

@@ -76,6 +76,8 @@ public abstract class BeanFactoryAnnotationUtils {
 	 * Obtain a bean of type {@code T} from the given {@code BeanFactory} declaring a
 	 * qualifier (e.g. via {@code <qualifier>} or {@code @Qualifier}) matching the given
 	 * qualifier, or having a bean name matching the given qualifier.
+	 * 从给定的 BeanFactory 获取 T 类型的 Bean，通过声明限定符（例如，通过 <qualifier/>或 @Qualifier）匹配给定限定符，
+	 * 或具有与给定限定符匹配的 beanName。
 	 * @param beanFactory the factory to get the target bean from (also searching ancestors)
 	 * @param beanType the type of bean to retrieve
 	 * @param qualifier the qualifier for selecting between multiple bean matches
@@ -92,10 +94,12 @@ public abstract class BeanFactoryAnnotationUtils {
 
 		if (beanFactory instanceof ListableBeanFactory lbf) {
 			// Full qualifier matching supported.
+			//支持完全限定符匹配，首先从工厂中查找指定类型的beanName集合，然后从beanName集合中找到与qualifier一致的bean，最后初始化并返回，这样避免了复杂的查找
 			return qualifiedBeanOfType(lbf, beanType, qualifier);
 		}
 		else if (beanFactory.containsBean(qualifier)) {
 			// Fallback: target bean at least found by bean name.
+			// 根据beanName和类型直接获取
 			return beanFactory.getBean(qualifier, beanType);
 		}
 		else {

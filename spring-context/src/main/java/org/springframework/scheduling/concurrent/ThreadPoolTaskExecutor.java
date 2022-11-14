@@ -247,15 +247,20 @@ public class ThreadPoolTaskExecutor extends ExecutorConfigurationSupport
 	 * but stores the actual {@link ThreadPoolExecutor} handle internally.
 	 * Do not override this method for replacing the executor, rather just for
 	 * decorating its {@code ExecutorService} handle or storing custom state.
+	 *
+	 * 这个方法向其基类公开ExecutorService，但在内部存储实际的ThreadPoolExecutor句柄.
+	 * 不要为了替换executor而重写此方法，而应只是为了装饰ExecutorService句柄或存储自定义状态.
+	 *
 	 */
-	@Override
 	protected ExecutorService initializeExecutor(
 			ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
-
+		//根据队列容量创建任务队列
 		BlockingQueue<Runnable> queue = createQueue(this.queueCapacity);
 
 		ThreadPoolExecutor executor;
+		//如果任务包装器不为null，一般都是null，但是可以设置
 		if (this.taskDecorator != null) {
+			//构建一个ThreadPoolExecutor，并且使用装饰器装饰即将执行的任务
 			executor = new ThreadPoolExecutor(
 					this.corePoolSize, this.maxPoolSize, this.keepAliveSeconds, TimeUnit.SECONDS,
 					queue, threadFactory, rejectedExecutionHandler) {
@@ -268,24 +273,22 @@ public class ThreadPoolTaskExecutor extends ExecutorConfigurationSupport
 					super.execute(decorated);
 				}
 			};
-		}
-		else {
+		} else {
+			//构建一个ThreadPoolExecutor
 			executor = new ThreadPoolExecutor(
 					this.corePoolSize, this.maxPoolSize, this.keepAliveSeconds, TimeUnit.SECONDS,
 					queue, threadFactory, rejectedExecutionHandler);
 
 		}
-
+		//设置allowCoreThreadTimeOut属性
 		if (this.allowCoreThreadTimeOut) {
 			executor.allowCoreThreadTimeOut(true);
 		}
-		if (this.prestartAllCoreThreads) {
-			executor.prestartAllCoreThreads();
-		}
-
+		//赋值
 		this.threadPoolExecutor = executor;
 		return executor;
 	}
+
 
 	/**
 	 * Create the BlockingQueue to use for the ThreadPoolExecutor.

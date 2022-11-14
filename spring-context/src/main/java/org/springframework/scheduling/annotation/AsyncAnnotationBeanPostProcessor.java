@@ -77,6 +77,7 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/*AsyncAnnotationBeanPostProcessor的属性，在创建bean定义时被初始化*/
 	@Nullable
 	private Supplier<Executor> executor;
 
@@ -142,15 +143,21 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 	}
 
 
+	/**
+	 * AsyncAnnotationBeanPostProcessor重写的方法
+	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+		//调用父类AbstractBeanFactoryAwareAdvisingPostProcessor的方法，设置beanFactory属性
 		super.setBeanFactory(beanFactory);
-
+		//根据指定的executor和exceptionHandler创建一个AsyncAnnotationAdvisor类型的通知器
 		AsyncAnnotationAdvisor advisor = new AsyncAnnotationAdvisor(this.executor, this.exceptionHandler);
+		//如果指定了asyncAnnotationType，那么就设置asyncAnnotationType
 		if (this.asyncAnnotationType != null) {
 			advisor.setAsyncAnnotationType(this.asyncAnnotationType);
 		}
 		advisor.setBeanFactory(beanFactory);
+		//赋值给父类AbstractAdvisingBeanPostProcessor的属性
 		this.advisor = advisor;
 	}
 

@@ -64,7 +64,7 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 	 * Create a new {@code AsyncAnnotationAdvisor} for bean-style configuration.
 	 */
 	public AsyncAnnotationAdvisor() {
-		this((Supplier<Executor>) null, (Supplier<AsyncUncaughtExceptionHandler>) null);
+		this(null, (Supplier<AsyncUncaughtExceptionHandler>) null);
 	}
 
 	/**
@@ -93,12 +93,14 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 	@SuppressWarnings("unchecked")
 	public AsyncAnnotationAdvisor(
 			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
-
+		//表示异步任务注解的集合
 		Set<Class<? extends Annotation>> asyncAnnotationTypes = new LinkedHashSet<>(2);
+		//添加@Async
 		asyncAnnotationTypes.add(Async.class);
 
 		ClassLoader classLoader = AsyncAnnotationAdvisor.class.getClassLoader();
 		try {
+			//添加@javax.ejb.Asynchronous，如果存在EJB依赖
 			asyncAnnotationTypes.add((Class<? extends Annotation>)
 					ClassUtils.forName("jakarta.ejb.Asynchronous", classLoader));
 		}
@@ -113,7 +115,9 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 			// If Jakarta Concurrent API not present, simply ignore.
 		}
 
+		//构建通知
 		this.advice = buildAdvice(executor, exceptionHandler);
+		//构建切入点
 		this.pointcut = buildPointcut(asyncAnnotationTypes);
 	}
 
@@ -125,6 +129,8 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 	 * <p>This setter property exists so that developers can provide their own
 	 * (non-Spring-specific) annotation type to indicate that a method is to
 	 * be executed asynchronously.
+	 * 在setBeanFactory的回调方法中会调用该方法，用于手动设置匹配的异步任务注解
+	 * 如果手动设置异步任务注解，那么不会查找默认的异步任务注解，比如@Async
 	 * @param asyncAnnotationType the desired annotation type
 	 */
 	public void setAsyncAnnotationType(Class<? extends Annotation> asyncAnnotationType) {
@@ -156,23 +162,35 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 	}
 
 
+	/**
+	 * 构建通知
+	 *
+	 * @param executor         指定的执行器
+	 * @param exceptionHandler 指定的异常处理器
+	 * @return 一个拦截器通知
+	 */
 	protected Advice buildAdvice(
 			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
-
+		//创建一个AnnotationAsyncExecutionInterceptor拦截器，Spring AOP最终是依赖拦截器链来实现代理的功能
 		AnnotationAsyncExecutionInterceptor interceptor = new AnnotationAsyncExecutionInterceptor(null);
+		//配置此切面的执行器和异常处理器，如果没有指定，则应用相应的默认值。
 		interceptor.configure(executor, exceptionHandler);
 		return interceptor;
 	}
 
 	/**
 	 * Calculate a pointcut for the given async annotation types, if any.
+	 * 构建切入点
 	 * @param asyncAnnotationTypes the async annotation types to introspect
 	 * @return the applicable Pointcut object, or {@code null} if none
 	 */
 	protected Pointcut buildPointcut(Set<Class<? extends Annotation>> asyncAnnotationTypes) {
 		ComposablePointcut result = null;
+		//遍历注解集合
 		for (Class<? extends Annotation> asyncAnnotationType : asyncAnnotationTypes) {
+			//设置匹配器，检查类上的注解，同时也检查超类和接口以及注解的元注解
 			Pointcut cpc = new AnnotationMatchingPointcut(asyncAnnotationType, true);
+			//设置匹配器，检查方法上的注解，同时也检查超类和接口的方法以及方法上的注解的元注解
 			Pointcut mpc = new AnnotationMatchingPointcut(null, asyncAnnotationType, true);
 			if (result == null) {
 				result = new ComposablePointcut(cpc);

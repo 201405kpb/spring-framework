@@ -50,15 +50,31 @@ public abstract class AbstractBeanFactoryAwareAdvisingPostProcessor extends Abst
 				(ConfigurableListableBeanFactory) beanFactory : null);
 	}
 
+	/**
+	 * 用于处理@Configuration注解标注的代配置类使其强制采用CGLIB代理
+	 */
 	@Override
 	protected ProxyFactory prepareProxyFactory(Object bean, String beanName) {
 		if (this.beanFactory != null) {
+			//公开指定 bean 的给定目标类，主要就是设置bean定义的ORIGINAL_TARGET_CLASS_ATTRIBUTE属性，
+			//即"org.springframework.aop.framework.autoproxy.AutoProxyUtils.originalTargetClass"属性，value为beanClass
+			//也就是保存其原来的类型
 			AutoProxyUtils.exposeTargetClass(this.beanFactory, beanName, bean.getClass());
 		}
-
+		//调用父类的方法创建ProxyFactory
 		ProxyFactory proxyFactory = super.prepareProxyFactory(bean, beanName);
+		/*
+		 * 这里的逻辑和"AbstractAutoProxyCreator"差不多，处理@Configuration配置类
+		 *
+		 * 判断：如果proxyTargetClass属性为false，并且存在beanFactory，并且当前bean定义存在PRESERVE_TARGET_CLASS_ATTRIBUTE属性，
+		 * 即"org.springframework.aop.framework.autoproxy.AutoProxyUtils.preserveTargetClass"属性，并且值为true
+		 *
+		 * 我们在前面讲解"ConfigurationClassPostProcessor配置类后处理器"的文章中就见过该属性
+		 * 对于@Configuration注解标注的代理类，它的bean定义会添加这个属性并且值为true，表示强制走CGLIB代理
+		 */
 		if (!proxyFactory.isProxyTargetClass() && this.beanFactory != null &&
 				AutoProxyUtils.shouldProxyTargetClass(this.beanFactory, beanName)) {
+			//满足三个条件，即使配置是基于JDK的代理，对于当前类，仍然采用CGLIB的代理
 			proxyFactory.setProxyTargetClass(true);
 		}
 		return proxyFactory;

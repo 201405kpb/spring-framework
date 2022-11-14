@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  * particularly useful for method reference suppliers, falling back to a default
  * supplier for a method that returned {@code null} and caching the result.
  *
+ * @param <T> the type of results supplied by this supplier
  * @author Juergen Hoeller
  * @since 5.1
- * @param <T> the type of results supplied by this supplier
  */
 public class SingletonSupplier<T> implements Supplier<T> {
 
@@ -49,7 +49,8 @@ public class SingletonSupplier<T> implements Supplier<T> {
 	/**
 	 * Build a {@code SingletonSupplier} with the given singleton instance
 	 * and a default supplier for the case when the instance is {@code null}.
-	 * @param instance the singleton instance (potentially {@code null})
+	 *
+	 * @param instance        the singleton instance (potentially {@code null})
 	 * @param defaultSupplier the default supplier as a fallback
 	 */
 	public SingletonSupplier(@Nullable T instance, Supplier<? extends T> defaultSupplier) {
@@ -61,8 +62,9 @@ public class SingletonSupplier<T> implements Supplier<T> {
 	/**
 	 * Build a {@code SingletonSupplier} with the given instance supplier
 	 * and a default supplier for the case when the instance is {@code null}.
+	 *
 	 * @param instanceSupplier the immediate instance supplier
-	 * @param defaultSupplier the default supplier as a fallback
+	 * @param defaultSupplier  the default supplier as a fallback
 	 */
 	public SingletonSupplier(@Nullable Supplier<? extends T> instanceSupplier, Supplier<? extends T> defaultSupplier) {
 		this.instanceSupplier = instanceSupplier;
@@ -83,22 +85,29 @@ public class SingletonSupplier<T> implements Supplier<T> {
 
 	/**
 	 * Get the shared singleton instance for this supplier.
+	 * 获取此生产者的共享单例。
+	 *
 	 * @return the singleton instance (or {@code null} if none)
+	 * 单例实例或null（如果没有）
 	 */
 	@Override
 	@Nullable
 	public T get() {
+		//如果singletonInstance不为null就直接返回，否则加锁获取
 		T instance = this.singletonInstance;
 		if (instance == null) {
 			synchronized (this) {
 				instance = this.singletonInstance;
 				if (instance == null) {
+					//如果指定的自定义执行器/异常处理器不为null，那么将其作为默认执行器/异常处理器
 					if (this.instanceSupplier != null) {
 						instance = this.instanceSupplier.get();
 					}
+					//如果指定的自定义执行器/异常处理器为null，并且通过configure指定的默认执行器/异常处理器不为null，那么将其作为默认执行器/异常处理器
 					if (instance == null && this.defaultSupplier != null) {
 						instance = this.defaultSupplier.get();
 					}
+					//赋值，后续直接返回，不再查找
 					this.singletonInstance = instance;
 				}
 			}
@@ -106,8 +115,10 @@ public class SingletonSupplier<T> implements Supplier<T> {
 		return instance;
 	}
 
+
 	/**
 	 * Obtain the shared singleton instance for this supplier.
+	 *
 	 * @return the singleton instance (never {@code null})
 	 * @throws IllegalStateException in case of no instance
 	 */
@@ -120,6 +131,7 @@ public class SingletonSupplier<T> implements Supplier<T> {
 
 	/**
 	 * Build a {@code SingletonSupplier} with the given singleton instance.
+	 *
 	 * @param instance the singleton instance (never {@code null})
 	 * @return the singleton supplier (never {@code null})
 	 */
@@ -129,6 +141,7 @@ public class SingletonSupplier<T> implements Supplier<T> {
 
 	/**
 	 * Build a {@code SingletonSupplier} with the given singleton instance.
+	 *
 	 * @param instance the singleton instance (potentially {@code null})
 	 * @return the singleton supplier, or {@code null} if the instance was {@code null}
 	 */
@@ -139,6 +152,7 @@ public class SingletonSupplier<T> implements Supplier<T> {
 
 	/**
 	 * Build a {@code SingletonSupplier} with the given supplier.
+	 *
 	 * @param supplier the instance supplier (never {@code null})
 	 * @return the singleton supplier (never {@code null})
 	 */
@@ -148,6 +162,7 @@ public class SingletonSupplier<T> implements Supplier<T> {
 
 	/**
 	 * Build a {@code SingletonSupplier} with the given supplier.
+	 *
 	 * @param supplier the instance supplier (potentially {@code null})
 	 * @return the singleton supplier, or {@code null} if the instance supplier was {@code null}
 	 */

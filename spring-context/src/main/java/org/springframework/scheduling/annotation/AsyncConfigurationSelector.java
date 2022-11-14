@@ -24,6 +24,8 @@ import org.springframework.lang.NonNull;
  * Selects which implementation of {@link AbstractAsyncConfiguration} should
  * be used based on the value of {@link EnableAsync#mode} on the importing
  * {@code @Configuration} class.
+ * 实现了AdviceModeImportSelector，泛型类型为@EnableAsync注解
+ *
  *
  * @author Chris Beams
  * @author Juergen Hoeller
@@ -33,6 +35,9 @@ import org.springframework.lang.NonNull;
  */
 public class AsyncConfigurationSelector extends AdviceModeImportSelector<EnableAsync> {
 
+	/**
+	 * 支持Aspectj的静态代理织入
+	 */
 	private static final String ASYNC_EXECUTION_ASPECT_CONFIGURATION_CLASS_NAME =
 			"org.springframework.scheduling.aspectj.AspectJAsyncConfiguration";
 
@@ -45,8 +50,11 @@ public class AsyncConfigurationSelector extends AdviceModeImportSelector<EnableA
 	@Override
 	@NonNull
 	public String[] selectImports(AdviceMode adviceMode) {
+		//判断注解的adviceMode属性值
 		return switch (adviceMode) {
+			//一般都是PROXY，因此将会注册ProxyAsyncConfiguration的bean定义，进行动态代理
 			case PROXY -> new String[] {ProxyAsyncConfiguration.class.getName()};
+			//支持Aspectj的静态代理织入
 			case ASPECTJ -> new String[] {ASYNC_EXECUTION_ASPECT_CONFIGURATION_CLASS_NAME};
 		};
 	}

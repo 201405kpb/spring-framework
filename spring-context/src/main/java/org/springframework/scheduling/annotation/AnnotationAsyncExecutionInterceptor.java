@@ -70,6 +70,8 @@ public class AnnotationAsyncExecutionInterceptor extends AsyncExecutionIntercept
 	 * class level. If {@code @Async} is specified at both the method and class level, the
 	 * method's {@code #value} takes precedence (even if empty string, indicating that
 	 * the default executor should be used preferentially).
+	 * 返回执行器的限定符（比如qualifier）或 beanName，通常是在方法或类级别通过@Async#value属性指定的。
+	 * 即使方法上的@Async注解的value属性为空字符串（默认就是""），也应该被使用，这指示应使用默认执行器。
 	 * @param method the method to inspect for executor qualifier metadata
 	 * @return the qualifier if specified, otherwise empty string indicating that the
 	 * {@linkplain #setExecutor(Executor) default executor} should be used
@@ -78,12 +80,13 @@ public class AnnotationAsyncExecutionInterceptor extends AsyncExecutionIntercept
 	@Override
 	@Nullable
 	protected String getExecutorQualifier(Method method) {
-		// Maintainer's note: changes made here should also be made in
-		// AnnotationAsyncExecutionAspect#getExecutorQualifier
+		// 获取方法上的@Async注解
 		Async async = AnnotatedElementUtils.findMergedAnnotation(method, Async.class);
 		if (async == null) {
+			//如果为null，那么查找类上的@Async注解
 			async = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), Async.class);
 		}
+		//如果async不为null，那么返回value属性值，否则返回null
 		return (async != null ? async.value() : null);
 	}
 
