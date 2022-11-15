@@ -94,52 +94,66 @@ public abstract class AbstractFallbackTransactionAttributeSource
 	/**
 	 * Determine the transaction attribute for this method invocation.
 	 * <p>Defaults to the class's transaction attribute if no method attribute is found.
+	 * 确定此方法调用的事务属性。如果没有找到方法属性，则默认为类的事务属性。
 	 * @param method the method for the current invocation (never {@code null})
+	 * 当前调用的方法(永不为空)
 	 * @param targetClass the target class for this invocation (may be {@code null})
+	 * 调用的目标类(可能是null)
 	 * @return a TransactionAttribute for this method, or {@code null} if the method
 	 * is not transactional
+	 * 此方法的TransactionAttribute，如果该方法不是事务性的，则为null
 	 */
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+		//如果方法是属于Object，直接返回null，这些方法不会应用事务，比如Object的hashcode、equals……
 		if (method.getDeclaringClass() == Object.class) {
 			return null;
 		}
 
-		// First, see if we have a cached value.
+		//获取方法和目标类的缓存key
 		Object cacheKey = getCacheKey(method, targetClass);
+		//尝试从缓存获取
 		TransactionAttribute cached = this.attributeCache.get(cacheKey);
+		//如果此前解析过该方法以及目标类，那么Value要么是指示没有事务属性，要么是一个实际的事务属性，一定不会为null
 		if (cached != null) {
-			// Value will either be canonical value indicating there is no transaction attribute,
-			// or an actual transaction attribute.
+			//如果value指示没有事务属性，那么返回null
 			if (cached == NULL_TRANSACTION_ATTRIBUTE) {
 				return null;
-			}
-			else {
+			} else {
+				//否则直接返回此前解析的事务属性
 				return cached;
 			}
-		}
-		else {
-			// We need to work it out.
+		} else {
+			//到这里表示此前没有解析过该方法和目标类型
+
+			//那么根据当前方法和目标类型计算出TransactionAttribute
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
-			// Put it in the cache.
+			// 如果为null
 			if (txAttr == null) {
+				//那么存入一个表示没有事务属性的固定值到缓存中，再次遇到时不再解析
 				this.attributeCache.put(cacheKey, NULL_TRANSACTION_ATTRIBUTE);
-			}
-			else {
+			} else {
+				//如果不为null，说明获取到了事务属性
+
+				//获取给定方法的全限定名，基本仅用于输出日志
 				String methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
-				if (txAttr instanceof DefaultTransactionAttribute dta) {
-					dta.setDescriptor(methodIdentification);
-					dta.resolveAttributeStrings(this.embeddedValueResolver);
+				//如果事务属性属于DefaultTransactionAttribute
+				if (txAttr instanceof DefaultTransactionAttribute) {
+					//设置描述符
+					((DefaultTransactionAttribute) txAttr).setDescriptor(methodIdentification);
 				}
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding transactional method '" + methodIdentification + "' with attribute: " + txAttr);
 				}
+				//将结果存入缓存，再次遇到时不再解析
 				this.attributeCache.put(cacheKey, txAttr);
 			}
+			//返回txAttr，可能为null
 			return txAttr;
 		}
 	}
+
 
 	/**
 	 * Determine a cache key for the given method and target class.
@@ -157,45 +171,53 @@ public abstract class AbstractFallbackTransactionAttributeSource
 	 * Same signature as {@link #getTransactionAttribute}, but doesn't cache the result.
 	 * {@link #getTransactionAttribute} is effectively a caching decorator for this method.
 	 * <p>As of 4.1.8, this method can be overridden.
+	 * 计算事务属性的核心方法，但不缓存结果。getTransactionAttribute是这个方法的一个有效的缓存装饰器。
 	 * @since 4.1.8
 	 * @see #getTransactionAttribute
 	 */
 	@Nullable
 	protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
-		// Don't allow non-public methods, as configured.
+		//默认不允许非公共方法进行事务代理，这里就是判断public方法的逻辑，但是可以通过allowPublicMethodsOnly方法修改
+		//如果是其他访问权限，比如default，那么获取其他AOP操作能够代理，但是事务不会生效
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
 		}
 
-		// The method may be on an interface, but we need attributes from the target class.
-		// If the target class is null, the method will be unchanged.
+		//获取最终要执行的目标方法，有可能参数方法表示的是一个接口的方法，我们需要找到实现类的方法
+		//通常情况下，参数方法就是最终执行的方法
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
 
-		// First try is the method in the target class.
+		//首先去找直接标记在方法上的事务注解并解析为事务属性
+		//如果方法上有就直接返回，不会再看类上的了事务注解了，这就是方法上的事务注解的优先级更高的原理
+		//findTransactionAttribute方法由子类实现
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
 		if (txAttr != null) {
 			return txAttr;
 		}
-
-		// Second try is the transaction attribute on the target class.
+		//如果方法上没有就查找目标类上的事务注解，有就直接返回
+		//findTransactionAttribute方法由子类实现
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;
 		}
-
+		//到这里表示没有在目标方法或者类上找到事务注解，如果最终的目标方法和当前方法不一致，那么在当前方法中查找
+		//实际上很难走到这一步，在此前的查找中基本上就返回了
 		if (specificMethod != method) {
-			// Fallback is to look at the original method.
+			//我们会查找参数方法上的事务注解，如果找到了就返回
+			//findTransactionAttribute方法由子类实现
 			txAttr = findTransactionAttribute(method);
 			if (txAttr != null) {
 				return txAttr;
 			}
-			// Last fallback is the class of the original method.
+			//如果还是没找到，那么最后一次尝试
+			//查找类上是否有事务注解，如果找到了就返回
+			//findTransactionAttribute方法由子类实现
 			txAttr = findTransactionAttribute(method.getDeclaringClass());
 			if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 				return txAttr;
 			}
 		}
-
+		//以上都找不到事务注解，那么将返回null，表示当前方法不会进行事务代理
 		return null;
 	}
 

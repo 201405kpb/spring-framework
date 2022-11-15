@@ -32,11 +32,18 @@ import org.springframework.lang.Nullable;
  * @see TransactionAttributeSourceAdvisor
  */
 @SuppressWarnings("serial")
-public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFactoryPointcutAdvisor {
+public class BeanFactoryTransactionAttributeSourceAdvisor extends
+		AbstractBeanFactoryPointcutAdvisor {
 
+	/**
+	 * 事务属性源
+	 */
 	@Nullable
 	private TransactionAttributeSource transactionAttributeSource;
 
+	/**
+	 * 事务切入点，用于判断某个bean/方法是否符合Spring事务切入规则
+	 */
 	private final TransactionAttributeSourcePointcut pointcut = new TransactionAttributeSourcePointcut() {
 		@Override
 		@Nullable
@@ -47,9 +54,8 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 
 
 	/**
-	 * Set the transaction attribute source which is used to find transaction
-	 * attributes. This should usually be identical to the source reference
-	 * set on the transaction interceptor itself.
+	 * 设置用于查找TransactionAttribute的TransactionAttributeSource。
+	 *
 	 * @see TransactionInterceptor#setTransactionAttributeSource
 	 */
 	public void setTransactionAttributeSource(TransactionAttributeSource transactionAttributeSource) {
@@ -57,13 +63,15 @@ public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFa
 	}
 
 	/**
-	 * Set the {@link ClassFilter} to use for this pointcut.
-	 * Default is {@link ClassFilter#TRUE}.
+	 * 为这个切入点设置要使用的ClassFilter类筛选器。默认是ClassFilter.TRUE，即匹配所有类
 	 */
 	public void setClassFilter(ClassFilter classFilter) {
 		this.pointcut.setClassFilter(classFilter);
 	}
 
+	/**
+	 * 获取切入点
+	 */
 	@Override
 	public Pointcut getPointcut() {
 		return this.pointcut;

@@ -48,6 +48,17 @@ public interface TransactionAttributeSource {
 	 * attributes at class or method level; {@code true} otherwise. The default
 	 * implementation returns {@code true}, leading to regular introspection.
 	 * @since 5.2
+	 *
+	 * 来自Spring 5.2的一个新方法
+	 * <p>
+	 * 确定给定的类是否是此事务切入点的候选者，即是否有资格继续进行类方法匹配来判断是否能被进行事务增强
+	 * <p>
+	 * 如果此方法返回false，则不会遍历给定类上的方法并进行getTransactionAttribute的调用。
+	 * 因此，该方法是对不受事务影响的类的优化，避免了多次方法级别的校验
+	 * 而返回true则是意味着该类需要对给定类上的每个方法分别进行全面自省，
+	 * 来判断是否真正可以被事务代理，而不是真正的可以被此事务通知器行代理。
+	 *
+	 * 默认实现返回true，从而导致常规的方法自省。
 	 */
 	default boolean isCandidateClass(Class<?> targetClass) {
 		return true;
@@ -56,10 +67,13 @@ public interface TransactionAttributeSource {
 	/**
 	 * Return the transaction attribute for the given method,
 	 * or {@code null} if the method is non-transactional.
-	 * @param method the method to introspect
+	 * 返回给定方法的事务属性，返回null表示该方法无事务。
+	 * @param method the method to introspect 查找的方法
 	 * @param targetClass the target class (may be {@code null},
 	 * in which case the declaring class of the method must be used)
+	 * 目标类，可能是null，此时将使用方法反射获取的class
 	 * @return the matching transaction attribute, or {@code null} if none found
+	 * 匹配的事务属性，如果没有发现则返回null
 	 */
 	@Nullable
 	TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass);

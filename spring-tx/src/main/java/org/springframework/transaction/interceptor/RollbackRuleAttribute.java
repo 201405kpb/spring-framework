@@ -138,6 +138,7 @@ public class RollbackRuleAttribute implements Serializable{
 
 	/**
 	 * Return the depth of the superclass matching, with the following semantics.
+	 * 返回异常超类匹配的深度。
 	 * <ul>
 	 * <li>{@code -1} means this rule does not match the supplied {@code exception}.</li>
 	 * <li>{@code 0} means this rule matches the supplied {@code exception} directly.</li>
@@ -153,12 +154,23 @@ public class RollbackRuleAttribute implements Serializable{
 	 * a match against a nested exception type or similarly named exception type
 	 * will return a depth signifying a match at the corresponding level in the
 	 * class hierarchy as if there had been a direct match.
+	 *
 	 */
 	public int getDepth(Throwable exception) {
 		return getDepth(exception.getClass(), 0);
 	}
 
-
+	/**
+	 * 递归的匹配异常，从指定异常开始，逐级向父类异常匹配，并且返回匹配深度
+	 * <p>
+	 * 匹配的规则就是如果当前异常类型的全路径类名包含当前的回滚规则的异常名，则表示匹配
+	 * 如果当前异常直接匹配当前的回滚规则，那么depth返回0
+	 * 如果不匹配，那么获取当前异常的父类异常，depth+1，继续递归的匹配父类，如果匹配到了则返回此时的depth
+	 * 如果父类来到了Throwable，即顶级异常接口，并且还没有匹配到，那么说明没有匹配成功，返回-1
+	 *
+	 * @param depth          深度
+	 * @return 匹配时的深度
+	 */
 	private int getDepth(Class<?> exceptionType, int depth) {
 		if (this.exceptionType != null) {
 			if (this.exceptionType.equals(exceptionType)) {
@@ -171,11 +183,15 @@ public class RollbackRuleAttribute implements Serializable{
 			return depth;
 		}
 		// If we've gone as far as we can go and haven't found it...
+		//如果当前异常类型属于Throwable，那么说明没有找到匹配的异常，直接返回-1，递归结束
 		if (exceptionType == Throwable.class) {
 			return -1;
 		}
+		//递归的进行匹配，不过下一次将会匹配当前异常的父类异常，并且匹配深度+1
 		return getDepth(exceptionType.getSuperclass(), depth + 1);
 	}
+
+
 
 
 	@Override

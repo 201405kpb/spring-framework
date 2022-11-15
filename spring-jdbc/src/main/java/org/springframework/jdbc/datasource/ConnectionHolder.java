@@ -179,11 +179,14 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	/**
 	 * Create a new JDBC 3.0 Savepoint for the current Connection,
 	 * using generated savepoint names that are unique for the Connection.
+	 * 为当前连接创建一个新的JDBC 3.0保存点，只用SAVEPOINT_+savepointCounter作为保存点的名称
 	 * @return the new Savepoint
 	 * @throws SQLException if thrown by the JDBC driver
 	 */
 	public Savepoint createSavepoint() throws SQLException {
+		//获取数量自增1
 		this.savepointCounter++;
+		//获取内部的JDBC连接，并通过连接设置一个保存点，返回创建的Savepoint
 		return getConnection().setSavepoint(SAVEPOINT_NAME_PREFIX + this.savepointCounter);
 	}
 
@@ -193,6 +196,7 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	 * where each returned Connection is only temporarily leased and needs to be
 	 * returned once the data operation is done, to make the Connection available
 	 * for other operations within the same transaction.
+	 *
 	 */
 	@Override
 	public void released() {

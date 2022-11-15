@@ -165,6 +165,7 @@ public abstract class DataSourceUtils {
 
 	/**
 	 * Prepare the given Connection with the given transaction semantics.
+	 * 使用给定的事务语义准备给定的Connection。
 	 * @param con the Connection to prepare
 	 * @param definition the transaction definition to apply
 	 * @return the previous isolation level, if any
@@ -181,11 +182,13 @@ public abstract class DataSourceUtils {
 
 		boolean debugEnabled = logger.isDebugEnabled();
 		// Set read-only flag.
+		// 设置只读标志。
 		if (definition != null && definition.isReadOnly()) {
 			try {
 				if (debugEnabled) {
 					logger.debug("Setting JDBC Connection [" + con + "] read-only");
 				}
+				//设置连接只读属性
 				con.setReadOnly(true);
 			}
 			catch (SQLException | RuntimeException ex) {
@@ -203,19 +206,25 @@ public abstract class DataSourceUtils {
 		}
 
 		// Apply specific isolation level, if any.
+		// 应用特定的隔离级别（如果有）。
 		Integer previousIsolationLevel = null;
+		//如果存在隔离级别并且不等于默认配置，即不等于ISOLATION_DEFAULT（该级别的意思是使用数据库的默认级别）
 		if (definition != null && definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			if (debugEnabled) {
 				logger.debug("Changing isolation level of JDBC Connection [" + con + "] to " +
 						definition.getIsolationLevel());
 			}
+			//获取当前连接的隔离级别
 			int currentIsolation = con.getTransactionIsolation();
+			//如果手动设置的隔离级别不等于连接的隔离级别
 			if (currentIsolation != definition.getIsolationLevel()) {
+				//记录连接的隔离级别
 				previousIsolationLevel = currentIsolation;
+				//连接的隔离级别手动设置为我们配置的隔离级别
 				con.setTransactionIsolation(definition.getIsolationLevel());
 			}
 		}
-
+		//返回此前的连接的隔离级别，可能为null
 		return previousIsolationLevel;
 	}
 

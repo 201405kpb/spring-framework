@@ -122,29 +122,50 @@ public class NameMatchTransactionAttributeSource
 	}
 
 
+	/**
+	 * 获取目标方法的事务属性，坑能使通过XML的<tx:method/>标签配置的，也可能是通过事务注解比如@Transactional配置的
+	 * 如果返回null，那么说明当前方法为非事务方法。
+	 *
+	 * @param method      调用的方法
+	 * @param targetClass 目标类型
+	 * @return TransactionAttribute事务属性
+	 */
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+		//如果方法不是用户声明的方法或者不是指向用户声明的方法，比如合成方法、GroovyObject方法等，那么直接返回null
+		//请注意，尽管是合成的，桥接方法(method.bridge())仍然被视为用户级方法，因为它们最终指向用户声明的泛型方法。
 		if (!ClassUtils.isUserLevelMethod(method)) {
 			return null;
 		}
 
-		// Look for direct name match.
+		//获取方法名
 		String methodName = method.getName();
+		//尝试寻找直接方法名称的匹配的属性源
 		TransactionAttribute attr = this.nameMap.get(methodName);
-
+		/*
+		 * 如果为null，那么尝试通配符匹配，并且找到最佳匹配
+		 * 最佳匹配规则是：
+		 *  如果存在多个匹配的key，那么谁的字符串长度最长，谁就是最佳匹配，就将是使用谁对应的事务属性
+		 *  如果长度相等，那么后面匹配的会覆盖此前匹配的……emm
+		 */
 		if (attr == null) {
-			// Look for most specific name match.
+			//寻找最匹配的名称匹配。
 			String bestNameMatch = null;
+			//遍历beanName数组
 			for (String mappedName : this.nameMap.keySet()) {
+				//如果isMatch返回true，表示匹配当前mappedName
+				//并且此前没有匹配其他bestNameMatch，或者此前匹配的bestNameMatch的长度小于等于当前匹配的mappedName的长度
 				if (isMatch(methodName, mappedName) &&
 						(bestNameMatch == null || bestNameMatch.length() <= mappedName.length())) {
+					//获取当前mappedName对应的事务属性
 					attr = this.nameMap.get(mappedName);
+					//bestNameMatch最佳匹配的beanName设置为当前匹配的mappedName
 					bestNameMatch = mappedName;
 				}
 			}
 		}
-
+		//返回最佳匹配的
 		return attr;
 	}
 

@@ -115,42 +115,75 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 
 	/**
 	 * Inner class to just introduce an AOP framework dependency when actually in proxy mode.
+	 * 尝试注册一个InfrastructureAdvisorAutoProxyCreator类型的自动代理创建者
+	 * 并且配置AOP事务相关的一些基础bean定义，比如事务通知器、事务拦截器、事务属性源
 	 */
 	private static class AopAutoProxyConfigurer {
 
+		/**
+		 * 配置自动代理创建者
+		 */
 		public static void configureAutoProxyCreator(Element element, ParserContext parserContext) {
+			/*
+			 * 如有必要，注册一个InfrastructureAdvisorAutoProxyCreator类型的AutoProxyCreator
+			 * 并且配置proxy-target-class与expose-proxy属性
+			 */
 			AopNamespaceUtils.registerAutoProxyCreatorIfNecessary(parserContext, element);
-
+			//获取事务通知器的banName，默认就是"org.springframework.transaction.config.internalTransactionAdvisor"
 			String txAdvisorBeanName = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME;
+			/*
+			 * 如果目前不包含该名称的bean，那么将会注册一个BeanFactoryTransactionAttributeSourceAdvisor类型的注解专用事务通知器
+			 * 并且配置TransactionInterceptor事务拦截器以及AnnotationTransactionAttributeSource注解事务属性源的bean定义
+			 *
+			 * 这里能够看出，即使可能存在多个<tx:annotation-driven/>标签，仍然只会有一个标签的配置生效
+			 */
 			if (!parserContext.getRegistry().containsBeanDefinition(txAdvisorBeanName)) {
 				Object eleSource = parserContext.extractSource(element);
 
 				// Create the TransactionAttributeSource definition.
+				// 创建一个bean定义，class为"org.springframework.transaction.annotation.AnnotationTransactionAttributeSource"
+				// 就是一个适用于注解的事务属性源
 				RootBeanDefinition sourceDef = new RootBeanDefinition(
 						"org.springframework.transaction.annotation.AnnotationTransactionAttributeSource");
 				sourceDef.setSource(eleSource);
 				sourceDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+				//注册事物属性源到容器中并且返回beanName
 				String sourceName = parserContext.getReaderContext().registerWithGeneratedName(sourceDef);
 
 				// Create the TransactionInterceptor definition.
+				//创建TransactionInterceptor事务拦截器的bean定义
 				RootBeanDefinition interceptorDef = new RootBeanDefinition(TransactionInterceptor.class);
 				interceptorDef.setSource(eleSource);
 				interceptorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+				/*
+				 * 注册事务管理器到事务拦截器中
+				 * 实际上就是设置TransactionInterceptor的transactionManagerBeanName属性指向一个事务管理器的bean
+				 */
 				registerTransactionManager(element, interceptorDef);
 				interceptorDef.getPropertyValues().add("transactionAttributeSource", new RuntimeBeanReference(sourceName));
+				//注册拦截器到容器中并且返回beanName
 				String interceptorName = parserContext.getReaderContext().registerWithGeneratedName(interceptorDef);
 
 				// Create the TransactionAttributeSourceAdvisor definition.
+				/*
+				 * 创建一个TransactionAttributeSourceAdvisor的bean定义
+				 * 实际类型为BeanFactoryTransactionAttributeSourceAdvisor，就是一个事务通知器
+				 */
 				RootBeanDefinition advisorDef = new RootBeanDefinition(BeanFactoryTransactionAttributeSourceAdvisor.class);
 				advisorDef.setSource(eleSource);
 				advisorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+				//设置transactionAttributeSource属性，就是AnnotationTransactionAttributeSource事务属性源
 				advisorDef.getPropertyValues().add("transactionAttributeSource", new RuntimeBeanReference(sourceName));
+				//设置adviceBeanName属性，就是TransactionInterceptor事务拦截器
 				advisorDef.getPropertyValues().add("adviceBeanName", interceptorName);
+				//设置事务通知器的order属性
 				if (element.hasAttribute("order")) {
 					advisorDef.getPropertyValues().add("order", element.getAttribute("order"));
 				}
+				//将当前事务通知器的bean定义注册到容器中，name为"org.springframework.transaction.config.internalTransactionAdvisor"
 				parserContext.getRegistry().registerBeanDefinition(txAdvisorBeanName, advisorDef);
 
+				//发布事件
 				CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(), eleSource);
 				compositeDef.addNestedComponent(new BeanComponentDefinition(sourceDef, sourceName));
 				compositeDef.addNestedComponent(new BeanComponentDefinition(interceptorDef, interceptorName));

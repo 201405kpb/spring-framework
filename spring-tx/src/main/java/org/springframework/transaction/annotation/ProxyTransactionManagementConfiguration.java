@@ -32,41 +32,64 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  *
  * @author Chris Beams
  * @author Sebastien Deleuze
- * @since 3.1
  * @see EnableTransactionManagement
  * @see TransactionManagementConfigurationSelector
+ * @since 3.1
  */
 @Configuration(proxyBeanMethods = false)
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @ImportRuntimeHints(TransactionRuntimeHints.class)
 public class ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
 
+	/**
+	 * 注册一个事务通知器bean定义，名为"org.springframework.transaction.config.internalTransactionAdvisor"
+	 * 类型就是BeanFactoryTransactionAttributeSourceAdvisor
+	 *
+	 * @param transactionAttributeSource 事务属性源
+	 * @param transactionInterceptor     事务拦截器
+	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor(
 			TransactionAttributeSource transactionAttributeSource, TransactionInterceptor transactionInterceptor) {
-
+		//创建BeanFactoryTransactionAttributeSourceAdvisor
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
+		//设置属性源
 		advisor.setTransactionAttributeSource(transactionAttributeSource);
+		//设置通知
 		advisor.setAdvice(transactionInterceptor);
+		//设置@EnableTransactionManagement注解的order属性
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
 		}
 		return advisor;
 	}
 
+
+	/**
+	 * 注册一个事务属性源bean定义，名为"transactionAttributeSource"
+	 * 类型就是AnnotationTransactionAttributeSource
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionAttributeSource transactionAttributeSource() {
-		// Accept protected @Transactional methods on CGLIB proxies, as of 6.0.
-		return new AnnotationTransactionAttributeSource(false);
+		return new AnnotationTransactionAttributeSource();
 	}
 
+	/**
+	 * 注册一个事务拦截器bean定义，名为"transactionAttributeSource"
+	 * 类型就是TransactionInterceptor
+	 *
+	 * @param transactionAttributeSource 事务属性源
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionInterceptor transactionInterceptor(TransactionAttributeSource transactionAttributeSource) {
 		TransactionInterceptor interceptor = new TransactionInterceptor();
 		interceptor.setTransactionAttributeSource(transactionAttributeSource);
+		//设置事务管理器，这个事务管理器是指通过TransactionManagementConfigurer配置的，而不是通过bean定义的，一般为null
+		//所以说通过注解配置的TransactionInterceptor的transactionManager一般都为null，但是没关系，在使用时如果发现为null
+		//Spring会查找容器中的TransactionManager的实现来作为事务管理器
 		if (this.txManager != null) {
 			interceptor.setTransactionManager(this.txManager);
 		}

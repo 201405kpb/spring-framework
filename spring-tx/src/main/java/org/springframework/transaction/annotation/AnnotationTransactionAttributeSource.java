@@ -90,18 +90,26 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 * (typically used with AspectJ class weaving)
 	 */
 	public AnnotationTransactionAttributeSource(boolean publicMethodsOnly) {
+		//设置属性
 		this.publicMethodsOnly = publicMethodsOnly;
+		//如果存在JTA 1.2的javax.transaction.Transactional事务注解或者EJB3的javax.ejb.TransactionAttribute事务注解
 		if (jta12Present || ejb3Present) {
+			//设置事务注解解析器集合
 			this.annotationParsers = new LinkedHashSet<>(4);
+			//添加SpringTransactionAnnotationParser解析器
+			//用于解析Spring自带的org.springframework.transaction.annotation.Transactional注解
 			this.annotationParsers.add(new SpringTransactionAnnotationParser());
+			//添加对应的外部事物注解的解析器
 			if (jta12Present) {
 				this.annotationParsers.add(new JtaTransactionAnnotationParser());
 			}
 			if (ejb3Present) {
 				this.annotationParsers.add(new Ejb3TransactionAnnotationParser());
 			}
-		}
-		else {
+		} else {
+			//如果没有其他的外部事务注解
+			//设置事务注解解析器集合，其中仅有一个SpringTransactionAnnotationParser解析器
+			//用于解析Spring自带的org.springframework.transaction.annotation.Transactional注解
 			this.annotationParsers = Collections.singleton(new SpringTransactionAnnotationParser());
 		}
 	}
@@ -137,10 +145,17 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	}
 
 
+	/**
+	 * @param targetClass 目标类型
+	 * @return true 表示属于候选class，false 表示不会继续进行方法匹配
+	 */
 	@Override
 	public boolean isCandidateClass(Class<?> targetClass) {
+		//遍历注解解析器集合
 		for (TransactionAnnotationParser parser : this.annotationParsers) {
+			//判断是否可以解析目标类型
 			if (parser.isCandidateClass(targetClass)) {
+				//只要有一个解析器能够解析，那么就算合格
 				return true;
 			}
 		}
@@ -161,18 +176,26 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 
 	/**
 	 * Determine the transaction attribute for the given method or class.
+	 * 确定给定方法或类的事务属性。
 	 * <p>This implementation delegates to configured
 	 * {@link TransactionAnnotationParser TransactionAnnotationParsers}
 	 * for parsing known annotations into Spring's metadata attribute class.
 	 * Returns {@code null} if it's not transactional.
+	 * 该实现委托配置的TransactionAnnotationParser将已知的注解解析到Spring的元数据属性类中。如果不是事务性的，则返回null。
 	 * <p>Can be overridden to support custom annotations that carry transaction metadata.
+	 *  可以覆盖该方法，以支持携带事务元数据的自定义事务注解。
 	 * @param element the annotated method or class
 	 * @return the configured transaction attribute, or {@code null} if none was found
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
+		//和此前判断class一样，又是按顺序遍历设置的注解解析器集合，委托内部的解析器解析
 		for (TransactionAnnotationParser parser : this.annotationParsers) {
+			//这次是调用解析器的parseTransactionAnnotation方法
 			TransactionAttribute attr = parser.parseTransactionAnnotation(element);
+			//找到一个就返回，不会应用后续的解析器
+			//什么意思呢，如果一个方法使用了多种事务注解，仍然会按照解析器的顺序解析，最终只有一个注解会生效
+			//默认头部解析器就是SpringTransactionAnnotationParser，支持Spring的@Transactional注解
 			if (attr != null) {
 				return attr;
 			}

@@ -38,13 +38,23 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute implements Serializable {
 
-	/** Prefix for rollback-on-exception rules in description strings. */
+	/**
+	 * Prefix for rollback-on-exception rules in description strings.
+	 *回滚异常字符串的前缀
+	 * */
 	public static final String PREFIX_ROLLBACK_RULE = "-";
 
-	/** Prefix for commit-on-exception rules in description strings. */
+	/**
+	 * Prefix for commit-on-exception rules in description strings.
+	 * 不回滚异常字符串的前缀
+	 * */
 	public static final String PREFIX_COMMIT_RULE = "+";
 
 
+	/**
+	 * 回滚规则的属性集合
+	 * 根据parseAttributeSource方法的逻辑，回滚规则在集合前面，不回滚规则在集合后面
+	 */
 	@Nullable
 	private List<RollbackRuleAttribute> rollbackRules;
 
@@ -119,28 +129,42 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 	 * Winning rule is the shallowest rule (that is, the closest in the
 	 * inheritance hierarchy to the exception). If no rule applies (-1),
 	 * return false.
+	 * 采用"Winning rule"机制来判断对当前异常是否需要进行回滚
 	 * @see TransactionAttribute#rollbackOn(java.lang.Throwable)
 	 */
 	@Override
 	public boolean rollbackOn(Throwable ex) {
+		//rollbackRules中最匹配的回滚规则，默认为null
 		RollbackRuleAttribute winner = null;
+		//回滚回滚规则匹配成功时的匹配异常栈深度，用来查找最匹配的那一个回滚规则
 		int deepest = Integer.MAX_VALUE;
 
+		//如果rollbackRules回滚规则集合不为null，那么判断回滚规则是否匹配
 		if (this.rollbackRules != null) {
+			//从前向后遍历，因此回滚规则RollbackRuleAttribute将会先进行匹配，不回滚规则NoRollbackRuleAttribute将会后进行匹配
+			//NoRollbackRuleAttribute是RollbackRuleAttribute的子类
 			for (RollbackRuleAttribute rule : this.rollbackRules) {
+				//根据当前规则获取匹配时的异常栈深度
 				int depth = rule.getDepth(ex);
+				//如果匹配了当前规则，并且当前的深度小于此前匹配的异常栈深度
 				if (depth >= 0 && depth < deepest) {
+					//那么deepest赋值为当前异常栈深度，即找到最匹配的那一个
 					deepest = depth;
+					//winner设置为当前回滚规则实例
 					winner = rule;
 				}
 			}
 		}
 
 		// User superclass behavior (rollback on unchecked) if no rule matches.
+		//rollbackRules匹配完毕如果winner还是为null，那么说明没有任何匹配，此时调用父类的方法和逻辑
+		//即如果当前异常属于RuntimeException或者Error级别的异常时，事务才会回滚
 		if (winner == null) {
 			return super.rollbackOn(ex);
 		}
 
+		//判断当前winner是否不属于NoRollbackRuleAttribute
+		//如果不属于，那么最终返回true，表示需要回滚；如果属于，那么最终返回false，表示不需要回滚
 		return !(winner instanceof NoRollbackRuleAttribute);
 	}
 
@@ -150,6 +174,7 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 		StringBuilder result = getAttributeDescription();
 		if (this.rollbackRules != null) {
 			for (RollbackRuleAttribute rule : this.rollbackRules) {
+				//如果是回滚规则，则使用"-"前缀，如果是不回滚规则，则使用"+"前缀
 				String sign = (rule instanceof NoRollbackRuleAttribute ? PREFIX_COMMIT_RULE : PREFIX_ROLLBACK_RULE);
 				result.append(',').append(sign).append(rule.getExceptionName());
 			}

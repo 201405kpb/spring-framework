@@ -100,11 +100,14 @@ public abstract class TransactionSynchronizationUtils {
 
 	/**
 	 * Trigger {@code beforeCompletion} callbacks on all currently registered synchronizations.
+	 * 在所有当前已注册的TransactionSynchronization上触发beforeCompletion回调
 	 * @see TransactionSynchronization#beforeCompletion()
 	 */
 	public static void triggerBeforeCompletion() {
+		//遍历synchronizations中绑定到当前线程的TransactionSynchronization集合
 		for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
 			try {
+				//依次调用beforeCompletion回调方法
 				synchronization.beforeCompletion();
 			}
 			catch (Throwable ex) {

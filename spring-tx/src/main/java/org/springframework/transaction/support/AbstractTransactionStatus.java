@@ -143,28 +143,43 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	/**
 	 * Roll back to the savepoint that is held for the transaction
 	 * and release the savepoint right afterwards.
+	 * 我们在invokeWithinTransaction方法中知道，completeTransactionAfterThrowing
+	 * 方法执行完毕仍然会抛出异常到外层事务中，因此仍然可能导致外层事务的回滚
 	 */
 	public void rollbackToHeldSavepoint() throws TransactionException {
+		//获取保存点
 		Object savepoint = getSavepoint();
 		if (savepoint == null) {
 			throw new TransactionUsageException(
 					"Cannot roll back to savepoint - no savepoint associated with current transaction");
 		}
+		//使用保存点管理器来执行回滚保存点的操作，实际上SavepointManager就是当前的内部事务对象
+		//比如DataSourceTransactionManager的DataSourceTransactionObject
+		//DataSourceTransactionObject继承了JdbcTransactionObjectSupport
+
+		//回滚操作
 		getSavepointManager().rollbackToSavepoint(savepoint);
+		//释放保存点
 		getSavepointManager().releaseSavepoint(savepoint);
+		//设置保存点为null
 		setSavepoint(null);
 	}
 
 	/**
 	 * Release the savepoint that is held for the transaction.
+	 * 释放为该事务保留的保存点，因为此保存点中的代码已正常执行完毕
 	 */
 	public void releaseHeldSavepoint() throws TransactionException {
+		//获取保存点
 		Object savepoint = getSavepoint();
 		if (savepoint == null) {
 			throw new TransactionUsageException(
 					"Cannot release savepoint - no savepoint associated with current transaction");
 		}
+		//释放保存点，该方法我们此前就讲过了
+		//实际上就是获取连接Connection并调用releaseSavepoint方法参数为当前的保存点
 		getSavepointManager().releaseSavepoint(savepoint);
+		//将保存点设置为null
 		setSavepoint(null);
 	}
 

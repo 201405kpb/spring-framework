@@ -48,39 +48,58 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 	protected AnnotationAttributes enableTx;
 
 	/**
-	 * Default transaction manager, as configured through a {@link TransactionManagementConfigurer}.
+	 * 通过TransactionManagementConfigurer配置的默认事务管理器，可以为null
 	 */
 	@Nullable
 	protected TransactionManager txManager;
 
-
+	/**
+	 * 自动回调方法
+	 * 用于获取@EnableTransactionManagement注解的属性
+	 *
+	 * @param importMetadata 引入当前类的类元数据，就是标注有@EnableTransactionManagement注解的类
+	 */
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
+		//获取引入当前配置类的类上面的@EnableTransactionManagement注解的属性
 		this.enableTx = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableTransactionManagement.class.getName()));
+				importMetadata.getAnnotationAttributes(EnableTransactionManagement.class.getName(), false));
+		//没有就抛出异常
 		if (this.enableTx == null) {
 			throw new IllegalArgumentException(
 					"@EnableTransactionManagement is not present on importing class " + importMetadata.getClassName());
 		}
 	}
 
+	/**
+	 * 期望通过TransactionManagementConfigurer的方式注入事务管理器
+	 * 由于@Autowired的required属性为false，没有TransactionManagementConfigurer的bean的时候，将不会执行该方法
+	 */
 	@Autowired(required = false)
 	void setConfigurers(Collection<TransactionManagementConfigurer> configurers) {
+		//没有就返回
 		if (CollectionUtils.isEmpty(configurers)) {
 			return;
 		}
+		//超过一个事务管理器配置类就抛出异常
 		if (configurers.size() > 1) {
 			throw new IllegalStateException("Only one TransactionManagementConfigurer may exist");
 		}
+		//从事务管理器配置类中获取事务管理器
 		TransactionManagementConfigurer configurer = configurers.iterator().next();
 		this.txManager = configurer.annotationDrivenTransactionManager();
 	}
 
 
+	/**
+	 * 注册一个事务事件监听器工厂的bean定义，名为"org.springframework.transaction.config.internalTransactionalEventListenerFactory"
+	 * 类型就是TransactionalEventListenerFactory
+	 * <p>
+	 * 该工厂可以将@TransactionalEventListener注解方法解析为一个ApplicationListenerMethodTransactionalAdapter类型的事件监听器，用于支持事务事件的监听。
+	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTIONAL_EVENT_LISTENER_FACTORY_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public static TransactionalEventListenerFactory transactionalEventListenerFactory() {
 		return new TransactionalEventListenerFactory();
 	}
-
 }

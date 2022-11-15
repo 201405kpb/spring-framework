@@ -56,16 +56,18 @@ import org.springframework.util.Assert;
  * for convenient configuration in context definitions.
  *
  * @author Juergen Hoeller
- * @since 17.03.2003
  * @see #execute
  * @see #setTransactionManager
  * @see org.springframework.transaction.PlatformTransactionManager
+ * @since 17.03.2003
  */
 @SuppressWarnings("serial")
 public class TransactionTemplate extends DefaultTransactionDefinition
 		implements TransactionOperations, InitializingBean {
 
-	/** Logger available to subclasses. */
+	/**
+	 * Logger available to subclasses.
+	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	@Nullable
@@ -76,6 +78,7 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 	 * Construct a new TransactionTemplate for bean usage.
 	 * <p>Note: The PlatformTransactionManager needs to be set before
 	 * any {@code execute} calls.
+	 *
 	 * @see #setTransactionManager
 	 */
 	public TransactionTemplate() {
@@ -83,6 +86,7 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 
 	/**
 	 * Construct a new TransactionTemplate using the given transaction manager.
+	 *
 	 * @param transactionManager the transaction management strategy to be used
 	 */
 	public TransactionTemplate(PlatformTransactionManager transactionManager) {
@@ -92,9 +96,10 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 	/**
 	 * Construct a new TransactionTemplate using the given transaction manager,
 	 * taking its default settings from the given transaction definition.
-	 * @param transactionManager the transaction management strategy to be used
+	 *
+	 * @param transactionManager    the transaction management strategy to be used
 	 * @param transactionDefinition the transaction definition to copy the
-	 * default settings from. Local properties can still be set to change values.
+	 *                              default settings from. Local properties can still be set to change values.
 	 */
 	public TransactionTemplate(PlatformTransactionManager transactionManager, TransactionDefinition transactionDefinition) {
 		super(transactionDefinition);
@@ -125,6 +130,13 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 	}
 
 
+	/**
+	 * 在事务中执行由给定的回调对象指定的操作，因此这个回调参数对象的方法一般就是业务逻辑
+	 *
+	 * @param action 回调对象
+	 * @param <T>    返回类型
+	 * @return 回调返回值
+	 */
 	@Override
 	@Nullable
 	public <T> T execute(TransactionCallback<T> action) throws TransactionException {
@@ -132,47 +144,50 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 
 		if (this.transactionManager instanceof CallbackPreferringPlatformTransactionManager) {
 			return ((CallbackPreferringPlatformTransactionManager) this.transactionManager).execute(this, action);
-		}
-		else {
+		} else {
+			//调用getTransaction方法获取事务，该方法我们在此前就讲过了
 			TransactionStatus status = this.transactionManager.getTransaction(this);
 			T result;
 			try {
+				//调用回调函数的方法，该方法一般就是业务逻辑代码的执行
 				result = action.doInTransaction(status);
-			}
-			catch (RuntimeException | Error ex) {
-				// Transactional code threw application exception -> rollback
+			} catch (RuntimeException | Error ex) {
+				//业务代码引发RuntimeException或者Error，那么执行回滚
 				rollbackOnException(status, ex);
 				throw ex;
-			}
-			catch (Throwable ex) {
-				// Transactional code threw unexpected exception -> rollback
+			} catch (Throwable ex) {
+				//抛出的其他异常，同样执行回滚
 				rollbackOnException(status, ex);
 				throw new UndeclaredThrowableException(ex, "TransactionCallback threw undeclared checked exception");
 			}
+			//执行成功，提交事务，该方法我们在此前就讲过了
 			this.transactionManager.commit(status);
+			//返回结果
 			return result;
 		}
 	}
 
+
 	/**
 	 * Perform a rollback, handling rollback exceptions properly.
-	 * @param status object representing the transaction
-	 * @param ex the thrown application exception or error
-	 * @throws TransactionException in case of a rollback error
+	 * 执行回滚，正确处理回滚异常。
+	 *
+	 * @param status object representing the transaction 代表事务的对象
+	 * @param ex     the thrown application exception or error 引发的应用程序异常或错误
+	 * @throws TransactionException in case of a rollback error 如果发生回滚错误
 	 */
 	private void rollbackOnException(TransactionStatus status, Throwable ex) throws TransactionException {
 		Assert.state(this.transactionManager != null, "No PlatformTransactionManager set");
 
 		logger.debug("Initiating transaction rollback on application exception", ex);
 		try {
+			//调用rollback方法回滚事务，该方法我们在此前就讲过了
 			this.transactionManager.rollback(status);
-		}
-		catch (TransactionSystemException ex2) {
+		} catch (TransactionSystemException ex2) {
 			logger.error("Application exception overridden by rollback exception", ex);
 			ex2.initApplicationException(ex);
 			throw ex2;
-		}
-		catch (RuntimeException | Error ex2) {
+		} catch (RuntimeException | Error ex2) {
 			logger.error("Application exception overridden by rollback exception", ex);
 			throw ex2;
 		}

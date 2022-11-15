@@ -54,23 +54,51 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 	 * annotation it finds -- as long as it exposes the right {@code mode} and
 	 * {@code proxyTargetClass} attributes, the APC can be registered and configured all
 	 * the same.
+	 *
+	 * 尝试为自动代理注册一个InfrastructureAdvisorAutoProxyCreator类型的自动代理创建者
+	 * 并且会解析proxyTargetClass属性，如果有某个注解的proxyTargetClass属性设置为true
+	 * 那么自动代理创建者的proxyTargetClass属性将会被设置为true，表示强制使用CGLIB代理。
+	 *
+	 * @param importingClassMetadata 引入该类的类的元数据。目前，只有@EnableCaching和@EnableTransactionManagement注解有可能引入该类
+	 *                               因此将会传入，具有@EnableCaching和@EnableTransactionManagement注解的类的元数据
+	 * @param registry               bean定义注册表
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		boolean candidateFound = false;
+		//获取类上的所有注解类型
 		Set<String> annTypes = importingClassMetadata.getAnnotationTypes();
+		//循环处理，对于具有mode和proxyTargetClass属性的注解统一处理
 		for (String annType : annTypes) {
+			//每一个注解的属性集合
 			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
 			if (candidate == null) {
 				continue;
 			}
+			//获取mode属性
 			Object mode = candidate.get("mode");
+			//获取proxyTargetClass属性
 			Object proxyTargetClass = candidate.get("proxyTargetClass");
+			/*
+			 * 如果存在这两个属性，并且类型也是匹配的
+			 * 很多注解都有这两个属性，比如@EnableTransactionManagement、@EnableAsync、@EnableCaching、@EnableAspectJAutoProxy
+			 */
 			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
 					Boolean.class == proxyTargetClass.getClass()) {
+				//
 				candidateFound = true;
+				//如果mode值是AdviceMode.PROXY值
 				if (mode == AdviceMode.PROXY) {
+					/*
+					 * 调用AopConfigUtils.registerAutoProxyCreatorIfNecessary方法
+					 * 尝试注册或者升级一个名为"org.springframework.aop.config.internalAutoProxyCreator"
+					 * 类型为InfrastructureAdvisorAutoProxyCreator的自动代理创建者的bean定义
+					 */
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+					/*
+					 * 如果有某个注解的proxyTargetClass属性设置为true
+					 * 那么自动代理创建者的proxyTargetClass属性将会被设置为true，表示强制使用CGLIB代理。
+					 */
 					if ((Boolean) proxyTargetClass) {
 						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 						return;
