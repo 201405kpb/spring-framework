@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class ProxyAsyncConfiguration extends AbstractAsyncConfiguration {
 		Assert.notNull(this.enableAsync, "@EnableAsync annotation metadata was not injected");
 		//新建一个AsyncAnnotationBeanPostProcessor实例
 		AsyncAnnotationBeanPostProcessor bpp = new AsyncAnnotationBeanPostProcessor();
-		//设置从AsyncConfigurer中获取的配置信息，包括执行器和异常处理器
+		//设置从AsyncConfigure中获取的配置信息，包括执行器和异常处理器
 		bpp.configure(this.executor, this.exceptionHandler);
 		//获取annotation属性值，这表示自定义的异步任务注解
 		Class<? extends Annotation> customAsyncAnnotation = this.enableAsync.getClass("annotation");

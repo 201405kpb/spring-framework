@@ -17,6 +17,7 @@
 package org.springframework.web.reactive.function.client;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -52,6 +54,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -450,14 +453,19 @@ class DefaultWebClient implements WebClient {
 		@SuppressWarnings("deprecation")
 		public Mono<ClientResponse> exchange() {
 			ClientRequestObservationContext observationContext = new ClientRequestObservationContext();
-			ClientRequest request = (this.inserter != null ?
-					initRequestBuilder().body(this.inserter).build() :
-					initRequestBuilder().build());
-			return Mono.defer(() -> {
-				Observation observation = ClientHttpObservationDocumentation.HTTP_REQUEST.observation(observationConvention,
-						DEFAULT_OBSERVATION_CONVENTION, () -> observationContext, observationRegistry).start();
-				observationContext.setCarrier(request);
+			ClientRequest.Builder requestBuilder = this.inserter != null ?
+					initRequestBuilder().body(this.inserter) :
+					initRequestBuilder();
+			return Mono.deferContextual(contextView -> {
+				Observation observation = ClientHttpObservationDocumentation.HTTP_REACTIVE_CLIENT_EXCHANGES.observation(observationConvention,
+						DEFAULT_OBSERVATION_CONVENTION, () -> observationContext, observationRegistry);
+				observationContext.setCarrier(requestBuilder);
+				observation
+						.parentObservation(contextView.getOrDefault(ObservationThreadLocalAccessor.KEY, null))
+						.start();
+				ClientRequest request = requestBuilder.build();
 				observationContext.setUriTemplate((String) request.attribute(URI_TEMPLATE_ATTRIBUTE).orElse(null));
+				observationContext.setRequest(request);
 				Mono<ClientResponse> responseMono = exchangeFunction.exchange(request)
 						.checkpoint("Request to " + this.httpMethod.name() + " " + this.uri + " [DefaultWebClient]")
 						.switchIfEmpty(NO_HTTP_CLIENT_RESPONSE_ERROR);
@@ -707,10 +715,22 @@ class DefaultWebClient implements WebClient {
 		}
 
 		private <T> Mono<T> insertCheckpoint(Mono<T> result, HttpStatusCode statusCode, HttpRequest request) {
-			HttpMethod httpMethod = request.getMethod();
+			HttpMethod method = request.getMethod();
+			URI uri = getUriToLog(request);
+			return result.checkpoint(statusCode + " from " + method + " " + uri + " [DefaultWebClient]");
+		}
+
+		private static URI getUriToLog(HttpRequest request) {
 			URI uri = request.getURI();
-			String description = statusCode + " from " + httpMethod + " " + uri + " [DefaultWebClient]";
-			return result.checkpoint(description);
+			if (StringUtils.hasText(uri.getQuery())) {
+				try {
+					uri = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), null);
+				}
+				catch (URISyntaxException ex) {
+					// ignore
+				}
+			}
+			return uri;
 		}
 
 

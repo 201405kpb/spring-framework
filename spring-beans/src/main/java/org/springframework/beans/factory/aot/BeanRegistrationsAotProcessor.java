@@ -19,6 +19,7 @@ package org.springframework.beans.factory.aot;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.aot.BeanRegistrationsAotContribution.Registration;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RegisteredBean;
 
@@ -27,6 +28,8 @@ import org.springframework.beans.factory.support.RegisteredBean;
  * register beans.
  *
  * @author Phillip Webb
+ * @author Sebastien Deleuze
+ * @author Stephane Nicoll
  * @since 6.0
  */
 class BeanRegistrationsAotProcessor implements BeanFactoryInitializationAotProcessor {
@@ -35,13 +38,14 @@ class BeanRegistrationsAotProcessor implements BeanFactoryInitializationAotProce
 	public BeanRegistrationsAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
 		BeanDefinitionMethodGeneratorFactory beanDefinitionMethodGeneratorFactory =
 				new BeanDefinitionMethodGeneratorFactory(beanFactory);
-		Map<String, BeanDefinitionMethodGenerator> registrations = new LinkedHashMap<>();
+		Map<String, Registration> registrations = new LinkedHashMap<>();
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			RegisteredBean registeredBean = RegisteredBean.of(beanFactory, beanName);
 			BeanDefinitionMethodGenerator beanDefinitionMethodGenerator = beanDefinitionMethodGeneratorFactory
 					.getBeanDefinitionMethodGenerator(registeredBean);
 			if (beanDefinitionMethodGenerator != null) {
-				registrations.put(beanName, beanDefinitionMethodGenerator);
+				registrations.put(beanName, new Registration(beanDefinitionMethodGenerator,
+						beanFactory.getAliases(beanName)));
 			}
 		}
 		if (registrations.isEmpty()) {

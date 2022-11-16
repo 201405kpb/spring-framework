@@ -457,7 +457,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	@Override
 	public void setApplicationStartup(ApplicationStartup applicationStartup) {
-		Assert.notNull(applicationStartup, "applicationStartup should not be null");
+		Assert.notNull(applicationStartup, "applicationStartup must not be null");
 		this.applicationStartup = applicationStartup;
 	}
 
@@ -1424,6 +1424,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		assertBeanFactoryActive();
 		return getBeanFactory().findAnnotationOnBean(beanName, annotationType, allowFactoryBeanInit);
+	}
+
+	@Override
+	public <A extends Annotation> Set<A> findAllAnnotationsOnBean(
+			String beanName, Class<A> annotationType, boolean allowFactoryBeanInit)
+			throws NoSuchBeanDefinitionException {
+
+		assertBeanFactoryActive();
+		return getBeanFactory().findAllAnnotationsOnBean(beanName, annotationType, allowFactoryBeanInit);
 	}
 
 

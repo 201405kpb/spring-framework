@@ -38,6 +38,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.filter.reactive.ServerHttpObservationFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.result.condition.NameValueExpression;
@@ -139,12 +140,17 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 		exchange.getAttributes().put(BEST_MATCHING_HANDLER_ATTRIBUTE, handlerMethod);
 		exchange.getAttributes().put(BEST_MATCHING_PATTERN_ATTRIBUTE, bestPattern);
+		ServerHttpObservationFilter.findObservationContext(exchange)
+				.ifPresent(context -> context.setPathPattern(bestPattern.toString()));
 		exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
 		exchange.getAttributes().put(MATRIX_VARIABLES_ATTRIBUTE, matrixVariables);
 
-		if (!info.getProducesCondition().getProducibleMediaTypes().isEmpty()) {
-			Set<MediaType> mediaTypes = info.getProducesCondition().getProducibleMediaTypes();
-			exchange.getAttributes().put(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, mediaTypes);
+		ProducesRequestCondition producesCondition = info.getProducesCondition();
+		if (!producesCondition.isEmpty()) {
+			Set<MediaType> mediaTypes = producesCondition.getProducibleMediaTypes();
+			if (!mediaTypes.isEmpty()) {
+				exchange.getAttributes().put(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, mediaTypes);
+			}
 		}
 	}
 
