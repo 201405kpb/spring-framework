@@ -404,7 +404,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
 		// registry实现了SingletonBeanRegistry，此处为true
 		SingletonBeanRegistry sbr = null;
-		if (registry instanceof SingletonBeanRegistry) {
+		if (registry instanceof SingletonBeanRegistry ) {
 			// 将registry强转为SingletonBeanRegistry
 			sbr = (SingletonBeanRegistry) registry;
 			// 默认为false，此处也成立

@@ -46,10 +46,17 @@ import org.springframework.util.ReflectionUtils;
  */
 public class StandardAnnotationMetadata extends StandardClassMetadata implements AnnotationMetadata {
 
+	//获取当前类上所有的注解的全类名
 	private final MergedAnnotations mergedAnnotations;
 
+	// 是否包含指定注解
+	// 注意：annotationName 是全类名 ，也就是 xx.xx.xx.Component
 	private final boolean nestedAnnotationsAsMap;
 
+	// 获取当前类上指定注解的注解类型
+	// 比如：@Component 的注解类型就是 @Indexed
+	// 比如：@Service 的注解类型就是 @Component和@Indexed
+	// 注意：annotationName 是全类名 ，也就是 xx.xx.xx.Component
 	@Nullable
 	private Set<String> annotationTypes;
 
@@ -124,6 +131,10 @@ public class StandardAnnotationMetadata extends StandardClassMetadata implements
 				getIntrospectedClass(), annotationName, classValuesAsString, false);
 	}
 
+	// 判断注解类型自己是否被某个元注解类型所标注
+	// 比如：@Service 的注解类型就是 @Component，如果 metaAnnotationName 是 xx.xx.xx.Component 就会返回 true
+	// 比如：比如我只需要传递 xx.xx.xx.@Component 注解 如果返回 ture 就代表了是一个标准的 Bean
+	// 注意：metaAnnotationName 是全类名 ，也就是 xx.xx.xx.Com
 	@Override
 	public boolean hasAnnotatedMethods(String annotationName) {
 		if (AnnotationUtils.isCandidateClass(getIntrospectedClass(), annotationName)) {

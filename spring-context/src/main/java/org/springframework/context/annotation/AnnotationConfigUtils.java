@@ -256,10 +256,14 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
+
+	//处理Bean定义中通用注解
 	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
+
+	//处理Bean定义中通用注解
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		// 解析@Lazy注解, 设置是否延迟加载

@@ -447,11 +447,14 @@ class ConfigurationClassParser {
 	 */
 	private Set<MethodMetadata> retrieveBeanMethodMetadata(SourceClass sourceClass) {
 		AnnotationMetadata original = sourceClass.getMetadata();
+		// 通过 @Bean 获取到所有的 MethodMetadata , 这里的 Set 实际上是 LinkedHashSet
 		Set<MethodMetadata> beanMethods = original.getAnnotatedMethods(Bean.class.getName());
 		if (beanMethods.size() > 1 && original instanceof StandardAnnotationMetadata) {
 			// Try reading the class file via ASM for deterministic declaration order...
 			// Unfortunately, the JVM's standard reflection returns methods in arbitrary
 			// order, even between different runs of the same application on the same JVM.
+			//尝试通过ASM读取类文件以确定声明顺序…不幸的是，JVM的标准反射以任意顺序返回方法，
+			// 即使在同一JVM上同一应用程序的不同运行之间也是如此
 			try {
 				AnnotationMetadata asm =
 						this.metadataReaderFactory.getMetadataReader(original.getClassName()).getAnnotationMetadata();
@@ -468,6 +471,7 @@ class ConfigurationClassParser {
 					}
 					if (selectedMethods.size() == beanMethods.size()) {
 						// All reflection-detected methods found in ASM method set -> proceed
+						//在ASM方法集中找到的所有反射检测方法
 						beanMethods = selectedMethods;
 					}
 				}
