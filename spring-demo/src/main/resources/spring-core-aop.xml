@@ -6,9 +6,12 @@
  http://www.springframework.org/schema/beans/spring-beans.xsd
  http://www.springframework.org/schema/aop
  http://www.springframework.org/schema/aop/spring-aop.xsd">
+
 	<bean id="accountServices" class="com.kpb.spring.aop.AccountServicesImpl"/>
 	<!-- 配置Logger类-->
 	<bean id="logger" class="com.kpb.spring.aop.Logger"/>
+	<!--确定 aop 注解生效-->
+	<aop:aspectj-autoproxy/>
 	<!--使用aop：config标签表名开始aop的配置-->
 	<aop:config>
 		<aop:pointcut id="pt1" expression="execution(* com.kpb.spring.aop.*.*(..))"/>
@@ -16,9 +19,9 @@
 		<aop:aspect id="LogAdvice" ref="logger">
 			<aop:before method="beforePrintLog" pointcut-ref="pt1"/>
 			<aop:after-returning method="afterReturningPrintLog" pointcut-ref="pt1"/>
-			<!--<aop:after-throwing method="afterThrowingPrintLog" pointcut-ref="pt1"/>
+			<aop:after-throwing method="afterThrowingPrintLog" pointcut-ref="pt1"/>
 			<aop:after method="afterPrintLog" pointcut-ref="pt1"/>
-			<aop:around method="aroundPrintLog" pointcut-ref="pt1"/>-->
+			<aop:around method="aroundPrintLog" pointcut-ref="pt1"/>
 		</aop:aspect>
 	</aop:config>
 </beans>
