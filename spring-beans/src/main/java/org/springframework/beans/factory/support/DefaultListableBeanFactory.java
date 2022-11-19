@@ -108,11 +108,11 @@ import org.springframework.util.StringUtils;
  * @author Chris Beams
  * @author Phillip Webb
  * @author Stephane Nicoll
+ * @since 16 April 2001
  * @see #registerBeanDefinition
  * @see #addBeanPostProcessor
  * @see #getBean
  * @see #resolveDependency
- * @since 16 April 2001
  */
 @SuppressWarnings("serial")
 public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory
@@ -341,10 +341,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * Set a {@link java.util.Comparator} for dependency Lists and arrays.
-	 *
+	 * @since 4.0
 	 * @see org.springframework.core.OrderComparator
 	 * @see org.springframework.core.annotation.AnnotationAwareOrderComparator
-	 * @since 4.0
 	 */
 	public void setDependencyComparator(@Nullable Comparator<Object> dependencyComparator) {
 		this.dependencyComparator = dependencyComparator;
@@ -2257,14 +2256,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//如果默认值不为null
 			if (value != null) {
 				//如果value是String类型
-				if (value instanceof String) {
+				if (value instanceof String strValue) {
 					//解析嵌套的值(如果value是表达式会解析出该表达式的值)
-					String strVal = resolveEmbeddedValue((String) value);
+					String resolvedValue = resolveEmbeddedValue(strValue);
 					//获取beanName的合并后RootBeanDefinition
 					BeanDefinition bd = (beanName != null && containsBean(beanName) ?
 							getMergedBeanDefinition(beanName) : null);
 					//评估bd中包含的value,如果strVal是可解析表达式，会对其进行解析.
-					value = evaluateBeanDefinitionString(strVal, bd);
+					value = evaluateBeanDefinitionString(resolvedValue, bd);
 				}
 				//如果没有传入typeConverter,则引用工厂的类型转换器
 				TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
@@ -2532,13 +2531,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//将所有候选Bean对象转换为resolvedArrayType类型
 			Object result = converter.convertIfNecessary(matchingBeans.values(), resolvedArrayType);
 			//如果result是数组实例
-			if (result instanceof Object[]) {
+			if (result instanceof Object[] array) {
 				//构建依赖比较器,用于对matchingBean的所有bean对象进行优先级排序
 				Comparator<Object> comparator = adaptDependencyComparator(matchingBeans);
 				//如果比较器不为null
 				if (comparator != null) {
 					//使用comparator对result数组进行排序
-					Arrays.sort((Object[]) result, comparator);
+					Arrays.sort(array, comparator);
 				}
 			}
 			//返回该候选对象数组
@@ -2572,13 +2571,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//将所有候选Bean对象转换为resolvedArrayType类型
 			Object result = converter.convertIfNecessary(matchingBeans.values(), type);
 			//如果result是List实例
-			if (result instanceof List) {
+			if (result instanceof List list && list.size()>1) {
 				//构建依赖比较器,用于对matchingBean的所有bean对象进行优先级排序
 				Comparator<Object> comparator = adaptDependencyComparator(matchingBeans);
 				//如果比较器不为null
 				if (comparator != null) {
 					//使用comparator对result数组进行排序
-					((List<?>) result).sort(comparator);
+					list.sort(comparator);
 				}
 			}
 			//返回该候选对象数组
@@ -3890,7 +3889,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		 * @param ordered 是否需要排序
 		 * @return 将与descriptor所包装的对象匹配的候选Bean对象包装起来的Stream对象
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		private Stream<Object> resolveStream(boolean ordered) {
 			//DependencyDescriptor:用于访问多个元素的流依赖项描述符标记，一般表示stream类型依赖
 			//新建一个StreamDependencyDescriptor实例
@@ -3898,7 +3897,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//解析出与descriptorToUse所包装的对象匹配的候选Bean对象
 			Object result = doResolveDependency(descriptorToUse, this.beanName, null, null);
 			//如果result是Stream实例,将result强转为Stream<object>对象返回出去;否则使用将result包装成Stream对象返回出去
-			return (result instanceof Stream ? (Stream<Object>) result : Stream.of(result));
+			return (result instanceof Stream stream? stream : Stream.of(result));
 		}
 	}
 
