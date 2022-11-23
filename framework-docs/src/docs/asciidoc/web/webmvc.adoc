@@ -1,17 +1,17 @@
 [[mvc]]
+:chapter: mvc
 = Spring Web MVC
-:doc-spring-security: {docs-site}/spring-security/reference
 
 Spring Web MVC is the original web framework built on the Servlet API and has been included
-in the Spring Framework from the very beginning. The formal name, "`Spring Web MVC,`"
+in the Spring Framework from the very beginning. The formal name, "Spring Web MVC,"
 comes from the name of its source module
 ({spring-framework-main-code}/spring-webmvc[`spring-webmvc`]),
-but it is more commonly known as "`Spring MVC`".
+but it is more commonly known as "Spring MVC".
 
 Parallel to Spring Web MVC, Spring Framework 5.0 introduced a reactive-stack web framework
-whose name, "`Spring WebFlux,`" is also based on its source module
+whose name, "Spring WebFlux," is also based on its source module
 ({spring-framework-main-code}/spring-webflux[`spring-webflux`]).
-This section covers Spring Web MVC. The <<web-reactive.adoc#spring-web-reactive, next section>>
+This chapter covers Spring Web MVC. The <<web-reactive.adoc#spring-web-reactive, next chapter>>
 covers Spring WebFlux.
 
 For baseline information and compatibility with Servlet container and Jakarta EE version
@@ -1699,8 +1699,8 @@ register support for any other data type.
 See <<mvc-ann-typeconversion>> and <<mvc-ann-initbinder>>.
 
 You can explicitly name URI variables (for example, `@PathVariable("customId")`), but you can
-leave that detail out if the names are the same and your code is compiled with debugging
-information or with the `-parameters` compiler flag on Java 8.
+leave that detail out if the names are the same and your code is compiled with the `-parameters`
+compiler flag.
 
 The syntax `{varName:regex}` declares a URI variable with a regular expression that has
 syntax of `{varName:regex}`. For example, given URL `"/spring-web-3.0.5.jar"`, the following method
@@ -5072,10 +5072,10 @@ The https://spring.io/projects/spring-security[Spring Security] project provides
 for protecting web applications from malicious exploits. See the Spring Security
 reference documentation, including:
 
-* {doc-spring-security}/servlet/integrations/mvc.html[Spring MVC Security]
-* {doc-spring-security}/servlet/test/mockmvc/setup.html[Spring MVC Test Support]
-* {doc-spring-security}/features/exploits/csrf.html#csrf-protection[CSRF protection]
-* {doc-spring-security}/features/exploits/headers.html[Security Response Headers]
+* {docs-spring-security}/servlet/integrations/mvc.html[Spring MVC Security]
+* {docs-spring-security}/servlet/test/mockmvc/setup.html[Spring MVC Test Support]
+* {docs-spring-security}/features/exploits/csrf.html#csrf-protection[CSRF protection]
+* {docs-spring-security}/features/exploits/headers.html[Security Response Headers]
 
 https://hdiv.org/[HDIV] is another web security framework that integrates with Spring MVC.
 

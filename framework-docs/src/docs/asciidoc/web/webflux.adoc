@@ -1,7 +1,6 @@
 [[webflux]]
 :chapter: webflux
 = Spring WebFlux
-:doc-spring-security: {docs-site}/spring-security/reference
 
 The original web framework included in the Spring Framework, Spring Web MVC, was
 purpose-built for the Servlet API and Servlet containers. The reactive-stack web framework,
@@ -1533,8 +1532,8 @@ register support for any other data type.
 See <<webflux-ann-typeconversion>> and <<webflux-ann-initbinder>>.
 
 URI variables can be named explicitly (for example, `@PathVariable("customId")`), but you can
-leave that detail out if the names are the same and you compile your code with debugging
-information or with the `-parameters` compiler flag on Java 8.
+leave that detail out if the names are the same and you compile your code with the `-parameters`
+compiler flag.
 
 The syntax `{*varName}` declares a URI variable that matches zero or more remaining path
 segments. For example `/resources/{*path}` matches all files under `/resources/`, and the
@@ -2005,7 +2004,7 @@ generally supported for all return values.
   value) is considered to have fully handled the response if it also has a `ServerHttpResponse`,
   a `ServerWebExchange` argument, or an `@ResponseStatus` annotation. The same is also true
   if the controller has made a positive ETag or `lastModified` timestamp check.
-  // TODO: See <<webflux-caching-etag-lastmodified>> for details.
+  See <<webflux-caching-etag-lastmodified>> for details.
 
   If none of the above is true, a `void` return type can also indicate "`no response body`" for
   REST controllers or default view name selection for HTML controllers.
@@ -3743,10 +3742,10 @@ The https://spring.io/projects/spring-security[Spring Security] project provides
 for protecting web applications from malicious exploits. See the Spring Security
 reference documentation, including:
 
-* {doc-spring-security}/reactive/configuration/webflux.html[WebFlux Security]
-* {doc-spring-security}/reactive/test/index.html[WebFlux Testing Support]
-* {doc-spring-security}/features/exploits/csrf.html#csrf-protection[CSRF protection]
-* {doc-spring-security}/features/exploits/headers.html[Security Response Headers]
+* {docs-spring-security}/reactive/configuration/webflux.html[WebFlux Security]
+* {docs-spring-security}/reactive/test/index.html[WebFlux Testing Support]
+* {docs-spring-security}/features/exploits/csrf.html#csrf-protection[CSRF protection]
+* {docs-spring-security}/features/exploits/headers.html[Security Response Headers]
 
 
 
@@ -4409,7 +4408,7 @@ In the next example, given a request that starts with `/resources`, the relative
 used to find and serve static resources relative to `/static` on the classpath. Resources
 are served with a one-year future expiration to ensure maximum use of the browser cache
 and a reduction in HTTP requests made by the browser. The `Last-Modified` header is also
-evaluated and, if present, a `304` status code is returned. The following list shows
+evaluated and, if present, a `304` status code is returned. The following listing shows
 the example:
 
 [source,java,indent=0,subs="verbatim,quotes",role="primary"]
@@ -4443,7 +4442,7 @@ the example:
 	}
 ----
 
-// TODO: See also <<webflux-caching-static-resources, HTTP caching support for static resources>>.
+See also <<webflux-caching-static-resources, HTTP caching support for static resources>>.
 
 The resource handler also supports a chain of
 {api-spring-framework}/web/reactive/resource/ResourceResolver.html[`ResourceResolver`] implementations and
