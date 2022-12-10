@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class CookieIntegrationTests extends AbstractHttpHandlerIntegrationTests 
 	public void basicTest(HttpServer httpServer) throws Exception {
 		startServer(httpServer);
 
-		URI url = new URI("http://localhost:" + port);
+		URI url = URI.create("http://localhost:" + port);
 		String header = "SID=31d4d96e407aad42; lang=en-US";
 		@SuppressWarnings("resource")
 		ResponseEntity<Void> response = new RestTemplate().exchange(

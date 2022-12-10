@@ -59,7 +59,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 /**
  * @author Sebastien Deleuze
  */
-class MultipartIntegrationTests extends AbstractRouterFunctionIntegrationTests {
+class MultipartRouterFunctionIntegrationTests extends AbstractRouterFunctionIntegrationTests {
 
 	private final WebClient webClient = WebClient.create();
 
@@ -240,7 +240,7 @@ class MultipartIntegrationTests extends AbstractRouterFunctionIntegrationTests {
 
 		public Mono<ServerResponse> transferTo(ServerRequest request) {
 			return request.body(BodyExtractors.toParts())
-					.filter(part -> part instanceof FilePart)
+					.filter(FilePart.class::isInstance)
 					.next()
 					.cast(FilePart.class)
 					.flatMap(part -> createTempFile()

@@ -1141,9 +1141,10 @@ request with a simple request parameter.
 [.small]#<<web-reactive.adoc#webflux-multipart, WebFlux>>#
 
 `MultipartResolver` from the `org.springframework.web.multipart` package is a strategy
-for parsing multipart requests including file uploads. There is one implementation
-based on https://commons.apache.org/proper/commons-fileupload[Commons FileUpload] and
-another based on Servlet multipart request parsing.
+for parsing multipart requests including file uploads. There is a container-based
+`StandardServletMultipartResolver` implementation for Servlet multipart request parsing.
+Note that the outdated `CommonsMultipartResolver` based on Apache Commons FileUpload is
+not available anymore, as of Spring Framework 6.0 with its new Servlet 5.0+ baseline.
 
 To enable multipart handling, you need to declare a `MultipartResolver` bean in your
 `DispatcherServlet` Spring configuration with a name of `multipartResolver`.
@@ -1151,26 +1152,6 @@ The `DispatcherServlet` detects it and applies it to the incoming request. When 
 with a content type of `multipart/form-data` is received, the resolver parses the
 content wraps the current `HttpServletRequest` as a `MultipartHttpServletRequest` to
 provide access to resolved files in addition to exposing parts as request parameters.
-
-
-[[mvc-multipart-resolver-commons]]
-==== Apache Commons `FileUpload`
-
-To use Apache Commons `FileUpload`, you can configure a bean of type
-`CommonsMultipartResolver` with a name of `multipartResolver`. You also need to have
-the `commons-fileupload` jar as a dependency on your classpath.
-
-This resolver variant delegates to a local library within the application, providing
-maximum portability across Servlet containers. As an alternative, consider standard
-Servlet multipart resolution through the container's own parser as discussed below.
-
-[NOTE]
-====
-Commons FileUpload traditionally applies to POST requests only but accepts any
-`multipart/` content type. See the
-{api-spring-framework}/web/multipart/commons/CommonsMultipartResolver.html[`CommonsMultipartResolver`]
-javadoc for details and configuration options.
-====
 
 
 [[mvc-multipart-resolver-standard]]
@@ -5163,6 +5144,7 @@ Controllers can add explicit support for HTTP caching. We recommended doing so, 
 against conditional request headers. A controller can add an `ETag` header and `Cache-Control`
 settings to a `ResponseEntity`, as the following example shows:
 
+--
 [source,java,indent=0,subs="verbatim,quotes",role="primary"]
 .Java
 ----
@@ -5195,6 +5177,7 @@ settings to a `ResponseEntity`, as the following example shows:
 				.body(book)
 	}
 ----
+--
 
 The preceding example sends a 304 (NOT_MODIFIED) response with an empty body if the comparison
 to the conditional request headers indicates that the content has not changed. Otherwise, the
@@ -5203,6 +5186,7 @@ to the conditional request headers indicates that the content has not changed. O
 You can also make the check against conditional request headers in the controller,
 as the following example shows:
 
+--
 [source,java,indent=0,subs="verbatim,quotes",role="primary"]
 .Java
 ----
@@ -5242,6 +5226,7 @@ as the following example shows:
 <1> Application-specific calculation.
 <2> The response has been set to 304 (NOT_MODIFIED) -- no further processing.
 <3> Continue with the request processing.
+--
 
 
 There are three variants for checking conditional requests against `eTag` values, `lastModified`

@@ -36,6 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.filter.reactive.ServerHttpObservationFilter;
@@ -169,8 +170,11 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	protected HandlerMethod handleNoMatch(Set<RequestMappingInfo> infos,
 			ServerWebExchange exchange) throws Exception {
 
-		PartialMatchHelper helper = new PartialMatchHelper(infos, exchange);
+		if (CollectionUtils.isEmpty(infos)) {
+			return null;
+		}
 
+		PartialMatchHelper helper = new PartialMatchHelper(infos, exchange);
 		if (helper.isEmpty()) {
 			return null;
 		}
@@ -219,17 +223,18 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	/**
 	 * Aggregate all partial matches and expose methods checking across them.
 	 */
-	private static class PartialMatchHelper {
+	private static final class PartialMatchHelper {
 
 		private final List<PartialMatch> partialMatches = new ArrayList<>();
 
 
-		public PartialMatchHelper(Set<RequestMappingInfo> infos, ServerWebExchange exchange) {
-			this.partialMatches.addAll(infos.stream()
-					.filter(info -> info.getPatternsCondition().getMatchingCondition(exchange) != null)
-					.map(info -> new PartialMatch(info, exchange)).toList());
+		PartialMatchHelper(Set<RequestMappingInfo> infos, ServerWebExchange exchange) {
+			for (RequestMappingInfo info : infos) {
+				if (info.getPatternsCondition().getMatchingCondition(exchange) != null) {
+					this.partialMatches.add(new PartialMatch(info, exchange));
+				}
+			}
 		}
-
 
 		/**
 		 * Whether there are any partial matches.

@@ -78,12 +78,9 @@ public class PropertySourceProcessor {
 		List<String> locations = descriptor.locations();
 		Assert.isTrue(locations.size() > 0, "At least one @PropertySource(value) location is required");
 		boolean ignoreResourceNotFound = descriptor.ignoreResourceNotFound();
-		PropertySourceFactory factory = (descriptor.propertySourceFactory() != null
-				? instantiateClass(descriptor.propertySourceFactory())
-				: DEFAULT_PROPERTY_SOURCE_FACTORY);
-		/*
-		 * 遍历本地配置文件的路径字符串数组，依次加载配置文件，添加属性源
-		 */
+		PropertySourceFactory factory = (descriptor.propertySourceFactory() != null ?
+				instantiateClass(descriptor.propertySourceFactory()) : DEFAULT_PROPERTY_SOURCE_FACTORY);
+
 		for (String location : locations) {
 			try {
 				/*
@@ -134,14 +131,14 @@ public class PropertySourceProcessor {
 			PropertySource<?> existing = propertySources.get(name);
 			//如果不为null
 			if (existing != null) {
-				PropertySource<?> newSource = (propertySource instanceof ResourcePropertySource ?
-						((ResourcePropertySource) propertySource).withResourceName() : propertySource);
-				if (existing instanceof CompositePropertySource) {
+				PropertySource<?> newSource = (propertySource instanceof ResourcePropertySource rps ?
+						rps.withResourceName() : propertySource);
+				if (existing instanceof CompositePropertySource cps) {
 					//当前属性源加入到existing属性源集合的开头
-					((CompositePropertySource) existing).addFirstPropertySource(newSource);
+					cps.addFirstPropertySource(newSource);
 				} else {
-					if (existing instanceof ResourcePropertySource) {
-						existing = ((ResourcePropertySource) existing).withResourceName();
+					if (existing instanceof ResourcePropertySource rps) {
+						existing = rps.withResourceName();
 					}
 					//当前属性源加入到属性源集合的开头
 					CompositePropertySource composite = new CompositePropertySource(name);

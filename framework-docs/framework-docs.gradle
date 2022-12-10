@@ -13,13 +13,10 @@ configurations {
 dependencies {
 	api(project(":spring-context"))
 	api(project(":spring-web"))
+	api("jakarta.servlet:jakarta.servlet-api")
 
 	implementation(project(":spring-core-test"))
 	implementation("org.assertj:assertj-core")
-}
-
-checkstyle {
-	sourceSets = []
 }
 
 jar {
@@ -116,17 +113,22 @@ asciidoctor {
 	sources {
 		include '*.adoc'
 	}
-	outputDir "$buildDir/docs/ref-docs/html5"
-	outputOptions {
-		backends "spring-html"
-	}
-	logDocuments = true
 	resources {
 		from(sourceDir) {
 			include 'images/*.png'
 		}
 	}
+	outputDir "$buildDir/docs/ref-docs/html5"
+	outputOptions {
+		backends "spring-html"
+	}
+	forkOptions {
+		jvmArgs += ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.base/java.io=ALL-UNNAMED"]
+	}
+	logDocuments = true
 }
+
+asciidoctor.mustRunAfter "check"
 
 /**
  * Generate the Spring Framework Reference documentation from "src/docs/asciidoc"
@@ -234,7 +236,6 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 }
 
 distZip.mustRunAfter moduleProjects.check
-
 
 publishing {
 	publications {
