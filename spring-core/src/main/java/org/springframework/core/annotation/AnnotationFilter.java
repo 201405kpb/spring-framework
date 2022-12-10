@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 
 /**
  * Callback interface that can be used to filter specific annotation types.
+ * 该类是一个函数式接口，用于匹配传入的注解实例、类型或名称。
  *
  * <p>Note that the {@link MergedAnnotations} model (which this interface has been
  * designed for) always ignores lang annotations according to the {@link #PLAIN}
@@ -38,6 +39,7 @@ public interface AnnotationFilter {
 	 * {@link AnnotationFilter} that matches annotations in the
 	 * {@code java.lang} and {@code org.springframework.lang} packages
 	 * and their subpackages.
+	 * 类是否属于 java.lang、org.springframework.lang 包。
 	 * <p>This is the default filter in the {@link MergedAnnotations} model.
 	 */
 	AnnotationFilter PLAIN = packages("java.lang", "org.springframework.lang");
@@ -45,12 +47,14 @@ public interface AnnotationFilter {
 	/**
 	 * {@link AnnotationFilter} that matches annotations in the
 	 * {@code java} and {@code javax} packages and their subpackages.
+	 * 类是否属于 java、javax包
 	 */
 	AnnotationFilter JAVA = packages("java", "javax");
 
 	/**
 	 * {@link AnnotationFilter} that always matches and can be used when no
 	 * relevant annotation types are expected to be present at all.
+	 * 任何类
 	 */
 	AnnotationFilter ALL = new AnnotationFilter() {
 		@Override
@@ -102,6 +106,7 @@ public interface AnnotationFilter {
 
 	/**
 	 * Test if the given annotation matches the filter.
+	 * 根据实例匹配
 	 * @param annotation the annotation to test
 	 * @return {@code true} if the annotation matches
 	 */
@@ -111,6 +116,7 @@ public interface AnnotationFilter {
 
 	/**
 	 * Test if the given type matches the filter.
+	 * 根据类型匹配
 	 * @param type the annotation type to test
 	 * @return {@code true} if the annotation matches
 	 */
@@ -120,6 +126,7 @@ public interface AnnotationFilter {
 
 	/**
 	 * Test if the given type name matches the filter.
+	 * 根据名称匹配
 	 * @param typeName the fully qualified class name of the annotation type to test
 	 * @return {@code true} if the annotation matches
 	 */

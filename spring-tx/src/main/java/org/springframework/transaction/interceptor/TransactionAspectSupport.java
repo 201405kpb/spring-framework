@@ -113,12 +113,20 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * and to support communication between different cooperating advices
 	 * (e.g. before and after advice) if the aspect involves more than a
 	 * single method (as will be the case for around advice).
+	 * 一个ThreadLocal 持有器，用于持有事务执行的相关上下文信息 TransactionInfo,
 	 */
 	private static final ThreadLocal<TransactionInfo> transactionInfoHolder =
 			new NamedThreadLocal<>("Current aspect-driven transaction");
 
 
 	/**
+	 * 供子类用于获取当前 TransactionInfo 的方法。通常仅用于子类需要多个方法
+	 * 协调完成事务管理的情形，比如到AspectJ before/after advice 是不同方法
+	 * 但是要管理同一个事务的情景。而对于 around advice，比如符合AOP联盟
+	 * 规范的这种MethodInterceptor，能在整个切面方法整个生命周期过程中持有
+	 * 对 TransactionInfo 的引用，所以不需要该机制。
+	 * 这里需要注意的是，Spring 事务管理是线程绑定的，而非跨线程的。从上面
+	 * transactionInfoHolder 变量的定义可以看出来。
 	 * Subclasses can use this to return the current TransactionInfo.
 	 * Only subclasses that cannot handle all operations in one method,
 	 * such as an AspectJ aspect involving distinct before and after advice,
@@ -161,18 +169,24 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	@Nullable
 	private final ReactiveAdapterRegistry reactiveAdapterRegistry;
 
+	// 事务管理器bean的名称
 	@Nullable
 	private String transactionManagerBeanName;
 
+	// 事务管理器bean对象本身
 	@Nullable
 	private TransactionManager transactionManager;
 
+	// 用于获取事务属性的来源对象
 	@Nullable
 	private TransactionAttributeSource transactionAttributeSource;
 
+	// bean容器自身
 	@Nullable
 	private BeanFactory beanFactory;
 
+
+	// 事务管理器缓存，对于非缺省事务管理器，key是事务管理器bean定义上的@Qualifier.value ，对于缺省事务管理器，key是一个对象，由 DEFAULT_TRANSACTION_MANAGER_KEY 定义
 	private final ConcurrentMap<Object, TransactionManager> transactionManagerCache =
 			new ConcurrentReferenceHashMap<>(4);
 
@@ -299,6 +313,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 	/**
 	 * Check that required properties were set.
+	 * 接口 InitializingBean 定义的初始化方法，这里的实现,主要是确保属性 transactionManger, transactionAttributeSource 被设置,不为 null
 	 */
 	@Override
 	public void afterPropertiesSet() {
@@ -350,7 +365,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		 * 3 确定给定事务属性所使用的特定事务管理器。
 		 */
 		final TransactionManager tm = determineTransactionManager(txAttr);
-		/*这里用于支持Spring5的响应式编程，先不管……*/
+		/*这里用于支持Spring5的响应式编程……*/
 		if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager) {
 			boolean isSuspendingFunction = KotlinDetector.isSuspendingFunction(method);
 			boolean hasSuspendingFlowReturnType = isSuspendingFunction &&

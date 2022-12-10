@@ -84,6 +84,7 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	 * {@linkplain #createRootApplicationContext() root application context}.
 	 * @return the configuration for the root application context, or {@code null}
 	 * if creation and registration of a root context is not desired
+	 * 获取父容器的配置类
 	 */
 	@Nullable
 	protected abstract Class<?>[] getRootConfigClasses();
@@ -93,6 +94,7 @@ public abstract class AbstractAnnotationConfigDispatcherServletInitializer
 	 * {@linkplain #createServletApplicationContext() Servlet application context}.
 	 * @return the configuration for the Servlet application context, or
 	 * {@code null} if all configuration is specified through root config classes.
+	 * 获取web容器的配置类
 	 */
 	@Nullable
 	protected abstract Class<?>[] getServletConfigClasses();

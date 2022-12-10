@@ -95,7 +95,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	@Nullable
 	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-
+		// 根据参数获取 NamedValueInfo 对象
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
 
@@ -104,7 +104,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 			throw new IllegalArgumentException(
 					"Specified name must not resolve to null: [" + namedValueInfo.name + "]");
 		}
-
+		// 具体解析参数
 		Object arg = resolveName(resolvedName.toString(), nestedParameter, webRequest);
 		if (arg == null) {
 			if (namedValueInfo.defaultValue != null) {
@@ -118,7 +118,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		else if ("".equals(arg) && namedValueInfo.defaultValue != null) {
 			arg = resolveEmbeddedValuesAndExpressions(namedValueInfo.defaultValue);
 		}
-
+		// 若 binderFactory 不为空 ，使用 binderFactory 创建binder 并转换解析出的参数
 		if (binderFactory != null) {
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {
@@ -138,7 +138,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 				handleMissingValueAfterConversion(namedValueInfo.name, nestedParameter, webRequest);
 			}
 		}
-
+		// 对解析出的参数进行后置处理
 		handleResolvedValue(arg, namedValueInfo.name, parameter, mavContainer, webRequest);
 
 		return arg;

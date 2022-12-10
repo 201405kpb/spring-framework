@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
 /**
  * Interface to be implemented by objects that define a mapping between
  * requests and handler objects.
+ * 接口由定义请求和处理程序对象之间映射的对象实现
  *
  * <p>This class can be implemented by application developers, although this is not
  * necessary, as {@link org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping}

@@ -24,7 +24,7 @@ dependencies {
 	testImplementation("jakarta.servlet:jakarta.servlet-api")
 	testImplementation("jakarta.validation:jakarta.validation-api")
 	testImplementation("com.thoughtworks.xstream:xstream")
-	testImplementation("org.apache.activemq:activemq-broker")
+	testImplementation('org.apache.activemq:activemq-broker:5.17.0')
 	testImplementation("org.apache.activemq:activemq-kahadb-store")
 	testImplementation("org.apache.activemq:activemq-stomp")
 	testImplementation("io.projectreactor:reactor-test")

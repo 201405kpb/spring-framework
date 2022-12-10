@@ -208,8 +208,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				Node node = nl.item(i);
 				//标签之间的空白换行符号/n也会算作一个Node节点 -> DeferredTextImpl，标签之间被注释的语句也会算作一个Node节点 -> DeferredCommentImpl
 				//这里需要筛选出真正需要被解析的标签元素节点，即Element -> DeferredElementNSImpl，因此XML中标签之间的注释在一定程度上也会增加遍历以及判断成本
-				if (node instanceof Element) {
-					Element ele = (Element) node;
+				if (node instanceof Element ele) {
 					//属于默认命名空间下的标签 <import/>、<alias/>、<bean/>、<beans/>
 					if (delegate.isDefaultNamespace(ele)) {
 						parseDefaultElement(ele, delegate);

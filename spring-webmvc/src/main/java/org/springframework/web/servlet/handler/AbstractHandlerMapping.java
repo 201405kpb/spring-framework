@@ -382,8 +382,11 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
+		//模板方法，用于给子类提供一个添加Interceptors的入口。
 		extendInterceptors(this.interceptors);
+		//将SpringMvc容器和父容器中所有的MappedInterceptor类型的Bean添加到mappedInterceptors的属性
 		detectMappedInterceptors(this.adaptedInterceptors);
+		//用于初始化Interceptor,将Interceptors属性里所包含的对象按类型添加到mappedInterceptors和adaptedInterceptors.
 		initInterceptors();
 	}
 
@@ -402,6 +405,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	/**
 	 * Detect beans of type {@link MappedInterceptor} and add them to the list
 	 * of mapped interceptors.
+	 *  扫描应用下的MappedInterceptor,并添加到mappedInterceptors
 	 * <p>This is called in addition to any {@link MappedInterceptor}s that may
 	 * have been provided via {@link #setInterceptors}, by default adding all
 	 * beans of type {@link MappedInterceptor} from the current context and its
@@ -501,7 +505,9 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		//getHandlerInternal(request)方法为抽象方法，供子类实现 获取到的handler对象一般为bean/HandlerMethod
 		Object handler = getHandlerInternal(request);
+		//上述找不到则使用默认的处理类，没有设定则返回null，则会返回前台404错误
 		if (handler == null) {
 			handler = getDefaultHandler();
 		}
@@ -518,6 +524,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 			initLookupPath(request);
 		}
 
+		//创建处理链对象
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {
@@ -526,7 +533,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 		else if (logger.isDebugEnabled() && !DispatcherType.ASYNC.equals(request.getDispatcherType())) {
 			logger.debug("Mapped to " + executionChain.getHandler());
 		}
-
+		//针对cross跨域请求的处理
 		if (hasCorsConfigurationSource(handler) || CorsUtils.isPreFlightRequest(request)) {
 			CorsConfiguration config = getCorsConfiguration(handler, request);
 			if (getCorsConfigurationSource() != null) {
@@ -614,9 +621,10 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see #getAdaptedInterceptors()
 	 */
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		//创建 HandlerExecutionChain 对象
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain handlerExecutionChain ?
 				handlerExecutionChain : new HandlerExecutionChain(handler));
-
+		// 遍历拦截器数组，获取匹配的拦截器
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
 			if (interceptor instanceof MappedInterceptor mappedInterceptor) {
 				if (mappedInterceptor.matches(request)) {

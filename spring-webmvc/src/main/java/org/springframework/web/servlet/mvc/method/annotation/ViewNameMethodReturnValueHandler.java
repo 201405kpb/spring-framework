@@ -77,7 +77,7 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-
+		// 如果为字符串类型
 		if (returnValue instanceof CharSequence) {
 			String viewName = returnValue.toString();
 			mavContainer.setViewName(viewName);

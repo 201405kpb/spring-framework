@@ -51,6 +51,7 @@ public interface NamespaceHandler {
 	/**
 	 * Invoked by the {@link DefaultBeanDefinitionDocumentReader} after
 	 * construction but before any custom elements are parsed.
+	 * 允许初始化 NamespaceHandler ,在使用处理程序之前此方法将被 Spring 调用.
 	 * @see NamespaceHandlerSupport#registerBeanDefinitionParser(String, BeanDefinitionParser)
 	 */
 	void init();
@@ -65,6 +66,7 @@ public interface NamespaceHandler {
 	 * inside (for example) a {@code <property>} tag.
 	 * <p>Implementations may return {@code null} if they will
 	 * <strong>not</strong> be used in a nested scenario.
+	 * 当 Spring 遇到 top-level 元素(不嵌套在 bean 定义或其他命名空间中)时调用. 此方法可以注册 bean 定义本身和/或返回bean定义.
 	 * @param element the element that is to be parsed into one or more {@code BeanDefinitions}
 	 * @param parserContext the object encapsulating the current state of the parsing process
 	 * @return the primary {@code BeanDefinition} (can be {@code null} as explained above)
@@ -83,6 +85,7 @@ public interface NamespaceHandler {
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * <p>The supplied {@link ParserContext} can be used to register any
 	 * additional beans needed to support the main definition.
+	 * 当 Spring 遇到不同命名空间的属性或嵌套元素时调用.
 	 * @param source the source element or attribute that is to be parsed
 	 * @param definition the current bean definition
 	 * @param parserContext the object encapsulating the current state of the parsing process

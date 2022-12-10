@@ -135,9 +135,11 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	@Nullable
 	public ModelAndView resolveException(
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
-
+		// 是否可以应用
 		if (shouldApplyTo(request, handler)) {
+			// 阻止缓存
 			prepareResponse(ex, response);
+			// 执行解析异常，返回ModelAndView
 			ModelAndView result = doResolveException(request, response, handler, ex);
 			if (result != null) {
 				// Print debug message when warn logger is not enabled.
@@ -156,6 +158,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 
 	/**
 	 * Check whether this resolver is supposed to apply to the given handler.
+	 * 检查此解析器是否应应用于给定的处理程序。
 	 * <p>The default implementation checks against the configured
 	 * {@linkplain #setMappedHandlers handlers} and
 	 * {@linkplain #setMappedHandlerClasses handler classes}, if any.
@@ -195,6 +198,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	/**
 	 * Log the given exception at warn level, provided that warn logging has been
 	 * activated through the {@link #setWarnLogCategory "warnLogCategory"} property.
+	 *
 	 * <p>Calls {@link #buildLogMessage} in order to determine the concrete message to log.
 	 * @param ex the exception that got thrown during handler execution
 	 * @param request current HTTP request (useful for obtaining metadata)

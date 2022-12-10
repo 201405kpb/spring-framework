@@ -32,11 +32,13 @@ public final class GlobalAdvisorAdapterRegistry {
 
 	/**
 	 * Keep track of a single instance so we can return it to classes that request it.
+	 * 单例模式,使用静态变量保存唯一的实例
 	 */
 	private static AdvisorAdapterRegistry instance = new DefaultAdvisorAdapterRegistry();
 
 	/**
 	 * Return the singleton {@link DefaultAdvisorAdapterRegistry} instance.
+	 * 返回单例对象
 	 */
 	public static AdvisorAdapterRegistry getInstance() {
 		return instance;

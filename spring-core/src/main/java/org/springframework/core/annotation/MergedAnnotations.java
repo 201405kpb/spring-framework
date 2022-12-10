@@ -31,16 +31,21 @@ import org.springframework.util.Assert;
  * Provides access to a collection of merged annotations, usually obtained
  * from a source such as a {@link Class} or {@link Method}.
  *
- *
  * <p>Each merged annotation represents a view where the attribute values may be
  * "merged" from different source values, typically:
+ *
+ * <p>每个合并的注释表示一个视图，其中属性值可以从不同的源值“合并”，通常为：
  *
  * <ul>
  * <li>Explicit and Implicit {@link AliasFor @AliasFor} declarations on one or
  * more attributes within the annotation</li>
+ * <li>注释中一个或多个属性上声明的显式和隐式@AliasFor</li>
  * <li>Explicit {@link AliasFor @AliasFor} declarations for a meta-annotation</li>
+ * <li>元注释声明的显式@AliasFo</li>
  * <li>Convention based attribute aliases for a meta-annotation</li>
+ * <li>元注释的基于约定的属性别名</li>
  * <li>From a meta-annotation declaration</li>
+ * <li>来自元注释声明</li>
  * </ul>
  *
  * <p>For example, a {@code @PostMapping} annotation might be defined as follows:
@@ -147,6 +152,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	/**
 	 * Determine if the specified annotation type is either directly present or
 	 * meta-present.
+	 * 确定指定的注释类型在元注解或者自身注解上存在
 	 * <p>Equivalent to calling {@code get(annotationType).isPresent()}.
 	 * @param annotationType the annotation type to check
 	 * @return {@code true} if the annotation is present
@@ -165,6 +171,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 
 	/**
 	 * Determine if the specified annotation type is directly present.
+	 * 确定指定的注释类型是否直接存在。
 	 * <p>Equivalent to calling {@code get(annotationType).isDirectlyPresent()}.
 	 * @param annotationType the annotation type to check
 	 * @return {@code true} if the annotation is directly present
@@ -184,6 +191,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	 * Get the {@linkplain MergedAnnotationSelectors#nearest() nearest} matching
 	 * annotation or meta-annotation of the specified type, or
 	 * {@link MergedAnnotation#missing()} if none is present.
+	 * 如果存在获取匹配的注解或者元注解，若不存在返回 MergedAnnotationSelectors
 	 * @param annotationType the annotation type to get
 	 * @return a {@link MergedAnnotation} instance
 	 */
@@ -295,6 +303,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	/**
 	 * Create a new {@link MergedAnnotations} instance containing all
 	 * annotations and meta-annotations from the specified element.
+	 * 创建一个新的 MergedAnnotations实例，其中包含指定元素中的所有注释和元注释。
 	 * <p>The resulting instance will not include any inherited annotations. If
 	 * you want to include those as well you should use
 	 * {@link #from(AnnotatedElement, SearchStrategy)} with an appropriate
@@ -360,6 +369,15 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		return from(element, searchStrategy, Search.never, repeatableContainers, annotationFilter);
 	}
 
+	/**
+	 *
+	 * @param element 查找的 AnnotatedElement
+	 * @param searchStrategy 搜索策略
+	 * @param searchEnclosingClass
+	 * @param repeatableContainers 可重复注解容器
+	 * @param annotationFilter 注解过滤器
+	 * @return
+	 */
 	private static MergedAnnotations from(AnnotatedElement element, SearchStrategy searchStrategy,
 			Predicate<Class<?>> searchEnclosingClass, RepeatableContainers repeatableContainers,
 			AnnotationFilter annotationFilter) {

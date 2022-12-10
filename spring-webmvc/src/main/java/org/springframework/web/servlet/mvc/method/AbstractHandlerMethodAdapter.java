@@ -40,13 +40,16 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 
 	public AbstractHandlerMethodAdapter() {
 		// no restriction of HTTP methods by default
+		//默认情况下不限制HTTP方法
 		super(false);
 	}
 
 
 	/**
 	 * Specify the order value for this HandlerAdapter bean.
+	 * 指定此HandlerAdapter bean的顺序值。
 	 * <p>The default value is {@code Ordered.LOWEST_PRECEDENCE}, meaning non-ordered.
+	 * <p>默认值为｛@code Ordered.LOWEST_PRECDENCE｝，表示未排序。
 	 * @see org.springframework.core.Ordered#getOrder()
 	 */
 	public void setOrder(int order) {
@@ -89,6 +92,9 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 
 	/**
 	 * Use the given handler method to handle the request.
+	 * (1)备好处理器所需要的参数
+	 * (2)使用处理器处理请求
+	 * (3)处理返回值，也就是将不同类型的返回值统一处理成ModelAndView类型
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handlerMethod handler method to use. This object must have previously been passed to the

@@ -79,14 +79,30 @@ public abstract class AopProxyUtils {
 	 * @see org.springframework.aop.TargetClassAware#getTargetClass()
 	 * @see Advised#getTargetSource()
 	 */
+
 	public static Class<?> ultimateTargetClass(Object candidate) {
 		Assert.notNull(candidate, "Candidate object must not be null");
+		//current用于判断；
 		Object current = candidate;
 		Class<?> result = null;
-		while (current instanceof TargetClassAware targetClassAware) {
-			result = targetClassAware.getTargetClass();
-			current = getSingletonTarget(current);
+		//直到当前获得的对象不是TargetClassAware类型，TargetClassAware后面介绍；
+		while (current instanceof TargetClassAware) {
+			//获得当前对象（一个代理对象）代理的目标对象（这个对象可能还是一个代理对象）类型；
+			result = ((TargetClassAware) current).getTargetClass();
+			Object nested = null;
+			//如果当前获取的目标对象是一个Advised类型对象;
+			if (current instanceof Advised) {
+				//通过getTargetSource方法获取代理目标；
+				TargetSource targetSource = ((Advised) current).getTargetSource();
+				//如果代理目标对象是一个SingletonTargetSource；
+				if (targetSource instanceof SingletonTargetSource) {
+					//获取当前代理对象的真正目标对象（可能还是一个代理对象）
+					nested = ((SingletonTargetSource) targetSource).getTarget();
+				}
+			}
+			current = nested;
 		}
+		//如果获取到的目标对象是一个cglib代理对象，获取父类类型（才是目标类型）
 		if (result == null) {
 			result = (AopUtils.isCglibProxy(candidate) ? candidate.getClass().getSuperclass() : candidate.getClass());
 		}
@@ -212,17 +228,22 @@ public abstract class AopProxyUtils {
 	 * @see Advised
 	 */
 	public static Class<?>[] proxiedUserInterfaces(Object proxy) {
+		//得到所有接口
 		Class<?>[] proxyInterfaces = proxy.getClass().getInterfaces();
 		int nonUserIfcCount = 0;
+		//如果是代理，一定实现了SpringProxy；
 		if (proxy instanceof SpringProxy) {
 			nonUserIfcCount++;
 		}
+		//如果是代理，可能实现了Advised；
 		if (proxy instanceof Advised) {
 			nonUserIfcCount++;
 		}
 		if (proxy instanceof DecoratingProxy) {
 			nonUserIfcCount++;
 		}
+		//拷贝proxyInterfaces中从第0位~第proxyInterfaces.length - nonUserIfcCount个
+		//去掉尾巴上的nonUserIfcCount个；
 		Class<?>[] userInterfaces = Arrays.copyOf(proxyInterfaces, proxyInterfaces.length - nonUserIfcCount);
 		Assert.notEmpty(userInterfaces, "JDK proxy must implement one or more interfaces");
 		return userInterfaces;

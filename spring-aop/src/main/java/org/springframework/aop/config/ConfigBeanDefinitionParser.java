@@ -154,12 +154,12 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 			}
 			// 解析point-cut属性并赋值到DefaultBeanFactoryPointcutAdvisor#pointcut内部属性
 			Object pointcut = parsePointcutProperty(advisorElement, parserContext);
-			if (pointcut instanceof BeanDefinition) {
+			if (pointcut instanceof BeanDefinition pointcutBeanDefinition) {
 				advisorDef.getPropertyValues().add(POINTCUT, pointcut);
 				parserContext.registerComponent(
-						new AdvisorComponentDefinition(advisorBeanName, advisorDef, (BeanDefinition) pointcut));
-			} else if (pointcut instanceof String) {
-				advisorDef.getPropertyValues().add(POINTCUT, new RuntimeBeanReference((String) pointcut));
+						new AdvisorComponentDefinition(advisorBeanName, advisorDef, pointcutBeanDefinition));
+			} else if (pointcut instanceof String strPointCut) {
+				advisorDef.getPropertyValues().add(POINTCUT, new RuntimeBeanReference(strPointCut));
 				parserContext.registerComponent(
 						new AdvisorComponentDefinition(advisorBeanName, advisorDef));
 			}

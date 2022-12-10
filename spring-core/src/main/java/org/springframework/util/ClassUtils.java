@@ -741,7 +741,9 @@ public abstract class ClassUtils {
 	/**
 	 * Return all interfaces that the given class implements as a Set,
 	 * including ones implemented by superclasses.
+	 * 返回给定类作为Set实现的所有接口，包括由超类实现的接口。
 	 * <p>If the class itself is an interface, it gets returned as sole interface.
+	 * <p>如果类本身是一个接口，那么它将作为唯一的接口返回。
 	 * @param clazz the class to analyze for interfaces
 	 * @param classLoader the ClassLoader that the interfaces need to be visible in
 	 * (may be {@code null} when accepting all declared interfaces)
@@ -915,6 +917,7 @@ public abstract class ClassUtils {
 	/**
 	 * Return the user-defined class for the given class: usually simply the given
 	 * class, but the original class in case of a CGLIB-generated subclass.
+	 * 返回给定类的用户定义类：通常只是给定类，但如果是CGLIB生成的子类，则返回原始类。
 	 * @param clazz the class to check
 	 * @return the user-defined class
 	 */

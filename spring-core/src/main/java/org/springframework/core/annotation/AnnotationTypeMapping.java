@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
 /**
  * Provides mapping information for a single annotation (or meta-annotation) in
  * the context of a root annotation type.
+ * 提供根注释类型上下文中单个注释（或元注释）的映射信息。
  *
  * @author Phillip Webb
  * @author Sam Brannen

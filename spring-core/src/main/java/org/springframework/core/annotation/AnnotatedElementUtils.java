@@ -33,16 +33,23 @@ import org.springframework.util.MultiValueMap;
 /**
  * General utility methods for finding annotations, meta-annotations, and
  * repeatable annotations on {@link AnnotatedElement AnnotatedElements}.
+ * 用于在AnnotatedElement上查找注释、元注释和可重复注释的通用实用程序方法。
  *
  * <p>{@code AnnotatedElementUtils} defines the public API for Spring's
  * meta-annotation programming model with support for <em>annotation attribute
  * overrides</em>. If you do not need support for annotation attribute
  * overrides, consider using {@link AnnotationUtils} instead.
  *
+ * <p> AnnotatedElementUtils 为Spring的元注释编程模型定义了公共API，支持注释属性重写。
+ * 如果不需要对注释属性重写的支持，请考虑改用 AnnotationUtils。
+ *
  * <p>Note that the features of this class are not provided by the JDK's
  * introspection facilities themselves.
+ * <p>请注意，JDK的内省工具本身不提供此类的功能。
  *
  * <h3>Annotation Attribute Overrides</h3>
+ * <h3>注解属性覆盖</h3>
+ *
  * <p>Support for meta-annotations with <em>attribute overrides</em> in
  * <em>composed annotations</em> is provided by all variants of the
  * {@code getMergedAnnotationAttributes()}, {@code getMergedAnnotation()},
@@ -52,6 +59,7 @@ import org.springframework.util.MultiValueMap;
  * methods.
  *
  * <h3>Find vs. Get Semantics</h3>
+ * <h3>查找与获取语义</h3>
  * <p>The search algorithms used by methods in this class follow either
  * <em>find</em> or <em>get</em> semantics. Consult the javadocs for each
  * individual method for details on which search algorithm is used.
@@ -60,16 +68,24 @@ import org.springframework.util.MultiValueMap;
  * that are either <em>present</em> on an {@code AnnotatedElement} (i.e. declared
  * locally or {@linkplain java.lang.annotation.Inherited inherited}) or declared
  * within the annotation hierarchy <em>above</em> the {@code AnnotatedElement}.
+ * <p>获取语义（Get semantics）仅限于搜索AnnotatedElement上存在的注解（即本地声明或继承）
+ * 或在AnnotatedElement上方的注解层次结构中声明的注解。
  *
  * <p><strong>Find semantics</strong> are much more exhaustive, providing
  * <em>get semantics</em> plus support for the following:
+ * <p>查找语义（Find semantics）更加详尽，提供了语义加上对以下内容的支持
  *
  * <ul>
  * <li>Searching on interfaces, if the annotated element is a class
+ * <li> 如果带注解的元素是类，则在接口上搜索
  * <li>Searching on superclasses, if the annotated element is a class
+ * <li> 如果带注解的元素是类，则在超类上搜索
  * <li>Resolving bridged methods, if the annotated element is a method
+ * <li>解析桥接方法，如果带注解的元素是方法
  * <li>Searching on methods in interfaces, if the annotated element is a method
+ * <li>如果带注解的元素是方法，则在接口中搜索方法
  * <li>Searching on methods in superclasses, if the annotated element is a method
+ * <li>如果带注解的元素是方法，则在超类中搜索方法
  * </ul>
  *
  * <h3>Support for {@code @Inherited}</h3>

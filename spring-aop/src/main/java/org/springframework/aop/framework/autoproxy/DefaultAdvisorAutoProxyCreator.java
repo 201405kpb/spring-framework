@@ -93,6 +93,7 @@ public class DefaultAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCrea
 	@Override
 	public void setBeanName(String name) {
 		// If no infrastructure bean name prefix has been set, override it.
+		//如果未设置Advisor通知器 beanName 的前缀，那么使用beanName+"."作为默认前缀
 		if (this.advisorBeanNamePrefix == null) {
 			this.advisorBeanNamePrefix = name + SEPARATOR;
 		}

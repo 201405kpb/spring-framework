@@ -51,6 +51,8 @@ public @interface Service {
 	 * The value may indicate a suggestion for a logical component name,
 	 * to be turned into a Spring bean in case of an autodetected component.
 	 * @return the suggested component name, if any (or empty String otherwise)
+	 *
+	 * 该值可以指示逻辑组件名称的建议，在自动检测到组件的情况下，如果有值 将其转换为Spring bean@返回建议的组件名称,否则返回空字符串
 	 */
 	@AliasFor(annotation = Component.class)
 	String value() default "";

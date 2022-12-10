@@ -201,8 +201,11 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@SuppressWarnings("deprecation")
 	public void afterPropertiesSet() {
+		//config为RequestMappingInfo的创建对象
 		this.config = new RequestMappingInfo.BuilderConfiguration();
+		//是否添加"/"后缀，默认为true
 		this.config.setTrailingSlashMatch(useTrailingSlashMatch());
+		//mediaType处理类
 		this.config.setContentNegotiationManager(getContentNegotiationManager());
 
 		if (getPatternParser() != null && this.defaultPatternParser &&
@@ -212,16 +215,19 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 		}
 
 		if (getPatternParser() != null) {
+			//默认为AntPathMatcher，路径匹配校验器
 			this.config.setPatternParser(getPatternParser());
 			Assert.isTrue(!this.useSuffixPatternMatch && !this.useRegisteredSuffixPatternMatch,
 					"Suffix pattern matching not supported with PathPatternParser.");
 		}
 		else {
+			//是否支持后缀补充，默认为true
 			this.config.setSuffixPatternMatch(useSuffixPatternMatch());
+			//是否采用mediaType匹配模式，比如.json/.xml模式的匹配，默认为false
 			this.config.setRegisteredSuffixPatternMatch(useRegisteredSuffixPatternMatch());
 			this.config.setPathMatcher(getPathMatcher());
 		}
-
+		//调用父类进行HandlerMethod的注册工作
 		super.afterPropertiesSet();
 	}
 
@@ -285,6 +291,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
+		//优先匹配@Controller
 		return AnnotatedElementUtils.hasAnnotation(beanType, Controller.class);
 	}
 
@@ -299,6 +306,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		//对method以及class类都进行创建RequestMappingInfo
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);

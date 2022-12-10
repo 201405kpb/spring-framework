@@ -212,8 +212,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			}
 			//设置继承的父类为目标类型
 			enhancer.setSuperclass(proxySuperClass);
-			//设置实现的接口，这个completeProxiedInterfaces方法前面说过了
-			//所以说，通过CGLIB创建的代理类对象也是实现了接口的，至少会实现SpringProxy和Advised接口
+			//设置实现的接口，通过CGLIB创建的代理类对象也是实现了接口的，至少会实现SpringProxy和Advised接口
 			enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
 			//设置类名命名策略
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);

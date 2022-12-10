@@ -26,9 +26,13 @@ import org.springframework.lang.Nullable;
  * handler mapping or execution, in the typical case to error views. Implementors are
  * typically registered as beans in the application context.
  *
+ * <p>接口由对象实现，这些对象可以解决在处理程序映射或执行过程中引发的异常，在典型情况下是错误视图。实现器通常在应用程序上下文中注册为bean。
+ *
  * <p>Error views are analogous to JSP error pages but can be used with any kind of
  * exception including any checked exception, with potentially fine-grained mappings for
  * specific handlers.
+ *
+ * <p>错误视图类似于JSP错误页面，但可以与任何类型的异常一起使用，包括任何已检查的异常，以及特定处理程序的细粒度映射。
  *
  * @author Juergen Hoeller
  * @since 22.11.2003
@@ -41,6 +45,7 @@ public interface HandlerExceptionResolver {
 	 * <p>The returned {@code ModelAndView} may be {@linkplain ModelAndView#isEmpty() empty}
 	 * to indicate that the exception has been resolved successfully but that no view
 	 * should be rendered, for instance by setting a status code.
+	 *
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler the executed handler, or {@code null} if none chosen at the

@@ -11,17 +11,18 @@
 	<!-- 配置Logger类-->
 	<bean id="logger" class="com.kpb.spring.aop.Logger"/>
 	<!--确定 aop 注解生效-->
-	<aop:aspectj-autoproxy/>
+	<!--proxy-target-class="true" 强制使用 cglib 代理-->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
 	<!--使用aop：config标签表名开始aop的配置-->
 	<aop:config>
 		<aop:pointcut id="pt1" expression="execution(* com.kpb.spring.aop.*.*(..))"/>
 		<!--使用aop:aspect标签表明配置切面-->
 		<aop:aspect id="LogAdvice" ref="logger">
+			<aop:around method="aroundPrintLog" pointcut-ref="pt1"/>
 			<aop:before method="beforePrintLog" pointcut-ref="pt1"/>
+			<aop:after method="afterPrintLog" pointcut-ref="pt1"/>
 			<aop:after-returning method="afterReturningPrintLog" pointcut-ref="pt1"/>
 			<aop:after-throwing method="afterThrowingPrintLog" pointcut-ref="pt1"/>
-			<aop:after method="afterPrintLog" pointcut-ref="pt1"/>
-			<aop:around method="aroundPrintLog" pointcut-ref="pt1"/>
 		</aop:aspect>
 	</aop:config>
 </beans>

@@ -30,8 +30,11 @@ import org.springframework.util.ClassUtils;
  * {@link AdvisedSupport} instance:
  * <ul>
  * <li>the {@code optimize} flag is set
+ * <li>设置optimize这个属性</li>
  * <li>the {@code proxyTargetClass} flag is set
+ * <li>设置proxyTargetClass这个属性</li>
  * <li>no proxy interfaces have been specified
+ * <li>被代理对象没有实现接口</li>
  * </ul>
  *
  * <p>In general, specify {@code proxyTargetClass} to enforce a CGLIB proxy,

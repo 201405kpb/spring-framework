@@ -113,8 +113,9 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 执行调用父类执行请求
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+		// 处理 @ResponseStatus，设置响应状态码
 		setResponseStatus(webRequest);
 
 		if (returnValue == null) {
@@ -128,10 +129,11 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
-
+		// 设置请求状态，false表示已经完成，true表示未完成。
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
+			// 使用 returnValueHandlers 处理返回值
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}
@@ -147,11 +149,12 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * Set the response status according to the {@link ResponseStatus} annotation.
 	 */
 	private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
+		// 获取注册码
 		HttpStatusCode status = getResponseStatus();
 		if (status == null) {
 			return;
 		}
-
+		// 设置相应注册码
 		HttpServletResponse response = webRequest.getResponse();
 		if (response != null) {
 			String reason = getResponseStatusReason();

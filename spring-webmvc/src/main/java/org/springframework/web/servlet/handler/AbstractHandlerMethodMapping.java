@@ -253,6 +253,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void processCandidateBean(String beanName) {
 		Class<?> beanType = null;
 		try {
+			// 获取bean类型
 			beanType = obtainApplicationContext().getType(beanName);
 		}
 		catch (Throwable ex) {
@@ -268,18 +269,23 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 	/**
 	 * Look for handler methods in the specified handler bean.
+	 * 在指定的处理程序bean中查找处理程序方法。
 	 * @param handler either a bean name or an actual handler instance
 	 * @see #getMappingForMethod
 	 */
 	protected void detectHandlerMethods(Object handler) {
+		//获取bean实例
 		Class<?> handlerType = (handler instanceof String beanName ?
 				obtainApplicationContext().getType(beanName) : handler.getClass());
 
 		if (handlerType != null) {
+			// 若为 cglib 代理的子对象类型，则返回父类，否则直接返回传入类型
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			// 保存handler 与匹配条件的对应关系，用于 registerHandlerMethod 的方法参数
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							// 创建该方法对应的Mapping 对象。
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -293,6 +299,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			else if (mappingsLogger.isDebugEnabled()) {
 				mappingsLogger.debug(formatMappings(userType, methods));
 			}
+			// 将符合要求的method 注册起来
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
 				registerHandlerMethod(handler, invocableMethod, mapping);
@@ -569,6 +576,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	class MappingRegistry {
 
+		/**
+		 * 注册表
+		 */
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
 
 		private final MultiValueMap<String, T> pathLookup = new LinkedMultiValueMap<>();
@@ -629,6 +639,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 创建 HandlerMethod 对象
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 				validateMethodMapping(handlerMethod, mapping);
 

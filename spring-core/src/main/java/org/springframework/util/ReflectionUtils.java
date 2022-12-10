@@ -51,6 +51,7 @@ public abstract class ReflectionUtils {
 	 * @since 3.0.5
 	 */
 	public static final MethodFilter USER_DECLARED_METHODS =
+			// 当前 method 不是桥接方法也不是合成方法时返回 true， 否则返回false
 			(method -> !method.isBridge() && !method.isSynthetic() && (method.getDeclaringClass() != Object.class));
 
 	/**
@@ -345,8 +346,10 @@ public abstract class ReflectionUtils {
 	/**
 	 * Perform the given callback operation on all matching methods of the given
 	 * class and superclasses (or given interface and super-interfaces).
+	 * 对给定类和超类（或给定接口和超接口）的所有匹配方法执行给定的回调操作。
 	 * <p>The same named method occurring on subclass and superclass will appear
 	 * twice, unless excluded by the specified {@link MethodFilter}.
+	 * <p>子类和超类上出现的相同命名方法将出现两次，除非被指定的｛@link MethodFilter｝排除。
 	 * @param clazz the class to introspect
 	 * @param mc the callback to invoke for each method
 	 * @param mf the filter that determines the methods to apply the callback to

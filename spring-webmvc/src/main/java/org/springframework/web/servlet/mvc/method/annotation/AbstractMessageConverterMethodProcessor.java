@@ -158,6 +158,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 
 	/**
 	 * Writes the given return type to the given output message.
+	 * 将给定的返回类型写入给定的输出消息。
 	 * @param value the value to write to the output message
 	 * @param returnType the type of the value
 	 * @param inputMessage the input messages. Used to inspect the {@code Accept} header.
@@ -185,10 +186,12 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 		}
 		else {
 			body = value;
+			// 获取返回值类型
 			valueType = getReturnValueType(body, returnType);
+			// 获取泛型
 			targetType = GenericTypeResolver.resolveType(getGenericType(returnType), returnType.getContainingClass());
 		}
-
+		// 判断 value 是不是 Resource 类型
 		if (isResourceType(value, returnType)) {
 			outputMessage.getHeaders().set(HttpHeaders.ACCEPT_RANGES, "bytes");
 			if (value != null && inputMessage.getHeaders().getFirst(HttpHeaders.RANGE) != null &&
@@ -221,6 +224,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			HttpServletRequest request = inputMessage.getServletRequest();
 			List<MediaType> acceptableTypes;
 			try {
+				// 从请求获取 MediaType 集合
 				acceptableTypes = getAcceptableMediaTypes(request);
 			}
 			catch (HttpMediaTypeNotAcceptableException ex) {
@@ -234,6 +238,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 				throw ex;
 			}
 
+			// 从请求获取 可以接受 MediaType 集合
 			List<MediaType> producibleTypes = getProducibleMediaTypes(request, valueType, targetType);
 			if (body != null && producibleTypes.isEmpty()) {
 				throw new HttpMessageNotWritableException(
@@ -241,6 +246,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			}
 
 			List<MediaType> compatibleMediaTypes = new ArrayList<>();
+			// 查找符合条件的 MediaType
 			determineCompatibleMediaTypes(acceptableTypes, producibleTypes, compatibleMediaTypes);
 
 			// For ProblemDetail, fall back on RFC 7807 format
@@ -285,6 +291,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 				if (genericConverter != null ?
 						((GenericHttpMessageConverter) converter).canWrite(targetType, valueType, selectedMediaType) :
 						converter.canWrite(valueType, selectedMediaType)) {
+
 					body = getAdvice().beforeBodyWrite(body, returnType, selectedMediaType,
 							(Class<? extends HttpMessageConverter<?>>) converter.getClass(),
 							inputMessage, outputMessage);

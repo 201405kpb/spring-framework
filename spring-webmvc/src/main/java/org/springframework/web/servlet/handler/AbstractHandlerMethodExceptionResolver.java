@@ -40,6 +40,7 @@ public abstract class AbstractHandlerMethodExceptionResolver extends AbstractHan
 	 */
 	@Override
 	protected boolean shouldApplyTo(HttpServletRequest request, @Nullable Object handler) {
+		// 如果handler 为空 则直接调用父类
 		if (handler == null) {
 			return super.shouldApplyTo(request, null);
 		}

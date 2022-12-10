@@ -146,13 +146,15 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 */
 	@Override
 	public final void init() throws ServletException {
-
 		// Set bean properties from init parameters.
+		// 将 servlet 中配置的 init-param 参数封装到pvs
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				// 将当前的servlet 对象 封装为 BeanWrapper 对象，方便spring注入
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+				//注册自定义属性编辑器
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 				initBeanWrapper(bw);
 				bw.setPropertyValues(pvs, true);
@@ -166,13 +168,17 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// 模板方法，子类初始化入口方法
 		initServletBean();
 	}
 
 	/**
 	 * Initialize the BeanWrapper for this HttpServletBean,
+	 * 为此HttpServletBean初始化BeanWrapper,
 	 * possibly with custom editors.
+	 * 可能使用自定义编辑器。
 	 * <p>This default implementation is empty.
+	 * <p>此默认实现为空。
 	 * @param bw the BeanWrapper to initialize
 	 * @throws BeansException if thrown by BeanWrapper methods
 	 * @see org.springframework.beans.BeanWrapper#registerCustomEditor
@@ -184,6 +190,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * Subclasses may override this to perform custom initialization.
 	 * All bean properties of this servlet will have been set before this
 	 * method is invoked.
+	 * 子类可以覆盖它来执行自定义初始化。
 	 * <p>This default implementation is empty.
 	 * @throws ServletException if subclass initialization fails
 	 */
@@ -209,6 +216,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 		/**
 		 * Create new ServletConfigPropertyValues.
+		 * 创建新的ServletConfigPropertyValues.
 		 * @param config the ServletConfig we'll use to take PropertyValues from
 		 * @param requiredProperties set of property names we need, where
 		 * we can't accept default values
@@ -219,7 +227,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 			Set<String> missingProps = (!CollectionUtils.isEmpty(requiredProperties) ?
 					new HashSet<>(requiredProperties) : null);
-
+			//根据Servlet规范用getInitParameterNames方法获取所有配置的名称
 			Enumeration<String> paramNames = config.getInitParameterNames();
 			while (paramNames.hasMoreElements()) {
 				String property = paramNames.nextElement();

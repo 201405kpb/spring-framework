@@ -54,6 +54,7 @@ public class ModelAndViewContainer {
 	@Nullable
 	private Object view;
 
+	// 默认使用 defaultModel
 	private final ModelMap defaultModel = new BindingAwareModelMap();
 
 	@Nullable
@@ -129,6 +130,7 @@ public class ModelAndViewContainer {
 	/**
 	 * Whether the view is a view reference specified via a name to be
 	 * resolved by the DispatcherServlet via a ViewResolver.
+	 * 视图是否是通过名称指定的视图引用，该名称将由DispatcherServlet通过ViewResolver解析。
 	 */
 	public boolean isViewReference() {
 		return (this.view instanceof String);

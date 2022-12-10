@@ -88,6 +88,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	/**
 	 * Interfaces to be implemented by the proxy. Held in List to keep the order
 	 * of registration, to create JDK proxy with specified order of interfaces.
+	 * 字符串接口名称的数组. 如果未提供此项,将使用目标类的 CGLIB 代理
 	 */
 	@SuppressWarnings("serial")
 	private List<Class<?>> interfaces = new ArrayList<>();

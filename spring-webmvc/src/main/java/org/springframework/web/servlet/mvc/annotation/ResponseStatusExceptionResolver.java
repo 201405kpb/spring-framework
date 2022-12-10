@@ -36,6 +36,7 @@ import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
  * A {@link org.springframework.web.servlet.HandlerExceptionResolver
  * HandlerExceptionResolver} that uses the {@link ResponseStatus @ResponseStatus}
  * annotation to map exceptions to HTTP status codes.
+ * 解析有 {@link ResponseStatus} 注释类型的异常
  *
  * <p>This exception resolver is enabled by default in the
  * {@link org.springframework.web.servlet.DispatcherServlet DispatcherServlet}

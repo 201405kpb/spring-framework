@@ -182,6 +182,7 @@ public @interface AliasFor {
 
 	/**
 	 * Alias for {@link #attribute}.
+	 * attribute的别名，用来简化编码.
 	 * <p>Intended to be used instead of {@link #attribute} when {@link #annotation}
 	 * is not declared &mdash; for example: {@code @AliasFor("value")} instead of
 	 * {@code @AliasFor(attribute = "value")}.
@@ -191,6 +192,7 @@ public @interface AliasFor {
 
 	/**
 	 * The name of the attribute that <em>this</em> attribute is an alias for.
+	 * 要指向的属性名
 	 * @see #value
 	 */
 	@AliasFor("value")
@@ -200,6 +202,7 @@ public @interface AliasFor {
 	 * The type of annotation in which the aliased {@link #attribute} is declared.
 	 * <p>Defaults to {@link Annotation}, implying that the aliased attribute is
 	 * declared in the same annotation as <em>this</em> attribute.
+	 * 包含源属性定义的注解，Annotation.class表示当前注解
 	 */
 	Class<? extends Annotation> annotation() default Annotation.class;
 

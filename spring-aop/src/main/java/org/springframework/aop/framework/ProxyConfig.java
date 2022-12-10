@@ -33,15 +33,20 @@ public class ProxyConfig implements Serializable {
 	/** use serialVersionUID from Spring 1.2 for interoperability. */
 	private static final long serialVersionUID = -8409359707199703185L;
 
-
+	//如果目标类需要代理,而不是目标类的接口时,则为 true. 如果此属性值设置为 true,则会创建 CGLIB 代理
 	private boolean proxyTargetClass = false;
 
+	//控制是否将积极的优化应用于通过 CGLIB 创建的代理. 除非您完全了解相关 的 AOP 代理如何处理优化,否则不要随意使用此设置. 当前仅用于 CGLIB 代理. 它对 JDK 动态代理无效.
 	private boolean optimize = false;
 
 	boolean opaque = false;
 
+	//确定当前代理是否应在 ThreadLocal 中暴露,以便目标可以访问它. 如果目标需要获取代理,
+	// 并且 exposeProxy 属性设置为 true. 则目标可以使用 AopContext.currentProxy() 方法.
 	boolean exposeProxy = false;
 
+	// 如果代理配置被 frozen,则不再允许对配置进行更改. 这既可以作为一种轻微的优化,也适用于当不希望调用方在创建代理后能够操作代理 (通过 Advised 接口) 的情况.
+	// 此属性的默认值为 false,因此如果允许添加其他的通知的话可以更改.
 	private boolean frozen = false;
 
 

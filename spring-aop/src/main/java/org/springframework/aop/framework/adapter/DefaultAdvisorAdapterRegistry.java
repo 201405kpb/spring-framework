@@ -101,9 +101,9 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 		Advice advice = advisor.getAdvice();
 		//如果通知本身就属于MethodInterceptor
 		//AspectJAfterAdvice、AspectJAfterThrowingAdvice、AspectJAroundAdvice它们都属于MethodInterceptor
-		if (advice instanceof MethodInterceptor) {
+		if (advice instanceof MethodInterceptor methodInterceptor) {
 			//直接添加当前通知
-			interceptors.add((MethodInterceptor) advice);
+			interceptors.add(methodInterceptor);
 		}
 		//尝试通过适配器转换
 		for (AdvisorAdapter adapter : this.adapters) {

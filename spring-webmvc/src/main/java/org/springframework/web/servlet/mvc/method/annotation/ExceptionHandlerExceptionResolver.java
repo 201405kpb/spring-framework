@@ -374,17 +374,18 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	/**
 	 * Find an {@code @ExceptionHandler} method and invoke it to handle the raised exception.
+	 * 找到一个 ExceptionHandler方法并调用它来处理引发的异常。
 	 */
 	@Override
 	@Nullable
 	protected ModelAndView doResolveHandlerMethodException(HttpServletRequest request,
 			HttpServletResponse response, @Nullable HandlerMethod handlerMethod, Exception exception) {
-
+		// 获取异常对应的 ServletInvocableHandlerMethod 对象，handlerMethod 为处理异常的方法
 		ServletInvocableHandlerMethod exceptionHandlerMethod = getExceptionHandlerMethod(handlerMethod, exception);
 		if (exceptionHandlerMethod == null) {
 			return null;
 		}
-
+		// 设置 argumentResolvers 和 returnValueHandlers
 		if (this.argumentResolvers != null) {
 			exceptionHandlerMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		}
@@ -410,6 +411,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			Object[] arguments = new Object[exceptions.size() + 1];
 			exceptions.toArray(arguments);  // efficient arraycopy call in ArrayList
 			arguments[arguments.length - 1] = handlerMethod;
+			// 执行 ExceptionHandler 方法解析异常
 			exceptionHandlerMethod.invokeAndHandle(webRequest, mavContainer, arguments);
 		}
 		catch (Throwable invocationEx) {
@@ -454,12 +456,14 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	@Nullable
 	protected ServletInvocableHandlerMethod getExceptionHandlerMethod(
 			@Nullable HandlerMethod handlerMethod, Exception exception) {
-
+		// 处理器的类型
 		Class<?> handlerType = null;
 
+		// 如果 handlerMethod 非空，先获取Controller 对应的 @ExceptionHandler 对应的方法
 		if (handlerMethod != null) {
 			// Local exception handler methods on the controller class itself.
 			// To be invoked through the proxy, even in case of an interface-based proxy.
+			// 获取 handlerType 对应的 ExceptionHandlerMethodResolver 对象
 			handlerType = handlerMethod.getBeanType();
 			ExceptionHandlerMethodResolver resolver = this.exceptionHandlerCache.computeIfAbsent(
 					handlerType, ExceptionHandlerMethodResolver::new);

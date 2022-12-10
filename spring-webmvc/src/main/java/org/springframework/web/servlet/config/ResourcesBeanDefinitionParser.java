@@ -89,6 +89,8 @@ class ResourcesBeanDefinitionParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext context) {
 		Object source = context.extractSource(element);
 
+		//注册ResourceUrlProvider对象，主要是设置对每个请求都设置上RESOURCE_URL_PROVIDER_ATTR属性，供获取此对象
+		//在ResourceResolver中会使用
 		registerUrlProvider(context, source);
 
 		RuntimeBeanReference pathMatcherRef = MvcNamespaceUtils.registerPathMatcher(null, context, source);

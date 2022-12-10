@@ -29,11 +29,13 @@ import org.springframework.util.PatternMatchUtils;
 /**
  * Auto proxy creator that identifies beans to proxy via a list of names.
  * Checks for direct, "xxx*", and "*xxx" matches.
+ * 自动代理创建器，通过名称列表标识要代理的bean。检查直接、“xxx”和“xxx”匹配。
  *
  * <p>For configuration details, see the javadoc of the parent class
  * AbstractAutoProxyCreator. Typically, you will specify a list of
  * interceptor names to apply to all identified beans, via the
  * "interceptorNames" property.
+ * 通常，您将通过“interceptorNames”属性指定要应用于所有已标识bean的拦截器名称列表。
  *
  * @author Juergen Hoeller
  * @author Sam Brannen

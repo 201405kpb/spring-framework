@@ -34,6 +34,8 @@ import org.springframework.web.util.WebUtils;
  * that allows for mapping exception class names to view names, either for a set of
  * given handlers or for all handlers in the DispatcherServlet.
  *
+ * 通过配置的异常类和 view 对应的关系来解析异常
+ *
  * <p>Error views are analogous to error page JSPs, but can be used with any kind of
  * exception including any checked one, with fine-granular mappings for specific handlers.
  *

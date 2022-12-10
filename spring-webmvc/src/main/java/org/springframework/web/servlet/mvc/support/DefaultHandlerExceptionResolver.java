@@ -57,6 +57,8 @@ import org.springframework.web.util.WebUtils;
  * interface, resolving standard Spring MVC exceptions and translating them to corresponding
  * HTTP status codes.
  *
+ * 按照不同类型分别对异常进行解析
+ *
  * <p>This exception resolver is enabled by default in the common Spring
  * {@link org.springframework.web.servlet.DispatcherServlet}.
  *

@@ -49,6 +49,9 @@ import org.springframework.web.multipart.MultipartFile;
  * and its Part objects. Parameters get exposed through the native request's getParameter
  * methods - without any custom processing on our side.
  *
+ * Spring MultipartHttpServlet请求适配器，包装Servlet HttpServlet请求及其Part对象。
+ * 参数通过本机请求的getParameter方法公开，而我们这边没有任何自定义处理。
+ *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @since 3.1
@@ -63,6 +66,7 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 	/**
 	 * Create a new StandardMultipartHttpServletRequest wrapper for the given request,
 	 * immediately parsing the multipart content.
+	 * 为给定请求创建一个新的StandardMultipartHttpServletRequest包装器，立即解析多部分内容。
 	 * @param request the servlet request to wrap
 	 * @throws MultipartException if parsing failed
 	 */
@@ -75,6 +79,7 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 	 * @param request the servlet request to wrap
 	 * @param lazyParsing whether multipart parsing should be triggered lazily on
 	 * first access of multipart files or parameters
+	 * 首次访问多部分文件或参数时是否应延迟触发多部分解析
 	 * @throws MultipartException if an immediate parsing attempt failed
 	 * @since 3.2.9
 	 */

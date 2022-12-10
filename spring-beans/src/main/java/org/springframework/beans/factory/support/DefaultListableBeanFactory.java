@@ -2571,7 +2571,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//将所有候选Bean对象转换为resolvedArrayType类型
 			Object result = converter.convertIfNecessary(matchingBeans.values(), type);
 			//如果result是List实例
-			if (result instanceof List list && list.size()>1) {
+			if (result instanceof List<?> list && list.size()>1) {
 				//构建依赖比较器,用于对matchingBean的所有bean对象进行优先级排序
 				Comparator<Object> comparator = adaptDependencyComparator(matchingBeans);
 				//如果比较器不为null
@@ -2585,7 +2585,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 		//如果依赖类型是Map类型
 		else if (Map.class == type) {
-			//将descoptor所包装的参数/字段构建出来的ResolvableType对象解析成Map类型
+			//将descriptor所包装的参数/字段构建出来的ResolvableType对象解析成Map类型
 			ResolvableType mapType = descriptor.getResolvableType().asMap();
 			//解析出第1个泛型参数的Class对象,即key的Class对象
 			Class<?> keyType = mapType.resolveGeneric(0);

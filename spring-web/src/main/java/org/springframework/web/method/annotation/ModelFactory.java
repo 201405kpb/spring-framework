@@ -106,7 +106,7 @@ public final class ModelFactory {
 	 */
 	public void initModel(NativeWebRequest request, ModelAndViewContainer container, HandlerMethod handlerMethod)
 			throws Exception {
-
+		// 从 sessionAttributesHandler 获取保存的参数，并合并到 ModelAndViewContainer
 		Map<String, ?> sessionAttributes = this.sessionAttributesHandler.retrieveAttributes(request);
 		container.mergeAttributes(sessionAttributes);
 		invokeModelAttributeMethods(request, container);
@@ -125,6 +125,7 @@ public final class ModelFactory {
 	/**
 	 * Invoke model attribute methods to populate the model.
 	 * Attributes are added only if not already present in the model.
+	 * 调用模型属性方法来填充模型。仅当模型中不存在属性时，才会添加属性。
 	 */
 	private void invokeModelAttributeMethods(NativeWebRequest request, ModelAndViewContainer container)
 			throws Exception {
@@ -198,6 +199,7 @@ public final class ModelFactory {
 	 * @throws Exception if creating BindingResult attributes fails
 	 */
 	public void updateModel(NativeWebRequest request, ModelAndViewContainer container) throws Exception {
+		// 获取默认的 ModelMap
 		ModelMap defaultModel = container.getDefaultModel();
 		if (container.getSessionStatus().isComplete()){
 			this.sessionAttributesHandler.cleanupAttributes(request);
@@ -205,6 +207,7 @@ public final class ModelFactory {
 		else {
 			this.sessionAttributesHandler.storeAttributes(request, defaultModel);
 		}
+		// 判断请求是否处理完成(实际是判断是否要进行页面渲染)
 		if (!container.isRequestHandled() && container.getModel() == defaultModel) {
 			updateBindingResult(request, defaultModel);
 		}

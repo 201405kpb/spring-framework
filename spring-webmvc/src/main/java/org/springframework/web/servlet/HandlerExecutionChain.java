@@ -143,10 +143,12 @@ public class HandlerExecutionChain {
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		for (int i = 0; i < this.interceptorList.size(); i++) {
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
+			//前置处理器
 			if (!interceptor.preHandle(request, response, this.handler)) {
 				triggerAfterCompletion(request, response, null);
 				return false;
 			}
+			// 标记位置
 			this.interceptorIndex = i;
 		}
 		return true;
@@ -170,9 +172,11 @@ public class HandlerExecutionChain {
 	 * has successfully completed and returned true.
 	 */
 	void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex) {
+		//遍历拦截器链，倒序
 		for (int i = this.interceptorIndex; i >= 0; i--) {
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
 			try {
+				//已经完成的连接器链
 				interceptor.afterCompletion(request, response, this.handler, ex);
 			}
 			catch (Throwable ex2) {

@@ -130,6 +130,13 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 	 * that each instance may register and configure servlets such as Spring's
 	 * {@code DispatcherServlet}, listeners such as Spring's {@code ContextLoaderListener},
 	 * or any other Servlet API features such as filters.
+	 *
+	 * 将ServletContext委托给应用程序类路径上存在的任何WebApplicationInitializer实现
+	 * <p> 由于该类声明{@code HandlesTypes（WebApplicationInitializer.class）}，
+	 * Servlet容器将自动扫描类路径以查找Spring的WebApplicationInitialize接口的实现，
+	 * 并将所有此类类型的集合提供给该方法的webAppInitializerClasses参数
+	 * <p>如果在类路径上找不到WebApplicationInitializer实现，则该方法实际上是无效的。
+	 *
 	 * @param webAppInitializerClasses all implementations of
 	 * {@link WebApplicationInitializer} found on the application classpath
 	 * @param servletContext the servlet context to be initialized
@@ -141,7 +148,7 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 			throws ServletException {
 
 		List<WebApplicationInitializer> initializers = Collections.emptyList();
-
+		// 过滤掉无效的 WebApplicationInitializer
 		if (webAppInitializerClasses != null) {
 			initializers = new ArrayList<>(webAppInitializerClasses.size());
 			for (Class<?> waiClass : webAppInitializerClasses) {
@@ -166,7 +173,9 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 		}
 
 		servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
+		// 排序
 		AnnotationAwareOrderComparator.sort(initializers);
+		// 依次调用 onStartup 方法
 		for (WebApplicationInitializer initializer : initializers) {
 			initializer.onStartup(servletContext);
 		}

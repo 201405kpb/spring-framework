@@ -57,14 +57,6 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 	 * @param targetClass 目标类
 	 * @return 方法拦截器列表（可能还包括InterceptorAndDynamicMethodMatcher）
 	 */
-	/**
-	 * 确定给定方法的拦截器链列表
-	 *
-	 * @param config      AOP配置，就是前面的proxyFactory对象
-	 * @param method      目标方法
-	 * @param targetClass 目标类
-	 * @return 方法拦截器列表（可能还包括InterceptorAndDynamicMethodMatcher）
-	 */
 	@Override
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
 			Advised config, Method method, @Nullable Class<?> targetClass) {
@@ -73,7 +65,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 		// but we need to preserve order in the ultimate list.
 		//获取Advisor适配器注册表，默认获取的是一个DefaultAdvisorAdapterRegistry类型的单例
 		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
-		//从proxyFactory中获取此前设置的全部advisors
+		//从proxyFactory中获取此前设置的全部advisors，注意在xml 中该顺序与xml 中定义的顺序有关系
 		Advisor[] advisors = config.getAdvisors();
 		//拦截器列表
 		List<Object> interceptorList = new ArrayList<>(advisors.length);
@@ -122,8 +114,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 			}
 			//如果属于IntroductionAdvisor，即引介增强通知器
 			//比如<aop:declare-parents/>标签的DeclareParentsAdvisor就是IntroductionAdvisor类型
-			else if (advisor instanceof IntroductionAdvisor) {
-				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
+			else if (advisor instanceof IntroductionAdvisor ia) {
 				if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {
 					Interceptor[] interceptors = registry.getInterceptors(advisor);
 					interceptorList.addAll(Arrays.asList(interceptors));
