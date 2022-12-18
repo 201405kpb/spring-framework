@@ -506,7 +506,7 @@ public abstract class AnnotationUtils {
 		}
 
 		// Exhaustive retrieval of merged annotations...
-		// 注解无法直接获取，需要对层级结构进行搜索
+		// 注解无法直接获取，需要对层级结构进行搜索，使用搜索策略为 SearchStrategy.INHERITED_ANNOTATIONS，查询当前类及其所有的父类中的注解
 		return MergedAnnotations.from(annotatedElement, SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none())
 				.get(annotationType).withNonMergedAttributes()
 				.synthesize(MergedAnnotation::isPresent).orElse(null);

@@ -221,30 +221,37 @@ public abstract class WebApplicationContextUtils {
 	public static void registerEnvironmentBeans(ConfigurableListableBeanFactory bf,
 			@Nullable ServletContext servletContext, @Nullable ServletConfig servletConfig) {
 
+		//将servletContext作为单例注册容器
 		if (servletContext != null && !bf.containsBean(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME)) {
 			bf.registerSingleton(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME, servletContext);
 		}
 
+		// 将servletConfig 作为单例注册容器本文这里没有触发
 		if (servletConfig != null && !bf.containsBean(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME)) {
 			bf.registerSingleton(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME, servletConfig);
 		}
 
+		// String CONTEXT_PARAMETERS_BEAN_NAME = "contextParameters";
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME)) {
 			Map<String, String> parameterMap = new HashMap<>();
 			if (servletContext != null) {
+				// 获取servletContextd的初始化参数
 				Enumeration<?> paramNameEnum = servletContext.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
 					String paramName = (String) paramNameEnum.nextElement();
 					parameterMap.put(paramName, servletContext.getInitParameter(paramName));
 				}
 			}
+			// 本文这里servletConfig 为null
 			if (servletConfig != null) {
+				// 获取servletConfig的初始化参数
 				Enumeration<?> paramNameEnum = servletConfig.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
 					String paramName = (String) paramNameEnum.nextElement();
 					parameterMap.put(paramName, servletConfig.getInitParameter(paramName));
 				}
 			}
+			// 将contextParameters作为单例注册到容器
 			bf.registerSingleton(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME,
 					Collections.unmodifiableMap(parameterMap));
 		}
@@ -258,6 +265,7 @@ public abstract class WebApplicationContextUtils {
 					attributeMap.put(attrName, servletContext.getAttribute(attrName));
 				}
 			}
+			// 将contextAttributes作为单例注册到容器
 			bf.registerSingleton(WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME,
 					Collections.unmodifiableMap(attributeMap));
 		}

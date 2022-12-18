@@ -31,11 +31,18 @@ import org.springframework.util.StringUtils;
  */
 final class PackagesAnnotationFilter implements AnnotationFilter {
 
+	/**
+	 * 前缀数组
+	 */
 	private final String[] prefixes;
 
 	private final int hashCode;
 
 
+	/**
+	 * 包路径注解过滤器。把路径遍历，每一个加之后放入前缀数组,再排个序
+	 * @param packages
+	 */
 	PackagesAnnotationFilter(String... packages) {
 		Assert.notNull(packages, "Packages array must not be null");
 		this.prefixes = new String[packages.length];
