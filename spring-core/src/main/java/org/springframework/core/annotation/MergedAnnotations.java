@@ -652,16 +652,21 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * Find only directly declared annotations, without considering
 		 * {@link Inherited @Inherited} annotations and without searching
 		 * superclasses or implemented interfaces.
+		 *
+		 * 只查找直接声明的注释，而不考虑Inherited注释，也不搜索超类或实现的接口。
 		 */
 		DIRECT,
 
 		/**
 		 * Find all directly declared annotations as well as any
 		 * {@link Inherited @Inherited} superclass annotations.
+		 * 查找所有直接声明的注释以及任何Inherited超类注释。
 		 * <p>This strategy is only really useful when used with {@link Class}
 		 * types since the {@link Inherited @Inherited} annotation is ignored for
 		 * all other {@linkplain AnnotatedElement annotated elements}.
+		 * <p>此策略只有在与Class类型一起使用时才真正有用，因为Inherited注释对于所有其他都会被忽略。
 		 * <p>This strategy does not search implemented interfaces.
+		 * <p>此策略不搜索已实现的接口。
 		 */
 		INHERITED_ANNOTATIONS,
 
@@ -670,19 +675,24 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * <p>This strategy is similar to {@link #INHERITED_ANNOTATIONS} except
 		 * the annotations do not need to be meta-annotated with
 		 * {@link Inherited @Inherited}.
+		 * 查找所有直接声明的和超类注释 此策略类似于INHERITED_ANNOTATIONS，只是注释不需要使用INHERITED进行元注释。
 		 * <p>This strategy does not search implemented interfaces.
+		 * <p>此策略不搜索已实现的接口。
 		 */
 		SUPERCLASS,
 
 		/**
 		 * Perform a full search of the entire type hierarchy, including
 		 * superclasses and implemented interfaces.
+		 * 对整个类型层次结构进行完整搜索，包括超类和实现的接口。
 		 * <p>When combined with {@link Search#withEnclosingClasses(Predicate)},
 		 * {@linkplain Class#getEnclosingClass() enclosing classes} will also be
 		 * recursively searched if the supplied {@link Predicate} evaluates to
 		 * {@code true}.
+		 * <p>当与 SearchWithEnclosingClasses（Predicate）组合时，如果提供的Predicate的计算结果为 true，则还将递归搜索封闭类。
 		 * <p>Superclass and enclosing class annotations do not need to be
 		 * meta-annotated with {@link Inherited @Inherited}.
+		 * <p>超类和封闭类注释不需要使用Inherited进行元注释。
 		 */
 		TYPE_HIERARCHY
 

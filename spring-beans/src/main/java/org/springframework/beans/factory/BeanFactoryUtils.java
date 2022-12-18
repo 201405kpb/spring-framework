@@ -280,12 +280,16 @@ public abstract class BeanFactoryUtils {
 			ListableBeanFactory lbf, Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
+		// 获取与type（包括子类）匹配的Bean 名称，includeNonSingletons 决定是否包含原型与单例还是只包含单例，
+		// allowEagerInit决定是否初始化lazy-init单例和由 FactoryBeans 创建的对象进行类型检查。
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
 
 		if (lbf instanceof HierarchicalBeanFactory hbf) {
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory pbf) {
+				//递归调用该方法
 				String[] parentResult = beanNamesForTypeIncludingAncestors(
 						pbf, type, includeNonSingletons, allowEagerInit);
+				//合并结果
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}

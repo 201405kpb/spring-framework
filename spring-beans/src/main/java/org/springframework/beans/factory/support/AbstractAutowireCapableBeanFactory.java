@@ -544,10 +544,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
-			// 3.实例化前的处理，给InstantiationAwareBeanPostProcessor一个机会返回代理对象来替代真正的bean实例，达到“短路”效果
+			// 实例化前的处理，给InstantiationAwareBeanPostProcessor一个机会返回代理对象来替代真正的bean实例，达到“短路”效果
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
-				// 4.如果bean不为空，则会跳过Spring默认的实例化过程，直接使用返回的bean
+				// 如果bean不为空，则会跳过Spring默认的实例化过程，直接使用返回的bean
 				return bean;
 			}
 		}

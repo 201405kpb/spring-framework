@@ -104,15 +104,19 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 		parserContext.pushContainingComponent(compositeDef);
 		//  注册自动代理模式创建器
 		configureAutoProxyCreator(parserContext, element);
-
+		// 解析 <aop:config> 下的子节点
 		List<Element> childElts = DomUtils.getChildElements(element);
 		for (Element elt : childElts) {
 			String localName = parserContext.getDelegate().getLocalName(elt);
 			if (POINTCUT.equals(localName)) {
+				//处理 <aop:pointcut /> 子标签，解析出 AspectJExpressionPointcut 对象并注册
 				parsePointcut(elt, parserContext);
 			} else if (ADVISOR.equals(localName)) {
+				// 处理 <aop:advisor /> 子标签，解析出 DefaultBeanFactoryPointcutAdvisor 对象并注册，了指定 Advice 和 Pointcut（如果有）
 				parseAdvisor(elt, parserContext);
 			} else if (ASPECT.equals(localName)) {
+				//处理 <aop:aspectj /> 子标签，解析出所有的 AspectJPointcutAdvisor 对象并注册，里面包含了 Advice 对象和对应的 Pointcut 对象
+				// 同时存在 Pointcut 配置，也会解析出 AspectJExpressionPointcut 对象并注册
 				parseAspect(elt, parserContext);
 			}
 		}
@@ -228,9 +232,9 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 									aspectElement, this.parseState.snapshot());
 							return;
 						}
-						// 解析advice节点并注册到bean工厂中
 						beanReferences.add(new RuntimeBeanReference(aspectName));
 					}
+					// 解析advice节点并注册到bean工厂中
 					AbstractBeanDefinition advisorDefinition = parseAdvice(
 							aspectName, i, aspectElement, (Element) node, parserContext, beanDefinitions, beanReferences);
 					beanDefinitions.add(advisorDefinition);
@@ -372,6 +376,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 	 * parsing to occur so that the pointcut may be associate with the advice bean.
 	 * This same pointcut is also configured as the pointcut for the enclosing
 	 * Advisor definition using the supplied MutablePropertyValues.
+	 * 创建切片对象的 beanDefinition 对象
 	 */
 	private AbstractBeanDefinition createAdviceDefinition(
 			Element adviceElement, ParserContext parserContext, String aspectName, int order,

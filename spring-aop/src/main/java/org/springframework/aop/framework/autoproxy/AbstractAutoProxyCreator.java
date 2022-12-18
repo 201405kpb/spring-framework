@@ -110,6 +110,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	/**
 	 * Convenience constant for subclasses: Return value for
 	 * "proxy without additional interceptors, just the common ones".
+	 * AbstractAutoProxyCreator
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
 	protected static final Object[] PROXY_WITHOUT_ADDITIONAL_INTERCEPTORS = new Object[0];
@@ -118,20 +119,32 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	/** Default is global AdvisorAdapterRegistry. */
+	/** Default is global AdvisorAdapterRegistry.
+	 *  DefaultAdvisorAdapterRegistry 单例，Advisor适配器注册中心
+	 *  */
 	private AdvisorAdapterRegistry advisorAdapterRegistry = GlobalAdvisorAdapterRegistry.getInstance();
 
 	/**
 	 * Indicates whether the proxy should be frozen. Overridden from super
 	 * to prevent the configuration from becoming frozen too early.
+	 *
+	 * 是否冻结代理对象
 	 */
 	private boolean freezeProxy = false;
 
-	/** Default is no common interceptors. */
+	/** Default is no common interceptors.
+	 * 公共的拦截器对象
+	 * */
 	private String[] interceptorNames = new String[0];
 
+	/**
+	 * 公共的拦截器对象
+	 */
 	private boolean applyCommonInterceptorsFirst = true;
 
+	/**
+	 * 自定义的 TargetSource 创建器
+	 */
 	@Nullable
 	private TargetSourceCreator[] customTargetSourceCreators;
 
@@ -291,7 +304,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
-		//获取缓存key，我们在前面的postProcessBeforeInstantiation已经讲过了
+		//获取缓存key
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
 		//这里将缓存key和当前bean实例存入earlyProxyReferences缓存中
 		this.earlyProxyReferences.put(cacheKey, bean);

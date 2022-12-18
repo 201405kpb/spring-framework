@@ -111,6 +111,7 @@ public abstract class AnnotatedElementUtils {
 	/**
 	 * Build an adapted {@link AnnotatedElement} for the given annotations,
 	 * typically for use with other methods on {@link AnnotatedElementUtils}.
+	 * 为给定的注释构建一个经过调整的AnnotatedElement，通常用于AnnotatedElementUtils上的其他方法。
 	 * @param annotations the annotations to expose through the {@code AnnotatedElement}
 	 * @since 4.3
 	 */
@@ -122,6 +123,9 @@ public abstract class AnnotatedElementUtils {
 	 * Get the fully qualified class names of all meta-annotation types
 	 * <em>present</em> on the annotation (of the specified {@code annotationType})
 	 * on the supplied {@link AnnotatedElement}.
+	 *
+	 * 获取提供的AnnotatedElement上的注释上存在的所有元注释类型的完全限定类名。
+	 *
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -142,8 +146,10 @@ public abstract class AnnotatedElementUtils {
 	 * Get the fully qualified class names of all meta-annotation
 	 * types <em>present</em> on the annotation (of the specified
 	 * {@code annotationName}) on the supplied {@link AnnotatedElement}.
+	 * 获取提供的AnnotatedElement上的注释上存在的所有元注释类型＜em＞的完全限定类名。
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
+	 *
 	 * @param element the annotated element
 	 * @param annotationName the fully qualified class name of the annotation
 	 * type on which to find meta-annotations
@@ -174,6 +180,7 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if the supplied {@link AnnotatedElement} is annotated with
 	 * a <em>composed annotation</em> that is meta-annotated with an
 	 * annotation of the specified {@code annotationType}.
+	 * 确定所提供的AnnotatedElement是否使用组合注释进行注释，该注释是使用指定annotationType的注释进行元注释的。
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -190,6 +197,7 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if the supplied {@link AnnotatedElement} is annotated with a
 	 * <em>composed annotation</em> that is meta-annotated with an annotation
 	 * of the specified {@code annotationName}.
+	 * 确定所提供的AnnotatedElement是否使用组合注释进行注释，该注释是使用指定annotationName的注释进行元注释的。
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -206,8 +214,11 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if an annotation of the specified {@code annotationType}
 	 * is <em>present</em> on the supplied {@link AnnotatedElement} or
 	 * within the annotation hierarchy <em>above</em> the specified element.
+	 * 确定指定annotationType的注释是否在提供的AnnotatedElement上或在指定元素上方的注释层次结构中存在
 	 * <p>If this method returns {@code true}, then {@link #getMergedAnnotationAttributes}
 	 * will return a non-null value.
+	 * 如果此方法返回true，则getMergedAnnotationAttribute将返回非空值。
+	 *
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -230,8 +241,10 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if an annotation of the specified {@code annotationName} is
 	 * <em>present</em> on the supplied {@link AnnotatedElement} or within the
 	 * annotation hierarchy <em>above</em> the specified element.
+	 * 确定指定annotationType的注释是否在提供的AnnotatedElement上或在指定元素上方的注释层次结构中存在
 	 * <p>If this method returns {@code true}, then {@link #getMergedAnnotationAttributes}
 	 * will return a non-null value.
+	 * <p>如果此方法返回true，则getMergedAnnotationAttribute将返回非空值。
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -247,8 +260,10 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
+	 * 获取所提供元素上方的注释层次中指定注释类型的第一个注释，并将该注释的属性与注释层次较低级别的注释中的匹配*属性合并。
 	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
 	 * within a single annotation and within the annotation hierarchy.
+	 * 在单个注释和注释层次结构中都完全支持AliasFor语义。
 	 * <p>This method delegates to {@link #getMergedAnnotationAttributes(AnnotatedElement, String)}.
 	 * @param element the annotated element
 	 * @param annotationType the annotation type to find

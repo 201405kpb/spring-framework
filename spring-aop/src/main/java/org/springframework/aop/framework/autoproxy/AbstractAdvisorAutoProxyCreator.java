@@ -117,7 +117,6 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 		/*
 		 * 3 扩展Advisors链的钩子方法，子类可重写该方法添加新的Advisor，或者对已存在的Advisor进行操作
-		 *
 		 * 子类AspectJAwareAdvisorAutoProxyCreator重写了该方法
 		 */
 		extendAdvisors(eligibleAdvisors);

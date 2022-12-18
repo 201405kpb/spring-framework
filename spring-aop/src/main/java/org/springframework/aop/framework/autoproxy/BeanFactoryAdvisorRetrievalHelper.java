@@ -76,10 +76,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		//如果为null，表示没有缓存
 		if (advisorNames == null) {
-			/*
-			 * 获取全部Advisor类型的beanName数组
-			 * 这个方法我们在"IoC容器初始化(6)"的文章中已经讲过了
-			 */
+			// 获取全部Advisor类型的beanName数组
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
 			//赋值给cachedAdvisorBeanNames，缓存起来，下次直接从缓存获取

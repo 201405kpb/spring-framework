@@ -61,7 +61,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		// 调用父类启动的逻辑
 		super.onStartup(servletContext);
+		// 注册 DispatcherServlet
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -79,10 +81,10 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	protected void registerDispatcherServlet(ServletContext servletContext) {
 		String servletName = getServletName();
 		Assert.state(StringUtils.hasLength(servletName), "getServletName() must not return null or empty");
-
+		// 创建 WebApplicationContext 对象
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.state(servletAppContext != null, "createServletApplicationContext() must not return null");
-
+		//创建 FrameworkServlet 对象
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.state(dispatcherServlet != null, "createDispatcherServlet(WebApplicationContext) must not return null");
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
@@ -96,7 +98,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		registration.setLoadOnStartup(1);
 		registration.addMapping(getServletMappings());
 		registration.setAsyncSupported(isAsyncSupported());
-
+		//注册过滤器
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {
