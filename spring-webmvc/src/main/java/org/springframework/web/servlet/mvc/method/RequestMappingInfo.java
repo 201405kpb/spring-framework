@@ -82,25 +82,47 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	private static final RequestConditionHolder EMPTY_CUSTOM = new RequestConditionHolder(null);
 
 
+	/**
+	 * - 名字
+	 */
 	@Nullable
 	private final String name;
 
 	@Nullable
 	private final PathPatternsRequestCondition pathPatternsCondition;
 
+	/**
+	 * - 请求路径的条件
+	 */
 	@Nullable
 	private final PatternsRequestCondition patternsCondition;
 
+	/**
+	 * - 请求方法的条件
+	 */
 	private final RequestMethodsRequestCondition methodsCondition;
 
+	/**
+	 * - 请求参数的条件
+	 */
 	private final ParamsRequestCondition paramsCondition;
 
+	/**
+	 * - 请求头的条件
+	 */
 	private final HeadersRequestCondition headersCondition;
-
+	/**
+	 * - 可消费的 Content-Type 的条件
+	 */
 	private final ConsumesRequestCondition consumesCondition;
-
+	/**
+	 * - 可生产的 Content-Type 的条件
+	 */
 	private final ProducesRequestCondition producesCondition;
 
+	/**
+	 * - 自定义的条件
+	 */
 	private final RequestConditionHolder customConditionHolder;
 
 	private final int hashCode;
@@ -427,6 +449,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	public int compareTo(RequestMappingInfo other, HttpServletRequest request) {
 		int result;
 		// Automatic vs explicit HTTP HEAD mapping
+		// 针对 HEAD 请求方法，特殊处理
 		if (HttpMethod.HEAD.matches(request.getMethod())) {
 			result = this.methodsCondition.compareTo(other.getMethodsCondition(), request);
 			if (result != 0) {

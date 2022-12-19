@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Handler execution chain, consisting of handler object and any handler interceptors.
@@ -142,15 +143,19 @@ public class HandlerExecutionChain {
 	 */
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		for (int i = 0; i < this.interceptorList.size(); i++) {
+			// 遍历拦截器数组
 			HandlerInterceptor interceptor = this.interceptorList.get(i);
 			//前置处理器
 			if (!interceptor.preHandle(request, response, this.handler)) {
+				//触发已完成处理
 				triggerAfterCompletion(request, response, null);
+				// 返回 false ，前置处理失败
 				return false;
 			}
 			// 标记位置
 			this.interceptorIndex = i;
 		}
+		// 返回 true ，前置处理成功
 		return true;
 	}
 

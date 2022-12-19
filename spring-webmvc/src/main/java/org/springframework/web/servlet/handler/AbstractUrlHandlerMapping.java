@@ -63,13 +63,27 @@ import org.springframework.web.util.pattern.PathPatternParser;
  */
 public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping implements MatchableHandlerMapping {
 
+	/**
+	 * - 根路径的处理器
+	 */
 	@Nullable
 	private Object rootHandler;
 
+	/**
+	 * - 使用后置的 / 匹配
+	 */
 	private boolean useTrailingSlashMatch = false;
 
+	/**
+	 * - 是否延迟加载处理器，默认关闭。
+	 */
 	private boolean lazyInitHandlers = false;
 
+	/**
+	 * - 路径和处理器的映射
+	 *
+	 * KEY：路径 {@link #lookupHandler(String, HttpServletRequest)}
+	 */
 	private final Map<String, Object> handlerMap = new LinkedHashMap<>();
 
 	private final Map<PathPattern, Object> pathPatternHandlerMap = new LinkedHashMap<>();
@@ -225,6 +239,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 		validateHandler(handler, request);
 		String pathWithinMapping = pattern.extractPathWithinPattern(path.pathWithinApplication()).value();
 		pathWithinMapping = UrlPathHelper.defaultInstance.removeSemicolonContent(pathWithinMapping);
+		// 创建处理器
 		return buildPathExposingHandler(handler, pattern.getPatternString(), pathWithinMapping, null);
 	}
 
@@ -345,10 +360,12 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	 */
 	protected Object buildPathExposingHandler(Object rawHandler, String bestMatchingPattern,
 			String pathWithinMapping, @Nullable Map<String, String> uriTemplateVariables) {
-
+		// <1> 创建 HandlerExecutionChain 对象
 		HandlerExecutionChain chain = new HandlerExecutionChain(rawHandler);
+		// <2.1> 添加 PathExposingHandlerInterceptor 拦截器，到 chain 中
 		chain.addInterceptor(new PathExposingHandlerInterceptor(bestMatchingPattern, pathWithinMapping));
 		if (!CollectionUtils.isEmpty(uriTemplateVariables)) {
+			// <2.2> 添加 UriTemplateVariablesHandlerInterceptor 拦截器，到 chain 中
 			chain.addInterceptor(new UriTemplateVariablesHandlerInterceptor(uriTemplateVariables));
 		}
 		return chain;
@@ -383,7 +400,9 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	@Nullable
 	public RequestMatchResult match(HttpServletRequest request, String pattern) {
 		Assert.state(getPatternParser() == null, "This HandlerMapping uses PathPatterns.");
+		// 获得请求路径
 		String lookupPath = UrlPathHelper.getResolvedLookupPath(request);
+		// 模式匹配，若匹配，则返回 RequestMatchResult 对象
 		if (getPathMatcher().match(pattern, lookupPath)) {
 			return new RequestMatchResult(pattern, lookupPath, getPathMatcher());
 		}

@@ -55,6 +55,7 @@ public interface LocaleResolver {
 
 	/**
 	 * Resolve the current locale via the given request.
+	 * 从请求中，解析出要使用的语言。例如，请求头的 "Accept-Language"
 	 * <p>Can return a default locale as fallback in any case.
 	 * @param request the request to resolve the locale for
 	 * @return the current locale (never {@code null})
@@ -63,6 +64,7 @@ public interface LocaleResolver {
 
 	/**
 	 * Set the current locale to the given one.
+	 * 设置请求所使用的语言
 	 * @param request the request to be used for locale modification
 	 * @param response the response to be used for locale modification
 	 * @param locale the new locale, or {@code null} to clear the locale

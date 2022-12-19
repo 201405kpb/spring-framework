@@ -70,6 +70,9 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	@Nullable
 	private final BeanExpressionContext expressionContext;
 
+	/**
+	 * MethodParameter 和 NamedValueInfo 的映射，作为缓存。
+	 */
 	private final Map<MethodParameter, NamedValueInfo> namedValueInfoCache = new ConcurrentHashMap<>(256);
 
 
@@ -148,10 +151,14 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	 * Obtain the named value for the given method parameter.
 	 */
 	private NamedValueInfo getNamedValueInfo(MethodParameter parameter) {
+		// <1> 从 namedValueInfoCache 缓存中，获得 NamedValueInfo 对象
 		NamedValueInfo namedValueInfo = this.namedValueInfoCache.get(parameter);
 		if (namedValueInfo == null) {
+			// <2> 获得不到，则创建 namedValueInfo 对象。这是一个抽象方法，子类来实现
 			namedValueInfo = createNamedValueInfo(parameter);
+			// <3> 更新 namedValueInfo 对象
 			namedValueInfo = updateNamedValueInfo(parameter, namedValueInfo);
+			// <4> 添加到 namedValueInfoCache 缓存中
 			this.namedValueInfoCache.put(parameter, namedValueInfo);
 		}
 		return namedValueInfo;
@@ -171,14 +178,17 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	private NamedValueInfo updateNamedValueInfo(MethodParameter parameter, NamedValueInfo info) {
 		String name = info.name;
 		if (info.name.isEmpty()) {
+			// 【注意！！！】如果 name 为空，则使用参数名
 			name = parameter.getParameterName();
 			if (name == null) {
 				throw new IllegalArgumentException(
-						"Name for argument of type [" + parameter.getNestedParameterType().getName() +
-						"] not specified, and parameter name information not found in class file either.");
+						"Name for argument type [" + parameter.getNestedParameterType().getName() +
+								"] not available, and parameter name information not found in class file either.");
 			}
 		}
+		// 获得默认值
 		String defaultValue = (ValueConstants.DEFAULT_NONE.equals(info.defaultValue) ? null : info.defaultValue);
+		// 创建 NamedValueInfo 对象
 		return new NamedValueInfo(name, info.required, defaultValue);
 	}
 
@@ -286,10 +296,19 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	 */
 	protected static class NamedValueInfo {
 
+		/**
+		 * 名字
+		 */
 		private final String name;
 
+		/**
+		 * 是否必填
+		 */
 		private final boolean required;
 
+		/**
+		 * 默认值
+		 */
 		@Nullable
 		private final String defaultValue;
 

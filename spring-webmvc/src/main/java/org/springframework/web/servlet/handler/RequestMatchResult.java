@@ -34,9 +34,15 @@ import org.springframework.web.util.pattern.PathPattern;
  */
 public class RequestMatchResult {
 
+	/**
+	 * - 匹配上的路径
+	 */
 	@Nullable
 	private final PathPattern pathPattern;
 
+	/**
+	 * - 被匹配的路径
+	 */
 	@Nullable
 	private final PathContainer lookupPathContainer;
 
@@ -47,6 +53,9 @@ public class RequestMatchResult {
 	@Nullable
 	private final String lookupPath;
 
+	/**
+	 * - 路径匹配器
+	 */
 	@Nullable
 	private final PathMatcher pathMatcher;
 

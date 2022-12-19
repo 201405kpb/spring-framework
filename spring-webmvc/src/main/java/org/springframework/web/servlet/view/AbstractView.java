@@ -309,8 +309,11 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 					(this.staticAttributes.isEmpty() ? "" : ", static attributes " + this.staticAttributes));
 		}
 
+		// 合并返回结果，将Model中的静态数据和请求中的动态数据进行合并
 		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
+		// 进行一些准备工作(修复IE中存在的BUG)
 		prepareResponse(request, response);
+		// 进行渲染
 		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
 	}
 
@@ -322,6 +325,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 			HttpServletRequest request, HttpServletResponse response) {
 
 		@SuppressWarnings("unchecked")
+		// 获取请求中一些参数属性
 		Map<String, Object> pathVars = (this.exposePathVariables ?
 				(Map<String, Object>) request.getAttribute(View.PATH_VARIABLES) : null);
 
