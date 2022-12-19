@@ -120,19 +120,29 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 
 
 	public InstantiationModelAwarePointcutAdvisorImpl(AspectJExpressionPointcut declaredPointcut,
-			Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
-			MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
+													  Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
+													  MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
 
+		// AspectJExpressionPointcut 对象
 		this.declaredPointcut = declaredPointcut;
+		// Advice 所在的 Class 对象
 		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
+		// Advice 对应的方法名称
 		this.methodName = aspectJAdviceMethod.getName();
+		// Advice 对应的方法参数类型
 		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
+		// Advice 对应的方法对象
 		this.aspectJAdviceMethod = aspectJAdviceMethod;
+		// Advisor 工厂，用于解析 @AspectJ 注解的 Bean 中的 Advisor
 		this.aspectJAdvisorFactory = aspectJAdvisorFactory;
+		// 元数据实例构建工厂
 		this.aspectInstanceFactory = aspectInstanceFactory;
+		// 定义的顺序
 		this.declarationOrder = declarationOrder;
+		// Advice 所在 Bean 的名称
 		this.aspectName = aspectName;
-		//切面是否配置了懒加载，一般没有
+
+		// 如果需要延迟初始化，则不立即初始化 Advice 对象
 		if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// Static part of the pointcut is a lazy type.
 			Pointcut preInstantiationPointcut = Pointcuts.union(
@@ -145,11 +155,18 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 					this.declaredPointcut, preInstantiationPointcut, aspectInstanceFactory);
 			this.lazy = true;
 		}
-		//这是大部分切面类的配置，即单例
+		// 否则，初始化 Advice 对象
 		else {
 			// A singleton aspect.
+			// AspectJExpressionPointcut 对象
 			this.pointcut = this.declaredPointcut;
 			this.lazy = false;
+			// 根据 AspectJExpressionPointcut 初始化一个 Advice 对象
+			// `@Around`：AspectJAroundAdvice，实现了 MethodInterceptor
+			// `@Before`：AspectJMethodBeforeAdvice
+			// `@After`：AspectJAfterAdvice，实现了 MethodInterceptor
+			// `@AfterReturning`： AspectJAfterAdvice
+			// `@AfterThrowing`：AspectJAfterThrowingAdvice，实现了 MethodInterceptor
 			this.instantiatedAdvice = instantiateAdvice(this.declaredPointcut);
 		}
 	}

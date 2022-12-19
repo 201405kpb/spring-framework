@@ -200,6 +200,7 @@ public final class MappedInterceptor implements HandlerInterceptor {
 			path = path.toString();
 		}
 		boolean isPathContainer = (path instanceof PathContainer);
+		// 先判断该路径是否在不匹配的路径中
 		if (!ObjectUtils.isEmpty(this.excludePatterns)) {
 			for (PatternAdapter adapter : this.excludePatterns) {
 				if (adapter.match(path, isPathContainer, this.pathMatcher)) {
@@ -207,9 +208,11 @@ public final class MappedInterceptor implements HandlerInterceptor {
 				}
 			}
 		}
+		// 如果匹配的路径为空，则都匹配通过
 		if (ObjectUtils.isEmpty(this.includePatterns)) {
 			return true;
 		}
+		// 判断路径是否在需要匹配的路径中
 		for (PatternAdapter adapter : this.includePatterns) {
 			if (adapter.match(path, isPathContainer, this.pathMatcher)) {
 				return true;
@@ -251,7 +254,6 @@ public final class MappedInterceptor implements HandlerInterceptor {
 
 
 	// HandlerInterceptor delegation
-
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {

@@ -40,17 +40,31 @@ import org.springframework.util.Assert;
  */
 public class BeanFactoryAspectJAdvisorsBuilder {
 
+	/**
+	 * 当前 IoC 容器，DefaultListableBeanFactory
+	 */
 	private final ListableBeanFactory beanFactory;
-
+	/**
+	 * Advisor 工厂，用于解析 @AspectJ 注解的 Bean 中的 Advisor
+	 */
 	private final AspectJAdvisorFactory advisorFactory;
-
+	/**
+	 * 用于缓存带有 @AspectJ 注解的 Bean 的名称
+	 */
 	@Nullable
 	private volatile List<String> aspectBeanNames;
-
+	/**
+	 * 缓存 @AspectJ 注解的单例 Bean 中解析出来的 Advisor
+	 * key：带有 @AspectJ 注解的 beanName
+	 * value：其内部解析出来的 Advisor 集合
+	 */
 	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
-
+	/**
+	 * 缓存 @AspectJ 注解的非单例 Bean 的元数据实例构建工厂
+	 * key：带有 @AspectJ 注解的 beanName（非单例）
+	 * value：对应的元数据工厂对象
+	 */
 	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
-
 
 	/**
 	 * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.

@@ -94,22 +94,25 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	protected DocumentBuilderFactory createDocumentBuilderFactory(int validationMode, boolean namespaceAware)
 			throws ParserConfigurationException {
 
+		// 创建 DocumentBuilderFactory
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(namespaceAware);
+		factory.setNamespaceAware(namespaceAware); // 设置命名空间支持
 
-		if (validationMode != XmlValidationModeDetector.VALIDATION_NONE) {
-			factory.setValidating(true);
+		if (validationMode != XmlValidationModeDetector.VALIDATION_NONE) { // 如果没有禁用校验模式
+			factory.setValidating(true); // 开启校验
+			// XSD 模式下，设置 factory 的属性
 			if (validationMode == XmlValidationModeDetector.VALIDATION_XSD) {
 				// Enforce namespace aware for XSD...
-				factory.setNamespaceAware(true);
+				factory.setNamespaceAware(true); // XSD 模式下，强制设置命名空间支持
 				try {
+					// 设置 SCHEMA_LANGUAGE_ATTRIBUTE
 					factory.setAttribute(SCHEMA_LANGUAGE_ATTRIBUTE, XSD_SCHEMA_LANGUAGE);
 				}
 				catch (IllegalArgumentException ex) {
 					ParserConfigurationException pcex = new ParserConfigurationException(
 							"Unable to validate using XSD: Your JAXP provider [" + factory +
-							"] does not support XML Schema. Are you running on Java 1.4 with Apache Crimson? " +
-							"Upgrade to Apache Xerces (or Java 1.5) for full XSD support.");
+									"] does not support XML Schema. Are you running on Java 1.4 with Apache Crimson? " +
+									"Upgrade to Apache Xerces (or Java 1.5) for full XSD support.");
 					pcex.initCause(ex);
 					throw pcex;
 				}
@@ -118,7 +121,6 @@ public class DefaultDocumentLoader implements DocumentLoader {
 
 		return factory;
 	}
-
 	/**
 	 * Create a JAXP DocumentBuilder that this bean definition reader
 	 * will use for parsing XML documents. Can be overridden in subclasses,
@@ -131,14 +133,17 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	 * @throws ParserConfigurationException if thrown by JAXP methods
 	 */
 	protected DocumentBuilder createDocumentBuilder(DocumentBuilderFactory factory,
-			@Nullable EntityResolver entityResolver, @Nullable ErrorHandler errorHandler)
+													@Nullable EntityResolver entityResolver, @Nullable ErrorHandler errorHandler)
 			throws ParserConfigurationException {
 
+		// 创建 DocumentBuilder 对象
 		DocumentBuilder docBuilder = factory.newDocumentBuilder();
 		if (entityResolver != null) {
+			// 设置 EntityResolver 属性
 			docBuilder.setEntityResolver(entityResolver);
 		}
 		if (errorHandler != null) {
+			// 设置 ErrorHandler 属性
 			docBuilder.setErrorHandler(errorHandler);
 		}
 		return docBuilder;
