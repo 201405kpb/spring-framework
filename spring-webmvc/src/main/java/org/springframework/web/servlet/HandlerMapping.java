@@ -156,6 +156,9 @@ public interface HandlerMapping {
 	/**
 	 * Return a handler and any interceptors for this request. The choice may be made
 	 * on request URL, session state, or any factor the implementing class chooses.
+	 *
+	 * 获得请求对应的处理器和连接器链
+	 *
 	 * <p>The returned HandlerExecutionChain contains a handler Object, rather than
 	 * even a tag interface, so that handlers are not constrained in any way.
 	 * For example, a HandlerAdapter could be written to allow another framework's

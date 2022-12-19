@@ -81,11 +81,14 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 
 	@Nullable
 	private HandlerMethodReturnValueHandler selectHandler(@Nullable Object value, MethodParameter returnType) {
+		// 判断是否为异步返回值
 		boolean isAsyncValue = isAsyncReturnValue(value, returnType);
+		// 遍历 HandlerMethodReturnValueHandler 数组，逐个判断是否支持
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
 			if (isAsyncValue && !(handler instanceof AsyncHandlerMethodReturnValueHandler)) {
 				continue;
 			}
+			// 如果支持，则返回
 			if (handler.supportsReturnType(returnType)) {
 				return handler;
 			}

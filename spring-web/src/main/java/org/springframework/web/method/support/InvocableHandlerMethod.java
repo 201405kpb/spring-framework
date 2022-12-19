@@ -181,6 +181,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				// 执行解析。解析成功后，则进入下一个参数的解析
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {
@@ -202,11 +203,13 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	@Nullable
 	protected Object doInvoke(Object... args) throws Exception {
+		// 设置方法为可访问
 		Method method = getBridgedMethod();
 		try {
 			if (KotlinDetector.isSuspendingFunction(method)) {
 				return invokeSuspendingFunction(method, getBean(), args);
 			}
+			//执行调用
 			return method.invoke(getBean(), args);
 		}
 		catch (IllegalArgumentException ex) {

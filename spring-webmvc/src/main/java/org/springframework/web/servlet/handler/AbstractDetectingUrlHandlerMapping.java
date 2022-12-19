@@ -33,6 +33,9 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
+	/**
+	 * - 是否只扫描可访问的 Handler
+	 */
 	private boolean detectHandlersInAncestorContexts = false;
 
 
@@ -56,6 +59,7 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	@Override
 	public void initApplicationContext() throws ApplicationContextException {
 		super.initApplicationContext();
+		// 自动探测处理器
 		detectHandlers();
 	}
 

@@ -440,16 +440,19 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	protected void writeInternal(Object object, @Nullable Type type, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 
+		// 获取contentType
 		MediaType contentType = outputMessage.getHeaders().getContentType();
+		// 获取编码方式，默认UTF8
 		JsonEncoding encoding = getJsonEncoding(contentType);
 
 		Class<?> clazz = (object instanceof MappingJacksonValue mappingJacksonValue ?
 				mappingJacksonValue.getValue().getClass() : object.getClass());
 		ObjectMapper objectMapper = selectObjectMapper(clazz, contentType);
 		Assert.state(objectMapper != null, () -> "No ObjectMapper for " + clazz.getName());
-
 		OutputStream outputStream = StreamUtils.nonClosing(outputMessage.getBody());
+		// 构造用于生成JSON内容的JSON生成器对象，指定输出流和编码
 		try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream, encoding)) {
+			// 设置前缀，默认没有
 			writePrefix(generator, object);
 
 			Object value = object;
@@ -466,6 +469,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 				javaType = getJavaType(type, null);
 			}
 
+			// 创建ObjectWriter对象
 			ObjectWriter objectWriter = (serializationView != null ?
 					objectMapper.writerWithView(serializationView) : objectMapper.writer());
 			if (filters != null) {
@@ -480,6 +484,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 				objectWriter = objectWriter.with(this.ssePrettyPrinter);
 			}
 			objectWriter = customizeWriter(objectWriter, javaType, contentType);
+			// 重点!!!将返回结果序列化为JSON输出
 			objectWriter.writeValue(generator, value);
 
 			writeSuffix(generator, object);
@@ -492,6 +497,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 			throw new HttpMessageNotWritableException("Could not write JSON: " + ex.getOriginalMessage(), ex);
 		}
 	}
+
 
 	/**
 	 * Subclasses can use this method to customize {@link ObjectWriter} used

@@ -235,7 +235,7 @@ public abstract class WebApplicationContextUtils {
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME)) {
 			Map<String, String> parameterMap = new HashMap<>();
 			if (servletContext != null) {
-				// 获取servletContextd的初始化参数
+				// 获取servletContext的初始化参数
 				Enumeration<?> paramNameEnum = servletContext.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
 					String paramName = (String) paramNameEnum.nextElement();

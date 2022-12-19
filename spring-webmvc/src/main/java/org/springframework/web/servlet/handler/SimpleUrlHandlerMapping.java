@@ -158,6 +158,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 				if (handler instanceof String) {
 					handler = ((String) handler).trim();
 				}
+				// 【核心代码】注册处理器
 				registerHandler(url, handler);
 			});
 			logMappings();
