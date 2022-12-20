@@ -499,9 +499,11 @@ abstract class AnnotationsScanner {
 
 	static boolean hasPlainJavaAnnotationsOnly(@Nullable Object annotatedElement) {
 		if (annotatedElement instanceof Class<?> clazz) {
+			// 1.1 如果是类，则声明它不能是java包下的，或者Ordered.class
 			return hasPlainJavaAnnotationsOnly(clazz);
 		}
 		else if (annotatedElement instanceof Member member) {
+			// 1.2 如果是类成员，则声明它的类不能是java包下的，或者Ordered.class
 			return hasPlainJavaAnnotationsOnly(member.getDeclaringClass());
 		}
 		else {

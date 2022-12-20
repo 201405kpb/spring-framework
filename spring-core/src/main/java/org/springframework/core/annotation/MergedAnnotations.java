@@ -162,6 +162,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	/**
 	 * Determine if the specified annotation type is either directly present or
 	 * meta-present.
+	 * 确定指定的注释类型是否存在
 	 * <p>Equivalent to calling {@code get(annotationType).isPresent()}.
 	 * @param annotationType the fully qualified class name of the annotation type
 	 * to check

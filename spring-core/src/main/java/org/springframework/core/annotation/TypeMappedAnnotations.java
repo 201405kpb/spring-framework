@@ -259,7 +259,7 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	static MergedAnnotations from(AnnotatedElement element, SearchStrategy searchStrategy,
 			Predicate<Class<?>> searchEnclosingClass, RepeatableContainers repeatableContainers,
 			AnnotationFilter annotationFilter) {
-		// 该元素若符合下述任一情况，则直接返回空注解：
+		// 该元素若符合下述任何情况，则直接返回空注解：
 		// a.被处理的元素属于java包、被java包中的对象声明，或者就是Ordered.class
 		// b.只查找元素直接声明的注解，但是元素本身没有声明任何注解
 		// c.查找元素的层级结构，但是元素本身没有任何层级结构

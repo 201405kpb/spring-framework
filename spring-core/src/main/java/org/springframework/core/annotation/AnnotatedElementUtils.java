@@ -608,12 +608,10 @@ public abstract class AnnotatedElementUtils {
 	@Nullable
 	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			Class<? extends Annotation> annotationType, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
-		// 1、下述任意情况下直接获取元素上声明的注解：
-		// a.查找的注解属于java、javax或者org.springframework.lang包
-		// b.被处理的元素属于java包，或被java包中的对象声明，或者就是Ordered.class
+		// 将元素上的全部注解合成MergedAnnotation
 		MergedAnnotation<?> mergedAnnotation = findAnnotations(element)
 				.get(annotationType, null, MergedAnnotationSelectors.firstDirectlyDeclared());
-		// 2、将元素上的全部注解合成MergedAnnotation
+
 		return getAnnotationAttributes(mergedAnnotation, classValuesAsString, nestedAnnotationsAsMap);
 	}
 
