@@ -106,23 +106,27 @@ final class AnnotationTypeMapping {
 	AnnotationTypeMapping(@Nullable AnnotationTypeMapping source,
 			Class<? extends Annotation> annotationType, @Nullable Annotation annotation) {
 
-		this.source = source;
-		this.root = (source != null ? source.getRoot() : this);
-		this.distance = (source == null ? 0 : source.getDistance() + 1);
-		this.annotationType = annotationType;
+		this.source = source; // 声明当前元注解的源注解映射对象
+		this.root = (source != null ? source.getRoot() : this); // 当前元注解所在树根节点对应的元注解映射对象
+		this.distance = (source == null ? 0 : source.getDistance() + 1); // 与树根节点对应的元注解映射对象的距离
+		this.annotationType = annotationType; // 当前元注解的类型
 		this.metaTypes = merge(
 				source != null ? source.getMetaTypes() : null,
-				annotationType);
-		this.annotation = annotation;
-		this.attributes = AttributeMethods.forAnnotationType(annotationType);
+				annotationType); // 记录全部子元注解类型
+		this.annotation = annotation;  // 记录对原始元注解的引用
+		this.attributes = AttributeMethods.forAnnotationType(annotationType);  // 将当前元注解的属性解析为AttributeMethods
+		// 属性别名与相关的值缓存
 		this.mirrorSets = new MirrorSets();
 		this.aliasMappings = filledIntArray(this.attributes.size());
 		this.conventionMappings = filledIntArray(this.attributes.size());
 		this.annotationValueMappings = filledIntArray(this.attributes.size());
 		this.annotationValueSource = new AnnotationTypeMapping[this.attributes.size()];
 		this.aliasedBy = resolveAliasedForTargets();
+		// 初始化别名属性，为所有存在别名的属性建立MirrorSet
 		processAliases();
+		// 为当前注解内互为并名的属性建立属性映射
 		addConventionMappings();
+		// 为跨注解互为别名的属性建立属性映射
 		addConventionAnnotationValues();
 		this.synthesizable = computeSynthesizableFlag();
 	}
@@ -141,9 +145,11 @@ final class AnnotationTypeMapping {
 	private Map<Method, List<Method>> resolveAliasedForTargets() {
 		Map<Method, List<Method>> aliasedBy = new HashMap<>();
 		for (int i = 0; i < this.attributes.size(); i++) {
+			// 遍历当前注解的属性方法，并获取其中的带有@AliasFor的方法
 			Method attribute = this.attributes.get(i);
 			AliasFor aliasFor = AnnotationsScanner.getDeclaredAnnotation(attribute, AliasFor.class);
 			if (aliasFor != null) {
+				// 获取别名指定的注解类中的方法，并建立别名属性 -> [属性1]的映射集合
 				Method target = resolveAliasTarget(attribute, aliasFor);
 				aliasedBy.computeIfAbsent(target, key -> new ArrayList<>()).add(attribute);
 			}
@@ -164,9 +170,11 @@ final class AnnotationTypeMapping {
 					aliasFor.value()));
 		}
 		Class<? extends Annotation> targetAnnotation = aliasFor.annotation();
+		// 1、若Annotation指定的是Annotation，则认为目标就是当前注解类
 		if (targetAnnotation == Annotation.class) {
 			targetAnnotation = this.annotationType;
 		}
+		// 2、获取aliasFrom#attribute，若为空则再获取aliasFrom#value
 		String targetAttributeName = aliasFor.attribute();
 		if (!StringUtils.hasLength(targetAttributeName)) {
 			targetAttributeName = aliasFor.value();
@@ -174,8 +182,10 @@ final class AnnotationTypeMapping {
 		if (!StringUtils.hasLength(targetAttributeName)) {
 			targetAttributeName = attribute.getName();
 		}
+		// 3、从指定类中获得别名指定指定的注解属性对应的方法
 		Method target = AttributeMethods.forAnnotationType(targetAnnotation).get(targetAttributeName);
 		if (target == null) {
+			// a.校验是否能找到别名方法
 			if (targetAnnotation == this.annotationType) {
 				throw new AnnotationConfigurationException(String.format(
 						"@AliasFor declaration on %s declares an alias for '%s' which is not present.",
@@ -186,18 +196,21 @@ final class AnnotationTypeMapping {
 					StringUtils.capitalize(AttributeMethods.describe(attribute)),
 					AttributeMethods.describe(targetAnnotation, targetAttributeName)));
 		}
+		// b.校验别名与原属性对应的方法是否不为一个方法
 		if (target.equals(attribute)) {
 			throw new AnnotationConfigurationException(String.format(
 					"@AliasFor declaration on %s points to itself. " +
 					"Specify 'annotation' to point to a same-named attribute on a meta-annotation.",
 					AttributeMethods.describe(attribute)));
 		}
+		// c.校验别名与原属性对应的方法返回值是否一致
 		if (!isCompatibleReturnType(attribute.getReturnType(), target.getReturnType())) {
 			throw new AnnotationConfigurationException(String.format(
 					"Misconfigured aliases: %s and %s must declare the same return type.",
 					AttributeMethods.describe(attribute),
 					AttributeMethods.describe(target)));
 		}
+		// d.若有必要，则再校验声明别名方法的注解是@AliasFor指定的注解类型
 		if (isAliasPair(target) && checkAliasPair) {
 			AliasFor targetAliasFor = target.getAnnotation(AliasFor.class);
 			if (targetAliasFor != null) {
@@ -223,11 +236,14 @@ final class AnnotationTypeMapping {
 
 	private void processAliases() {
 		List<Method> aliases = new ArrayList<>();
+		// 遍历当前注解中的属性，处理属性与其相关的别名
 		for (int i = 0; i < this.attributes.size(); i++) {
-			aliases.clear();
+			aliases.clear();  // 复用集合避免重复创建
 			aliases.add(this.attributes.get(i));
+			// 收集注解
 			collectAliases(aliases);
 			if (aliases.size() > 1) {
+				// 处理注解
 				processAliases(i, aliases);
 			}
 		}
@@ -238,19 +254,27 @@ final class AnnotationTypeMapping {
 		while (mapping != null) {
 			int size = aliases.size();
 			for (int j = 0; j < size; j++) {
+				// 获取以该属性作为别名的子类属性
 				List<Method> additional = mapping.aliasedBy.get(aliases.get(j));
 				if (additional != null) {
 					aliases.addAll(additional);
 				}
 			}
+			// 继续向声明当前元注解的子注解递归
 			mapping = mapping.source;
 		}
 	}
 
 	private void processAliases(int attributeIndex, List<Method> aliases) {
+		// 确认别名链上，是否有别名字段来自于root
 		int rootAttributeIndex = getFirstRootAttributeIndex(aliases);
 		AnnotationTypeMapping mapping = this;
+		// 从当前注解向root递归
 		while (mapping != null) {
+			// 若有当前正在处理的注解中：
+			// 1.有别名字段来自于root；
+			// 2.别名链中有一个别名来自于该注解；
+			// 则在当前处理的注解的aliasMappings上，记录这个来自于root的别名属性，表示它存在一个来自root的别名
 			if (rootAttributeIndex != -1 && mapping != this.root) {
 				for (int i = 0; i < mapping.attributes.size(); i++) {
 					if (aliases.contains(mapping.attributes.get(i))) {
@@ -258,14 +282,22 @@ final class AnnotationTypeMapping {
 					}
 				}
 			}
+			// 构建MirrorSet，解析别名链上的属性构建映射关系
+			mapping.mirrorSets.updateFrom(aliases);
 			mapping.mirrorSets.updateFrom(aliases);
 			mapping.claimedAliases.addAll(aliases);
 			if (mapping.annotation != null) {
+				// 根据MirrorSet，从别名链中选择出唯一生效的属性作为它们的最终实际属性
 				int[] resolvedMirrors = mapping.mirrorSets.resolve(null,
 						mapping.annotation, AnnotationUtils::invokeAnnotationMethod);
+				// 遍历当前正在处理的注解的全部属性
 				for (int i = 0; i < mapping.attributes.size(); i++) {
+					// 若该属性在别名链中存在
 					if (aliases.contains(mapping.attributes.get(i))) {
+						// 在分别记录该属性的一些信息：
+						// 1.记录该属性应当从哪个注解中取值
 						this.annotationValueMappings[attributeIndex] = resolvedMirrors[i];
+						// 2.记录该属性应当从那个注解的那个属性中取值
 						this.annotationValueSource[attributeIndex] = mapping;
 					}
 				}
@@ -292,12 +324,14 @@ final class AnnotationTypeMapping {
 		int[] mappings = this.conventionMappings;
 		Set<String> conventionMappedAttributes = new HashSet<>();
 		for (int i = 0; i < mappings.length; i++) {
+			// 遍历当前注解的属性，判断是否在根注解存在
 			String name = this.attributes.get(i).getName();
 			int mapped = rootAttributes.indexOf(name);
 			if (!MergedAnnotation.VALUE.equals(name) && mapped != -1 && !isExplicitAttributeOverride(name)) {
 				conventionMappedAttributes.add(name);
 				mappings[i] = mapped;
 				MirrorSet mirrors = getMirrorSets().getAssigned(i);
+				// 若该属性还有别名，则让该属性和全部别名属性都从根注解取值
 				if (mirrors != null) {
 					for (int j = 0; j < mirrors.size(); j++) {
 						mappings[mirrors.getAttributeIndex(j)] = mapped;
@@ -348,11 +382,16 @@ final class AnnotationTypeMapping {
 	}
 
 	private void addConventionAnnotationValues() {
+		// 遍历当前注解的全部属性
 		for (int i = 0; i < this.attributes.size(); i++) {
 			Method attribute = this.attributes.get(i);
 			boolean isValueAttribute = MergedAnnotation.VALUE.equals(attribute.getName());
 			AnnotationTypeMapping mapping = this;
+			// 从当前注解向非根注解的子注解递归
 			while (mapping != null && mapping.distance > 0) {
+				// 若当前方法在子注解中存在，则将annotationValueMappings和annotationValueSource替换为该子注解和子注解的属性
+				// 由于替换前会比较annotationValueSource中注解距离根注解的距离，
+				// 所以之前设置的根注解属性不受影响，因为跟注解距离为0，优先级总是最高的
 				int mapped = mapping.getAttributes().indexOf(attribute.getName());
 				if (mapped != -1 && isBetterConventionAnnotationValue(i, isValueAttribute, mapping)) {
 					this.annotationValueMappings[i] = mapped;
@@ -683,25 +722,27 @@ final class AnnotationTypeMapping {
 			MirrorSet mirrorSet = null;
 			int size = 0;
 			int last = -1;
+			// 遍历当前注解的所有属性
 			for (int i = 0; i < attributes.size(); i++) {
 				Method attribute = attributes.get(i);
+				// 若有属性在传入的这一组别名中出现
 				if (aliases.contains(attribute)) {
-					size++;
-					if (size > 1) {
+					size++; // 计数+1
+					if (size > 1) {  // 仅有一个别名的时候不创建MirrorSet实例
 						if (mirrorSet == null) {
 							mirrorSet = new MirrorSet();
-							this.assigned[last] = mirrorSet;
+							this.assigned[last] = mirrorSet; // 当发现第二次在别名组中出现的属性时，为上一次发现的别名属性建立MirrorSet实例
 						}
 						this.assigned[i] = mirrorSet;
 					}
-					last = i;
+					last = i; // 记录最后出现那个别名数组下标
 				}
 			}
 			if (mirrorSet != null) {
 				mirrorSet.update();
 				Set<MirrorSet> unique = new LinkedHashSet<>(Arrays.asList(this.assigned));
 				unique.remove(null);
-				this.mirrorSets = unique.toArray(EMPTY_MIRROR_SETS);
+				this.mirrorSets = unique.toArray(EMPTY_MIRROR_SETS); // 更新mirrorSets数组
 			}
 		}
 
@@ -721,11 +762,14 @@ final class AnnotationTypeMapping {
 		int[] resolve(@Nullable Object source, @Nullable Object annotation, ValueExtractor valueExtractor) {
 			int[] result = new int[attributes.size()];
 			for (int i = 0; i < result.length; i++) {
+				// 默认情况下，每个属性都调用他本身
 				result[i] = i;
 			}
 			for (int i = 0; i < size(); i++) {
 				MirrorSet mirrorSet = get(i);
+				// 如果有MirrorSet，则调用resolve方法获得这一组关联属性中的唯一有效属性的下标
 				int resolved = mirrorSet.resolve(source, annotation, valueExtractor);
+				// 将该下标强制覆盖全部关联的属性
 				for (int j = 0; j < mirrorSet.size; j++) {
 					result[mirrorSet.indexes[j]] = resolved;
 				}
@@ -756,18 +800,24 @@ final class AnnotationTypeMapping {
 
 			<A> int resolve(@Nullable Object source, @Nullable A annotation, ValueExtractor valueExtractor) {
 				int result = -1;
-				Object lastValue = null;
+				Object lastValue = null;  // 最近一个的有效属性值
+				// 遍历与当前注解属性属性互为别名的全部属性
 				for (int i = 0; i < this.size; i++) {
+					// 获取属性值
 					Method attribute = attributes.get(this.indexes[i]);
 					Object value = valueExtractor.extract(attribute, annotation);
 					boolean isDefaultValue = (value == null ||
 							isEquivalentToDefaultValue(attribute, value, valueExtractor));
+					// 如果属性值是默认值，或者与最后有效值相同，则记录该属性下标后返回
+					// 以此类推，如果一组互为别名的属性全部都是默认值，则前面的属性——即离根注解最近的——的默认值会作为最终有效值
 					if (isDefaultValue || ObjectUtils.nullSafeEquals(lastValue, value)) {
 						if (result == -1) {
 							result = this.indexes[i];
 						}
 						continue;
 					}
+					// 如果属性值不是默认值，并且与最近一个的有效属性值不同, 则抛出异常
+					// 这里实际要求一组互为别名的属性中，只允许一个属性的值是非默认值
 					if (lastValue != null && !ObjectUtils.nullSafeEquals(lastValue, value)) {
 						String on = (source != null) ? " declared on " + source : "";
 						throw new AnnotationConfigurationException(String.format(

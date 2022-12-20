@@ -115,15 +115,23 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	private TypeMappedAnnotation(AnnotationTypeMapping mapping, @Nullable ClassLoader classLoader,
 			@Nullable Object source, @Nullable Object rootAttributes, ValueExtractor valueExtractor,
 			int aggregateIndex, @Nullable int[] resolvedRootMirrors) {
-
+		// 当前合并注解对应的AnnotationTypeMapping
 		this.mapping = mapping;
+		// 类加载器
 		this.classLoader = classLoader;
+		// 当前注解的数据源
 		this.source = source;
+		// AnnotationTypeMapping对应的root注解
 		this.rootAttributes = rootAttributes;
+		// 通过属性方法对象获得属性值的方法，一般是ReflectionUtils::invokeMethod
 		this.valueExtractor = valueExtractor;
+		// 该注解对应的聚合索引
 		this.aggregateIndex = aggregateIndex;
+		// 是否使用映射过的属性值
 		this.useMergedValues = true;
+		// 属性过滤器
 		this.attributeFilter = null;
+		// 通过MirrorSets解析得到的确认属性
 		this.resolvedRootMirrors = (resolvedRootMirrors != null ? resolvedRootMirrors :
 				mapping.getRoot().getMirrorSets().resolve(source, rootAttributes, this.valueExtractor));
 		this.resolvedMirrors = (getDistance() == 0 ? this.resolvedRootMirrors :
@@ -321,6 +329,10 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	@Override
 	@SuppressWarnings("unchecked")
 	protected A createSynthesizedAnnotation() {
+		// 满足下述条件时，直接返回根注解：
+		// 1.若当前注解的属性与根注解相同
+		// 2.且该合成注解还没有被合成过
+		// 3.该注解存在映射后的属性
 		// Check root annotation
 		if (isTargetAnnotation(this.rootAttributes) && !isSynthesizable((Annotation) this.rootAttributes)) {
 			return (A) this.rootAttributes;
@@ -329,6 +341,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 		else if (isTargetAnnotation(this.mapping.getAnnotation()) && !isSynthesizable(this.mapping.getAnnotation())) {
 			return (A) this.mapping.getAnnotation();
 		}
+		// 使用动态代理创建一个代理注解
 		return SynthesizedMergedAnnotationInvocationHandler.createProxy(this, getType());
 	}
 
@@ -367,7 +380,9 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	@Override
 	@Nullable
 	protected <T> T getAttributeValue(String attributeName, Class<T> type) {
+		// 获取方法在AttributeMethods中的下标
 		int attributeIndex = getAttributeIndex(attributeName, false);
+		// 若方法存在，则通过下标调用
 		return (attributeIndex != -1 ? getValue(attributeIndex, type) : null);
 	}
 
@@ -382,27 +397,36 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 
 	@Nullable
 	private <T> T getValue(int attributeIndex, Class<T> type) {
+		// 获取属性对应的方法
 		Method attribute = this.mapping.getAttributes().get(attributeIndex);
+		// 获取属性值，若有必要则进行属性映射
 		Object value = getValue(attributeIndex, true, false);
 		if (value == null) {
+			// 如果没有值则尝试获得默认值
 			value = attribute.getDefaultValue();
 		}
+		// 进行类型适配
 		return adapt(attribute, value, type);
 	}
 
 	@Nullable
 	private Object getValue(int attributeIndex, boolean useConventionMapping, boolean forMirrorResolution) {
 		AnnotationTypeMapping mapping = this.mapping;
+		// 是否要获取合并后的属性
 		if (this.useMergedValues) {
+			// 如果有必要，属性是否会被来自根注解的属性覆盖
 			int mappedIndex = this.mapping.getAliasMapping(attributeIndex);
+			// 如果不会被来自根注解的属性覆盖，并且允许使用子注解属性覆盖该属性
 			if (mappedIndex == -1 && useConventionMapping) {
 				mappedIndex = this.mapping.getConventionMapping(attributeIndex);
 			}
+			// 如果上述两情况只要有任意一点符合，则令attributeIndex变为根/子注解中覆盖属性的下标
 			if (mappedIndex != -1) {
 				mapping = mapping.getRoot();
 				attributeIndex = mappedIndex;
 			}
 		}
+		// 若有必要，且当前属性下标对应的属性在注解内还存在别名属性，则通过MirrorSets获得唯一确定的属性的下标
 		if (!forMirrorResolution) {
 			attributeIndex =
 					(mapping.getDistance() != 0 ? this.resolvedMirrors : this.resolvedRootMirrors)[attributeIndex];
@@ -410,11 +434,13 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 		if (attributeIndex == -1) {
 			return null;
 		}
+		// 如果自己就是根节点，则从自己身上获取
 		if (mapping.getDistance() == 0) {
 			Method attribute = mapping.getAttributes().get(attributeIndex);
 			Object result = this.valueExtractor.extract(attribute, this.rootAttributes);
 			return (result != null ? result : attribute.getDefaultValue());
 		}
+		// 如果自己不是根节点，则从元注解上获取
 		return getValueFromMetaAnnotation(attributeIndex, forMirrorResolution);
 	}
 

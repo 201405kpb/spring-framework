@@ -62,6 +62,7 @@ public interface MergedAnnotation<A extends Annotation> {
 
 	/**
 	 * The attribute name for annotations with a single element.
+	 * 具有单个元素的注释的属性名称。
 	 */
 	String VALUE = "value";
 

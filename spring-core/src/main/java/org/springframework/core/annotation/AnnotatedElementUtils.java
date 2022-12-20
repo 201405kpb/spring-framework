@@ -206,6 +206,8 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if an annotation of the specified {@code annotationType}
 	 * is <em>present</em> on the supplied {@link AnnotatedElement} or
 	 * within the annotation hierarchy <em>above</em> the specified element.
+	 * 确定在提供的AnnotatedElement上或指定元素上方的注解层次结构中是否存在指定annotationType的注解。
+	 * 如果此方法返回true，则getMergedAnnotationAttributes方法将返回非null值。
 	 * <p>If this method returns {@code true}, then {@link #getMergedAnnotationAttributes}
 	 * will return a non-null value.
 	 * <p>This method follows <em>get semantics</em> as described in the
@@ -230,6 +232,8 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if an annotation of the specified {@code annotationName} is
 	 * <em>present</em> on the supplied {@link AnnotatedElement} or within the
 	 * annotation hierarchy <em>above</em> the specified element.
+	 * 确定在提供的AnnotatedElement上或指定元素上方的注解层次结构中是否存在指定annotationType的注解。
+	 * 如果此方法返回true，则getMergedAnnotationAttributes方法将返回非null值。
 	 * <p>If this method returns {@code true}, then {@link #getMergedAnnotationAttributes}
 	 * will return a non-null value.
 	 * <p>This method follows <em>get semantics</em> as described in the
@@ -334,6 +338,9 @@ public abstract class AnnotatedElementUtils {
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy, and synthesize
 	 * the result back into an annotation of the specified {@code annotationType}.
+	 * 在提供的元素上方的注解层次结构中获取指定注解类型的第一个注解，将注解的属性与注解层次结构的较低级别中的注解的匹配属性合并，并将结果合成回指定注解类型的注解。
+	 * 完全支持@AliasFor语义，包括单个注解和注解层次结构。	 * 此方法委托给getMergedAnnotationAttributes（AnnotatedElement，Class）
+	 * 和AnnotationUtils.synthesizeAnnotation（Map，Class，AnnotatedElement）
 	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
 	 * within a single annotation and within the annotation hierarchy.
 	 * @param element the annotated element
@@ -537,6 +544,8 @@ public abstract class AnnotatedElementUtils {
 	 * Determine if an annotation of the specified {@code annotationType}
 	 * is <em>available</em> on the supplied {@link AnnotatedElement} or
 	 * within the annotation hierarchy <em>above</em> the specified element.
+	 * 确定指定的annotationType的注解是否在提供的AnnotatedElement上或在指定元素上方的注解层次结构中可用。
+	 * 如果此方法返回true，则findMergedAnnotationAttributes方法将返回非null值。
 	 * <p>If this method returns {@code true}, then {@link #findMergedAnnotationAttributes}
 	 * will return a non-null value.
 	 * <p>This method follows <em>find semantics</em> as described in the
@@ -587,9 +596,12 @@ public abstract class AnnotatedElementUtils {
 	@Nullable
 	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			Class<? extends Annotation> annotationType, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
-
+		// 1、下述任意情况下直接获取元素上声明的注解：
+		// a.查找的注解属于java、javax或者org.springframework.lang包
+		// b.被处理的元素属于java包，或被java包中的对象声明，或者就是Ordered.class
 		MergedAnnotation<?> mergedAnnotation = findAnnotations(element)
 				.get(annotationType, null, MergedAnnotationSelectors.firstDirectlyDeclared());
+		// 2、将元素上的全部注解合成MergedAnnotation
 		return getAnnotationAttributes(mergedAnnotation, classValuesAsString, nestedAnnotationsAsMap);
 	}
 
@@ -635,6 +647,8 @@ public abstract class AnnotatedElementUtils {
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy, and synthesize
 	 * the result back into an annotation of the specified {@code annotationType}.
+	 * 在提供的元素上方的注解层次结构中查找指定注解类型的第一个注解，将注解的属性与注解层次结构的较低级别中的注解的匹配属性合并，
+	 * 并将结果合成回指定注解类型的注解。完全支持@AliasFor语义，包括单个注解和注解层次结构。
 	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
 	 * within a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the

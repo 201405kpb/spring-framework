@@ -258,10 +258,15 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	static MergedAnnotations from(AnnotatedElement element, SearchStrategy searchStrategy,
 			Predicate<Class<?>> searchEnclosingClass, RepeatableContainers repeatableContainers,
 			AnnotationFilter annotationFilter) {
-
+		// 该元素若符合下述任一情况，则直接返回空注解：
+		// a.被处理的元素属于java包、被java包中的对象声明，或者就是Ordered.class
+		// b.只查找元素直接声明的注解，但是元素本身没有声明任何注解
+		// c.查找元素的层级结构，但是元素本身没有任何层级结构
+		// d.元素是桥接方法
 		if (AnnotationsScanner.isKnownEmpty(element, searchStrategy, searchEnclosingClass)) {
 			return NONE;
 		}
+		// 返回一个具体实现类实例
 		return new TypeMappedAnnotations(element, searchStrategy, searchEnclosingClass, repeatableContainers, annotationFilter);
 	}
 
@@ -423,11 +428,13 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 			if (repeatedAnnotations != null) {
 				return doWithAnnotations(type, aggregateIndex, source, repeatedAnnotations);
 			}
+			// 获取这个注解的元注解，并将自己及这些元注解都转为类型映射AnnotationTypeMappings
 			AnnotationTypeMappings mappings = AnnotationTypeMappings.forAnnotationType(
 					annotation.annotationType(), repeatableContainers, annotationFilter);
 			for (int i = 0; i < mappings.size(); i++) {
 				AnnotationTypeMapping mapping = mappings.get(i);
 				if (isMappingForType(mapping, annotationFilter, this.requiredType)) {
+					// 根据符合条件的类型映射对象，创建聚合注解
 					MergedAnnotation<A> candidate = TypeMappedAnnotation.createIfPossible(
 							mapping, source, annotation, aggregateIndex, IntrospectionFailureLogger.INFO);
 					if (candidate != null && (this.predicate == null || this.predicate.test(candidate))) {

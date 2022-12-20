@@ -62,33 +62,40 @@ final class AnnotationTypeMappings {
 	private AnnotationTypeMappings(RepeatableContainers repeatableContainers,
 			AnnotationFilter filter, Class<? extends Annotation> annotationType) {
 
-		this.repeatableContainers = repeatableContainers;
-		this.filter = filter;
-		this.mappings = new ArrayList<>();
-		addAllMappings(annotationType);
-		this.mappings.forEach(AnnotationTypeMapping::afterAllMappingsSet);
+		this.repeatableContainers = repeatableContainers; // 可重复注解的容器
+		this.filter = filter; // 过滤条件
+		this.mappings = new ArrayList<>(); // 映射关系
+		addAllMappings(annotationType); // 解析当前类以及其元注解的层次结构中涉及到的全部映射关系
+		this.mappings.forEach(AnnotationTypeMapping::afterAllMappingsSet); // 映射关系解析完后对别名的一些校验
 	}
 
 
 	private void addAllMappings(Class<? extends Annotation> annotationType) {
+		// 广度优先遍历注解和元注解
 		Deque<AnnotationTypeMapping> queue = new ArrayDeque<>();
+		// 添加待解析的元注解
 		addIfPossible(queue, null, annotationType, null);
 		while (!queue.isEmpty()) {
 			AnnotationTypeMapping mapping = queue.removeFirst();
 			this.mappings.add(mapping);
+			// 解析的元注解
 			addMetaAnnotationsToQueue(queue, mapping);
 		}
 	}
 
 	private void addMetaAnnotationsToQueue(Deque<AnnotationTypeMapping> queue, AnnotationTypeMapping source) {
+		// 获取当前注解上直接声明的元注解
 		Annotation[] metaAnnotations = AnnotationsScanner.getDeclaredAnnotations(source.getAnnotationType(), false);
 		for (Annotation metaAnnotation : metaAnnotations) {
+			// 若已经解析过了则跳过，避免“循环引用”
 			if (!isMappable(source, metaAnnotation)) {
 				continue;
 			}
+			// 若当前正在解析的注解是容器注解，则将内部的可重复注解取出解析
 			Annotation[] repeatedAnnotations = this.repeatableContainers.findRepeatedAnnotations(metaAnnotation);
 			if (repeatedAnnotations != null) {
 				for (Annotation repeatedAnnotation : repeatedAnnotations) {
+					//判断是否已经完成映射
 					if (!isMappable(source, repeatedAnnotation)) {
 						continue;
 					}
@@ -96,6 +103,7 @@ final class AnnotationTypeMappings {
 				}
 			}
 			else {
+				// 若当前正在解析的注解不是容器注解，则将直接解析
 				addIfPossible(queue, source, metaAnnotation);
 			}
 		}
@@ -109,6 +117,7 @@ final class AnnotationTypeMappings {
 			Class<? extends Annotation> annotationType, @Nullable Annotation ann) {
 
 		try {
+			// 将数据源、元注解类型和元注解实例封装为一个AnnotationTypeMapping，作为下一次处理的数据源
 			queue.addLast(new AnnotationTypeMapping(source, annotationType, ann));
 		}
 		catch (Exception ex) {
@@ -128,6 +137,8 @@ final class AnnotationTypeMappings {
 
 	private boolean isAlreadyMapped(AnnotationTypeMapping source, Annotation metaAnnotation) {
 		Class<? extends Annotation> annotationType = metaAnnotation.annotationType();
+		// 递归映射表，确定这个注解类型是否在映射表的树结构中存在
+		// 这个做法相当于在循环引用中去重
 		AnnotationTypeMapping mapping = source;
 		while (mapping != null) {
 			if (mapping.getAnnotationType() == annotationType) {
@@ -184,6 +195,7 @@ final class AnnotationTypeMappings {
 
 	/**
 	 * Create {@link AnnotationTypeMappings} for the specified annotation type.
+	 * 为指定的批注类型创建AnnotationTypeMappings对象。
 	 * @param annotationType the source annotation type
 	 * @param repeatableContainers the repeatable containers that may be used by
 	 * the meta-annotations
@@ -193,15 +205,17 @@ final class AnnotationTypeMappings {
 	 */
 	static AnnotationTypeMappings forAnnotationType(Class<? extends Annotation> annotationType,
 			RepeatableContainers repeatableContainers, AnnotationFilter annotationFilter) {
-
+		// 针对可重复注解的容器缓存
 		if (repeatableContainers == RepeatableContainers.standardRepeatables()) {
 			return standardRepeatablesCache.computeIfAbsent(annotationFilter,
 					key -> new Cache(repeatableContainers, key)).get(annotationType);
 		}
+		//针对不可重复注解的容器缓存
 		if (repeatableContainers == RepeatableContainers.none()) {
 			return noRepeatablesCache.computeIfAbsent(annotationFilter,
 					key -> new Cache(repeatableContainers, key)).get(annotationType);
 		}
+		//创建一个AnnotationTypeMappings实例
 		return new AnnotationTypeMappings(repeatableContainers, annotationFilter, annotationType);
 	}
 
