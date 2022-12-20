@@ -116,6 +116,7 @@ abstract class AnnotationsScanner {
 			SearchStrategy searchStrategy, AnnotationsProcessor<C, R> processor) {
 
 		try {
+			// 如果是反射中的 Class、 Method 或者直接是 Object 对象，直接获取这个 Class 上面的注解
 			if (isWithoutHierarchy(source, searchStrategy, Search.never)) {
 				return processElement(context, source, processor);
 			}
@@ -125,10 +126,12 @@ abstract class AnnotationsScanner {
 			Class<?> root = source;
 			while (source != null && source != Object.class && remaining > 0 &&
 					!hasPlainJavaAnnotationsOnly(source)) {
+				// 如果直接有结果，直接返回。
 				R result = processor.doWithAggregate(context, aggregateIndex);
 				if (result != null) {
 					return result;
 				}
+				// 查询到当前类及其父类的所有注解直到找到匹配的注解直到对象是 Object
 				Annotation[] declaredAnnotations = getDeclaredAnnotations(source, true);
 				if (relevant == null && declaredAnnotations.length > 0) {
 					relevant = root.getAnnotations();

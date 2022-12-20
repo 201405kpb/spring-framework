@@ -47,12 +47,16 @@ import org.springframework.util.ReflectionUtils;
  */
 final class SynthesizedMergedAnnotationInvocationHandler<A extends Annotation> implements InvocationHandler {
 
+	// 合并注解实例
 	private final MergedAnnotation<?> annotation;
 
+	// 代理注解的类型
 	private final Class<A> type;
 
+	// 代理注解的注解方法
 	private final AttributeMethods attributes;
 
+	// 注解属性的值缓存
 	private final Map<String, Object> valueCache = new ConcurrentHashMap<>(8);
 
 	@Nullable
@@ -74,18 +78,23 @@ final class SynthesizedMergedAnnotationInvocationHandler<A extends Annotation> i
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) {
+		// 代理 equals 方法
 		if (ReflectionUtils.isEqualsMethod(method)) {
 			return annotationEquals(args[0]);
 		}
+		// 代理 hashCode 方法
 		if (ReflectionUtils.isHashCodeMethod(method)) {
 			return annotationHashCode();
 		}
+		// 代理 toString 方法
 		if (ReflectionUtils.isToStringMethod(method)) {
 			return annotationToString();
 		}
+		// 代理 isAnnotationTypeMethod 方法
 		if (isAnnotationTypeMethod(method)) {
 			return this.type;
 		}
+		// 代理获取注解属性的方法
 		if (this.attributes.indexOf(method.getName()) != -1) {
 			return getAttributeValue(method);
 		}
@@ -247,8 +256,11 @@ final class SynthesizedMergedAnnotationInvocationHandler<A extends Annotation> i
 	}
 
 	private Object getAttributeValue(Method method) {
+		// 缓存属性值
 		Object value = this.valueCache.computeIfAbsent(method.getName(), attributeName -> {
+			// 获取代理方法的返回值类型
 			Class<?> type = ClassUtils.resolvePrimitiveIfNecessary(method.getReturnType());
+			// 从 MergedAnnotation 获取对应属性值
 			return this.annotation.getValue(attributeName, type).orElseThrow(
 					() -> new NoSuchElementException("No value found for attribute named '" + attributeName +
 							"' in merged annotation " + this.annotation.getType().getName()));

@@ -1,24 +1,26 @@
 package com.kpb.spring.annotation;
 
-import com.kpb.spring.service.HelloWorldService;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Service;
-
-import java.util.Set;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 public class AnnotationTest {
+	private static final String TAG = "AnnotationTest";
 	 private static org.slf4j.Logger logger = LoggerFactory.getLogger(AnnotationTest.class);
 	public static void main(String[] args) {
 
-
-		AnnotationAttributes types = AnnotatedElementUtils.getMergedAnnotationAttributes(HelloWorldService.class,Service.class);
-
-		logger.info("types",types);
-
+		MergedAnnotations mergedAnnotations = MergedAnnotations.from(ChildController.class);
+		boolean present = mergedAnnotations.isPresent(RequestMapping.class.getName());
+		boolean directlyPresent = mergedAnnotations.isDirectlyPresent(RequestMapping.class);
+		logger.info(String.valueOf(directlyPresent));
 
 	}
 
+	@RequestMapping(value = "parent/controller")
+	class ParentController {
+	}
+
+	@RequestMapping(value = "child/controller")
+	class ChildController extends ParentController {
+	}
 }

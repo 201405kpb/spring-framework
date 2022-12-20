@@ -205,8 +205,10 @@ abstract class AbstractMergedAnnotation<A extends Annotation> implements MergedA
 		if (!isPresent()) {
 			throw new NoSuchElementException("Unable to synthesize missing annotation");
 		}
+		// 如果已经合成过就直接返回缓存的实例
 		A synthesized = this.synthesizedAnnotation;
 		if (synthesized == null) {
+			// 合成注解
 			synthesized = createSynthesizedAnnotation();
 			this.synthesizedAnnotation = synthesized;
 		}

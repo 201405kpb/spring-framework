@@ -25,6 +25,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
 
+import java.io.Serial;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -123,6 +125,11 @@ class ResourceEntityResolverTests {
 		}
 	}
 
-	static class ResolutionRejectedException extends RuntimeException {}
+	static class ResolutionRejectedException extends RuntimeException {
+
+		@Serial
+		private static final long serialVersionUID = -3042686055658047284L;
+
+	}
 
 }
