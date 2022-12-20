@@ -127,6 +127,7 @@ public abstract class AnnotationUtils {
 	/**
 	 * Determine whether the given class is a candidate for carrying one of the specified
 	 * annotations (at type, method or field level).
+	 * 确定给定类是否是携带指定注释之一的候选类（在类型、方法或字段级别）。
 	 * @param clazz the class to introspect
 	 * @param annotationTypes the searchable annotation types
 	 * @return {@code false} if the class is known to have no such annotations at any level;
@@ -148,6 +149,7 @@ public abstract class AnnotationUtils {
 	/**
 	 * Determine whether the given class is a candidate for carrying the specified annotation
 	 * (at type, method or field level).
+	 * 确定给定类是否是携带指定注释之一的候选类（在类型、方法或字段级别）。
 	 * @param clazz the class to introspect
 	 * @param annotationType the searchable annotation type
 	 * @return {@code false} if the class is known to have no such annotations at any level;
@@ -163,6 +165,7 @@ public abstract class AnnotationUtils {
 	/**
 	 * Determine whether the given class is a candidate for carrying the specified annotation
 	 * (at type, method or field level).
+	 * 确定给定类是否是携带指定注释之一的候选类（在类型、方法或字段级别）。
 	 * @param clazz the class to introspect
 	 * @param annotationName the fully-qualified name of the searchable annotation type
 	 * @return {@code false} if the class is known to have no such annotations at any level;
@@ -197,14 +200,17 @@ public abstract class AnnotationUtils {
 	@Nullable
 	public static <A extends Annotation> A getAnnotation(Annotation annotation, Class<A> annotationType) {
 		// Shortcut: directly present on the element, with no merging needed?
+		// 快捷方式：直接出现在元素上，不需要合并？
 		if (annotationType.isInstance(annotation)) {
 			return synthesizeAnnotation((A) annotation, annotationType);
 		}
 		// Shortcut: no searchable annotations to be found on plain Java classes and core Spring types...
+		// 快捷方式：在普通Java类和核心Spring类型上找不到可搜索的注释。。。
 		if (AnnotationsScanner.hasPlainJavaAnnotationsOnly(annotation)) {
 			return null;
 		}
 		// Exhaustive retrieval of merged annotations...
+		// 合并注释的详尽检索。。。
 		return MergedAnnotations.from(annotation, new Annotation[] {annotation}, RepeatableContainers.none())
 				.get(annotationType).withNonMergedAttributes()
 				.synthesize(AnnotationUtils::isSingleLevelPresent).orElse(null);
@@ -227,11 +233,13 @@ public abstract class AnnotationUtils {
 	@Nullable
 	public static <A extends Annotation> A getAnnotation(AnnotatedElement annotatedElement, Class<A> annotationType) {
 		// Shortcut: directly present on the element, with no merging needed?
+		// 快捷方式：直接出现在元素上，不需要合并？
 		if (AnnotationFilter.PLAIN.matches(annotationType) ||
 				AnnotationsScanner.hasPlainJavaAnnotationsOnly(annotatedElement)) {
 			return annotatedElement.getAnnotation(annotationType);
 		}
 		// Exhaustive retrieval of merged annotations...
+		// 合并注释的详尽检索。。。
 		return MergedAnnotations.from(annotatedElement, SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none())
 				.get(annotationType).withNonMergedAttributes()
 				.synthesize(AnnotationUtils::isSingleLevelPresent).orElse(null);

@@ -643,6 +643,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	 * as well as {@link MergedAnnotations#from(AnnotatedElement, SearchStrategy)}
 	 * and variants of that method.
 	 *
+	 *
 	 * <p>Each strategy creates a different set of aggregates that will be
 	 * combined to create the final {@link MergedAnnotations}.
 	 */

@@ -151,10 +151,11 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	public <A extends Annotation> MergedAnnotation<A> get(Class<A> annotationType,
 			@Nullable Predicate<? super MergedAnnotation<A>> predicate,
 			@Nullable MergedAnnotationSelector<A> selector) {
-
+		// 如果查找的注解类型直接通不过过滤器，就没必要继续搜索了
 		if (this.annotationFilter.matches(annotationType)) {
 			return MergedAnnotation.missing();
 		}
+		// 使用AnnotationScanner对元素层级结构进行查找
 		MergedAnnotation<A> result = scan(annotationType,
 				new MergedAnnotationFinder<>(annotationType, predicate, selector));
 		return (result != null ? result : MergedAnnotation.missing());
@@ -324,19 +325,25 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 			for (Annotation annotation : annotations) {
 				if (annotation != null) {
 					Class<? extends Annotation> type = annotation.annotationType();
+					// 若注解类型不为空，且能通过过滤器校验，则开始判断过程
 					if (type != null && !this.annotationFilter.matches(type)) {
+						// 1.该注解类型就是要查找的类型
 						if (type == requiredType || type.getName().equals(requiredType)) {
 							return Boolean.TRUE;
 						}
+						// 2.该注解不是要查找的类型，但是它是一个容器注解，则将其全部平摊
 						Annotation[] repeatedAnnotations =
 								this.repeatableContainers.findRepeatedAnnotations(annotation);
 						if (repeatedAnnotations != null) {
+							// 递归判断平摊后的注解是否符合条件
 							Boolean result = doWithAnnotations(
 									requiredType, aggregateIndex, source, repeatedAnnotations);
 							if (result != null) {
 								return result;
 							}
 						}
+						// 3.如果上述两者情况都不满足，则且并不限制值仅查找直接存在的注解
+						// 则查找这个注解的元注解，判断其所有元注解是否存在该指定注解
 						if (!this.directOnly) {
 							AnnotationTypeMappings mappings = AnnotationTypeMappings.forAnnotationType(type);
 							for (int i = 0; i < mappings.size(); i++) {
@@ -418,19 +425,23 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 		@Nullable
 		private MergedAnnotation<A> process(
 				Object type, int aggregateIndex, @Nullable Object source, Annotation annotation) {
-
+			// 若注解是可重复注解的容器注解则平摊
 			Annotation[] repeatedAnnotations = repeatableContainers.findRepeatedAnnotations(annotation);
 			if (repeatedAnnotations != null) {
 				return doWithAnnotations(type, aggregateIndex, source, repeatedAnnotations);
 			}
+			// 获取这个注解的元注解，并将自己及这些元注解都转为AnnotationTypeMappings
 			AnnotationTypeMappings mappings = AnnotationTypeMappings.forAnnotationType(
 					annotation.annotationType(), repeatableContainers, annotationFilter);
 			for (int i = 0; i < mappings.size(); i++) {
+				// 遍历这些注解，如果有注解符合条件，则将其转为合并注解
 				AnnotationTypeMapping mapping = mappings.get(i);
 				if (isMappingForType(mapping, annotationFilter, this.requiredType)) {
 					MergedAnnotation<A> candidate = TypeMappedAnnotation.createIfPossible(
 							mapping, source, annotation, aggregateIndex, IntrospectionFailureLogger.INFO);
+					// 如果当前已经存在符合条件的合并注解了，则使用选择器判断两个注解到底谁会更合适，然后将其更新到成员变量result中
 					if (candidate != null && (this.predicate == null || this.predicate.test(candidate))) {
+						// 判断该注解是否是最符合的结果，如果是就没必要再比较了，直接返回
 						if (this.selector.isBestCandidate(candidate)) {
 							return candidate;
 						}
@@ -465,7 +476,7 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 		@Nullable
 		public List<Aggregate> doWithAnnotations(Object criteria, int aggregateIndex,
 				@Nullable Object source, Annotation[] annotations) {
-
+			// 创建一个Aggregate
 			this.aggregates.add(createAggregate(aggregateIndex, source, annotations));
 			return null;
 		}
@@ -484,11 +495,13 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 		private void addAggregateAnnotations(List<Annotation> aggregateAnnotations, Annotation[] annotations) {
 			for (Annotation annotation : annotations) {
 				if (annotation != null && !annotationFilter.matches(annotation)) {
+					// 若是容器注解就全部摊平
 					Annotation[] repeatedAnnotations = repeatableContainers.findRepeatedAnnotations(annotation);
 					if (repeatedAnnotations != null) {
 						addAggregateAnnotations(aggregateAnnotations, repeatedAnnotations);
 					}
 					else {
+						// 收集注解
 						aggregateAnnotations.add(annotation);
 					}
 				}

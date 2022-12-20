@@ -33,6 +33,7 @@ public interface MergedAnnotationSelector<A extends Annotation> {
 	/**
 	 * Determine if the existing annotation is known to be the best
 	 * candidate and any subsequent selections may be skipped.
+	 * / 该合并注解是否是最符合的结果，如果是直接跳过select
 	 * @param annotation the annotation to check
 	 * @return {@code true} if the annotation is known to be the best candidate
 	 */

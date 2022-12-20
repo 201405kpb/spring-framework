@@ -65,6 +65,7 @@ abstract class AnnotationsScanner {
 	/**
 	 * Scan the hierarchy of the specified element for relevant annotations and
 	 * call the processor as required.
+	 * 扫描行为的直接发起者
 	 * @param context an optional context object that will be passed back to the
 	 * processor
 	 * @param source the source element to scan

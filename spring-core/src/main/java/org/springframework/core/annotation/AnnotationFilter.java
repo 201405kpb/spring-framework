@@ -39,7 +39,8 @@ public interface AnnotationFilter {
 	 * {@link AnnotationFilter} that matches annotations in the
 	 * {@code java.lang} and {@code org.springframework.lang} packages
 	 * and their subpackages.
-	 * 过滤器匹配java.lang包和spring的lang包下的注解
+	 * 过滤器匹配java.lang包和spring的lang包下的注解.java.lang包下提供的都是诸如@Resource或者 @Target 这样的注解，
+	 * 而springframework.lang包下提供的则都是 @Nonnull 这样的注解，这些注解基本不可能作为有特殊业务意义的元注解使用，因此默认忽略
 	 * <p>This is the default filter in the {@link MergedAnnotations} model.
 	 */
 	AnnotationFilter PLAIN = packages("java.lang", "org.springframework.lang");

@@ -64,11 +64,13 @@ public abstract class MergedAnnotationSelectors {
 	 */
 	private static class Nearest implements MergedAnnotationSelector<Annotation> {
 
+		// 聚合索引为0，说明注解直接出现在被扫描的AnnotatedElement上，是最符合的
 		@Override
 		public boolean isBestCandidate(MergedAnnotation<Annotation> annotation) {
 			return annotation.getDistance() == 0;
 		}
 
+		// 仅当已有注解没有直接出现在被扫描的AnnotatedElement上，但是新注解直接出现在了扫描的AnnotatedElement上的时候，才返回新注解
 		@Override
 		public MergedAnnotation<Annotation> select(
 				MergedAnnotation<Annotation> existing, MergedAnnotation<Annotation> candidate) {
@@ -88,11 +90,13 @@ public abstract class MergedAnnotationSelectors {
 	 */
 	private static class FirstDirectlyDeclared implements MergedAnnotationSelector<Annotation> {
 
+		// 聚合索引为0，说明注解直接出现在被扫描的AnnotatedElement上，是最符合的
 		@Override
 		public boolean isBestCandidate(MergedAnnotation<Annotation> annotation) {
 			return annotation.getDistance() == 0;
 		}
 
+		// 聚合索引不为0，则挑一个聚合索引比较小的，也就是先被扫描的
 		@Override
 		public MergedAnnotation<Annotation> select(
 				MergedAnnotation<Annotation> existing, MergedAnnotation<Annotation> candidate) {

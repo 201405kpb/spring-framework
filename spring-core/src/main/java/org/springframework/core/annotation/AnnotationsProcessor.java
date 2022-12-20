@@ -48,6 +48,8 @@ interface AnnotationsProcessor<C, R> {
 	/**
 	 * Called when an array of annotations can be processed. This method may
 	 * return a {@code non-null} result to short-circuit any further processing.
+	 * 若 doWithAnnotations 返回了一个非空元素，则 AnnotationScanner 将继续扫描元素的层级结构，
+	 * 然后直到doWithAnnotations 返回 null 为止或者全部层级结构都被扫描为止。
 	 * @param context the context information relevant to the processor
 	 * @param aggregateIndex the aggregate index of the provided annotations
 	 * @param source the original source of the annotations, if known
@@ -61,6 +63,7 @@ interface AnnotationsProcessor<C, R> {
 	/**
 	 * Get the final result to be returned. By default this method returns
 	 * the last process result.
+	 * // 扫描后的回调，返回的对象将用于下一次扫描，当返回为空时中断扫描
 	 * @param result the last early exit result, or {@code null} if none
 	 * @return the final result to be returned to the caller
 	 */
