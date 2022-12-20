@@ -2,6 +2,7 @@ package com.kpb.spring.annotation;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 public class AnnotationTest {
 	private static final String TAG = "AnnotationTest";
@@ -19,7 +20,7 @@ public class AnnotationTest {
 	class ParentController {
 	}
 
-	@PostMapping(value = "child/controller")
+	@RequestMapping(value = "child/controller")
 	class ChildController extends ParentController {
 	}
 }

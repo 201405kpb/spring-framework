@@ -301,7 +301,7 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 			}
 			// 按照 MediaType 的 specificity、quality 排序
 			List<MediaType> selectedMediaTypes = new ArrayList<>(compatibleMediaTypes);
-			MediaType.sortBySpecificityAndQuality(selectedMediaTypes);
+			MimeTypeUtils.sortBySpecificity(selectedMediaTypes);
 			return selectedMediaTypes;
 		}
 		catch (HttpMediaTypeNotAcceptableException ex) {
