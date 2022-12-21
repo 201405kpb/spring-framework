@@ -54,8 +54,10 @@ import org.springframework.stereotype.Component;
  */
 public abstract class ConfigurationClassUtils {
 
+	//configuration class如果是@Configuration注解标注的类属性标注为full
 	static final String CONFIGURATION_CLASS_FULL = "full";
 
+	//非@Configuration注解标注的类（@Component、@Import等注解标注）属性标注为lite
 	static final String CONFIGURATION_CLASS_LITE = "lite";
 
 	static final String CONFIGURATION_CLASS_ATTRIBUTE =

@@ -35,7 +35,10 @@ import org.springframework.lang.Nullable;
  */
 class CommandLineArgs {
 
+	//存放选项参数，参数名：参数值
 	private final Map<String, List<String>> optionArgs = new HashMap<>();
+
+	//存放非选项参数
 	private final List<String> nonOptionArgs = new ArrayList<>();
 
 	/**
@@ -43,6 +46,7 @@ class CommandLineArgs {
 	 * list of values associated with this option (of which there may be zero or more).
 	 * The given value may be {@code null}, indicating that the option was specified
 	 * without an associated value (e.g. "--foo" vs. "--foo=bar").
+	 * 添加给定的选项名和选项值
 	 */
 	public void addOptionArg(String optionName, @Nullable String optionValue) {
 		if (!this.optionArgs.containsKey(optionName)) {
@@ -55,6 +59,7 @@ class CommandLineArgs {
 
 	/**
 	 * Return the set of all option arguments present on the command line.
+	 * 返回命令行中所有选项参数的集合
 	 */
 	public Set<String> getOptionNames() {
 		return Collections.unmodifiableSet(this.optionArgs.keySet());
@@ -62,6 +67,7 @@ class CommandLineArgs {
 
 	/**
 	 * Return whether the option with the given name was present on the command line.
+	 *  返回命令行中是否存在具有给定的选项名
 	 */
 	public boolean containsOption(String optionName) {
 		return this.optionArgs.containsKey(optionName);
@@ -71,6 +77,7 @@ class CommandLineArgs {
 	 * Return the list of values associated with the given option. {@code null} signifies
 	 * that the option was not present; empty list signifies that no values were associated
 	 * with this option.
+	 * 返回与给定选项名关联的值列表，null表示该选项不存在，空列表表示没有值与该选项关联
 	 */
 	@Nullable
 	public List<String> getOptionValues(String optionName) {
@@ -79,6 +86,7 @@ class CommandLineArgs {
 
 	/**
 	 * Add the given value to the list of non-option arguments.
+	 * 将给定的值添加到非选项列表
 	 */
 	public void addNonOptionArg(String value) {
 		this.nonOptionArgs.add(value);
@@ -86,6 +94,7 @@ class CommandLineArgs {
 
 	/**
 	 * Return the list of non-option arguments specified on the command line.
+	 * 返回在命令行上指定的非选项参数的列表
 	 */
 	public List<String> getNonOptionArgs() {
 		return Collections.unmodifiableList(this.nonOptionArgs);

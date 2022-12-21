@@ -117,9 +117,13 @@ public class CachingMetadataReaderFactory extends SimpleMetadataReaderFactory {
 	public MetadataReader getMetadataReader(Resource resource) throws IOException {
 		if (this.metadataReaderCache instanceof ConcurrentMap) {
 			// No synchronization necessary...
+			//获取字典中的元数据阅读器
 			MetadataReader metadataReader = this.metadataReaderCache.get(resource);
+			//如果不存在
 			if (metadataReader == null) {
+				//创建一个新的元数据阅读器
 				metadataReader = super.getMetadataReader(resource);
+				//将元数据阅读器放入字典中
 				this.metadataReaderCache.put(resource, metadataReader);
 			}
 			return metadataReader;
@@ -141,6 +145,7 @@ public class CachingMetadataReaderFactory extends SimpleMetadataReaderFactory {
 
 	/**
 	 * Clear the local MetadataReader cache, if any, removing all cached class metadata.
+	 * 清楚缓存
 	 */
 	public void clearCache() {
 		if (this.metadataReaderCache instanceof LocalResourceCache) {

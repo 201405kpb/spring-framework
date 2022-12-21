@@ -64,6 +64,7 @@ public @interface Conditional {
 	/**
 	 * All {@link Condition} classes that must {@linkplain Condition#matches match}
 	 * in order for the component to be registered.
+	 * 在数组中指定的所有的 Condition 的 matches 返回true的情况下，被注解的类才会被加载
 	 */
 	Class<? extends Condition>[] value();
 

@@ -364,7 +364,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 *    <li>从单例对象的高速缓存Map中获取beanName对应的单例对象【变量 singletonObject】,获取成功就直接返回singletonObject</li>
 	 *    <li>如果singletonObject获取不到
 	 *     <ol>
-	 *       <li>如果当前在destorySingletons中【singletonsCurrentlyInDestruction】，就抛出BeanCreationNotAllowedException</li>
+	 *       <li>如果当前在 destroySingletons中【singletonsCurrentlyInDestruction】，就抛出BeanCreationNotAllowedException</li>
 	 *       <li>如果当前日志级别时调试,就打印调试级别日志：创建单例bean的共享实例:'beanName'</li>
 	 *       <li>创建单例之前的回调【beforeSingletonCreation(beanName)】,默认实现将单例注册为当前正在创建中</li>
 	 *       <li>表示生成了新的单例对象的标记，默认为false，表示没有生成新的单例对象【变量 newSingleton】</li>

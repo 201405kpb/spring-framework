@@ -43,6 +43,7 @@ public interface Condition {
 
 	/**
 	 * Determine if the condition matches.
+	 * 决定是否匹配
 	 * @param context the condition context
 	 * @param metadata the metadata of the {@link org.springframework.core.type.AnnotationMetadata class}
 	 * or {@link org.springframework.core.type.MethodMetadata method} being checked

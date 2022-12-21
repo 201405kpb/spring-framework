@@ -61,11 +61,15 @@ class SimpleCommandLineArgsParser {
 	 * Parse the given {@code String} array based on the rules described {@linkplain
 	 * SimpleCommandLineArgsParser above}, returning a fully-populated
 	 * {@link CommandLineArgs} object.
+	 * 解析给定的String[]数组参数根据上面描述的规则，返回一个CommandLineArgs对象
 	 * @param args command line arguments, typically from a {@code main()} method
 	 */
 	public CommandLineArgs parse(String... args) {
+		//创建命令行参数对象
 		CommandLineArgs commandLineArgs = new CommandLineArgs();
+		//循环命令行参数
 		for (String arg : args) {
+			//如果是以”--“为前缀，则判定为选项参数
 			if (arg.startsWith("--")) {
 				String optionText = arg.substring(2);
 				String optionName;
@@ -81,9 +85,11 @@ class SimpleCommandLineArgsParser {
 				if (optionName.isEmpty()) {
 					throw new IllegalArgumentException("Invalid argument syntax: " + arg);
 				}
+				//新增选项参数
 				commandLineArgs.addOptionArg(optionName, optionValue);
 			}
 			else {
+				//新增非选项参数
 				commandLineArgs.addNonOptionArg(arg);
 			}
 		}

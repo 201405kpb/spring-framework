@@ -66,10 +66,12 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	/**
 	 * A convenient constant for a default {@code AnnotationBeanNameGenerator} instance,
 	 * as used for component scanning purposes.
+	 * 默认AnnotationBeanNameGenerator实例的方便常量，用于组件扫描目的（即@Componment注解及@ComponmentScan注解扫描包）bean名称生成
 	 * @since 5.2
 	 */
 	public static final AnnotationBeanNameGenerator INSTANCE = new AnnotationBeanNameGenerator();
 
+	//@Component注解类常量
 	private static final String COMPONENT_ANNOTATION_CLASSNAME = "org.springframework.stereotype.Component";
 
 	private final Map<String, Set<String>> metaAnnotationTypesCache = new ConcurrentHashMap<>();
@@ -190,6 +192,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 
 	/**
 	 * Derive a default bean name from the given bean definition.
+	 * 从给定的bean定义派生一个默认的bean名称，即类名首字母小写
 	 * <p>The default implementation delegates to {@link #buildDefaultBeanName(BeanDefinition)}.
 	 * @param definition the bean definition to build a bean name for
 	 * @param registry the registry that the given bean definition is being registered with
@@ -206,6 +209,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * <p>Note that inner classes will thus have names of the form
 	 * "outerClassName.InnerClassName", which because of the period in the
 	 * name may be an issue if you are autowiring by name.
+	 * 从给定的bean定义派生一个默认的bean名称，即类名首字母小写
 	 * @param definition the bean definition to build a bean name for
 	 * @return the default bean name (never {@code null})
 	 */

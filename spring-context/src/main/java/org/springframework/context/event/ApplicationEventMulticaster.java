@@ -124,6 +124,7 @@ public interface ApplicationEventMulticaster {
 	 * Multicast the given application event to appropriate listeners.
 	 * <p>If the {@code eventType} is {@code null}, a default type is built
 	 * based on the {@code event} instance.
+	 * 将应用程序事件广播到对应的监听器上
 	 * @param event the event to multicast
 	 * @param eventType the type of event (can be {@code null})
 	 * @since 4.2

@@ -93,30 +93,35 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
 
 		//设置各种属性
+		// 1.解析propagation属性
 		Propagation propagation = attributes.getEnum("propagation");
 		rbta.setPropagationBehavior(propagation.value());
+		// 2.解析isolation属性
 		Isolation isolation = attributes.getEnum("isolation");
 		rbta.setIsolationLevel(isolation.value());
+		// 3.解析timeout属性
 		rbta.setTimeout(attributes.getNumber("timeout").intValue());
+		// 4.解析readOnly属性
 		rbta.setReadOnly(attributes.getBoolean("readOnly"));
+		// 5.解析value属性
 		rbta.setQualifier(attributes.getString("value"));
 
-		//设置回滚规则
-		//同样，回滚规则在前，不回滚规则在后，如果回滚和不回滚设置了相同的异常，那么抛出异常时将会回滚
+		//设置回滚规则 同样，回滚规则在前，不回滚规则在后，如果回滚和不回滚设置了相同的异常，那么抛出异常时将会回滚
+		// 6.解析rollbackFor属性
 		List<RollbackRuleAttribute> rollbackRules = new ArrayList<>();
 		//rollbackFor在最前
 		for (Class<?> rbRule : attributes.getClassArray("rollbackFor")) {
 			rollbackRules.add(new RollbackRuleAttribute(rbRule));
 		}
-		//rollbackForClassName在第二
+		// 7.解析rollbackForClassName属性
 		for (String rbRule : attributes.getStringArray("rollbackForClassName")) {
 			rollbackRules.add(new RollbackRuleAttribute(rbRule));
 		}
-		//noRollbackFor在第三
+		// 8.解析noRollbackFor属性
 		for (Class<?> rbRule : attributes.getClassArray("noRollbackFor")) {
 			rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
 		}
-		//noRollbackForClassName在最后
+		// 9.解析noRollbackForClassName属性
 		for (String rbRule : attributes.getStringArray("noRollbackForClassName")) {
 			rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
 		}

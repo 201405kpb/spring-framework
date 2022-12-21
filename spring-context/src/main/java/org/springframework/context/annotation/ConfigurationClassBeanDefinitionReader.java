@@ -538,6 +538,7 @@ class ConfigurationClassBeanDefinitionReader {
 	/**
 	 * Evaluate {@code @Conditional} annotations, tracking results and taking into
 	 * account 'imported by'.
+	 * 评估 {@code @Conditional} 注解, 根据结果判定是否需要将类引入并注入IOC容器
 	 */
 	private class TrackedConditionEvaluator {
 

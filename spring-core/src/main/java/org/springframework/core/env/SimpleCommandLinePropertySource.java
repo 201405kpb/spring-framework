@@ -89,6 +89,7 @@ public class SimpleCommandLinePropertySource extends CommandLinePropertySource<C
 	/**
 	 * Create a new {@code SimpleCommandLinePropertySource} having the default name
 	 * and backed by the given {@code String[]} of command line arguments.
+	 * 创建一个拥有默认名”commandLineArgs“和String[]参数的SimpleCommandLinePropertySource对象
 	 * @see CommandLinePropertySource#COMMAND_LINE_PROPERTY_SOURCE_NAME
 	 * @see CommandLinePropertySource#CommandLinePropertySource(Object)
 	 */
@@ -99,6 +100,7 @@ public class SimpleCommandLinePropertySource extends CommandLinePropertySource<C
 	/**
 	 * Create a new {@code SimpleCommandLinePropertySource} having the given name
 	 * and backed by the given {@code String[]} of command line arguments.
+	 * 创建一个指定name和String[]参数的SimpleCommandLinePropertySource对象
 	 */
 	public SimpleCommandLinePropertySource(String name, String[] args) {
 		super(name, new SimpleCommandLineArgsParser().parse(args));

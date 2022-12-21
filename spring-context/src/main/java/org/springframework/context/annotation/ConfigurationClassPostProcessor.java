@@ -130,6 +130,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * {@link #setBeanNameGenerator}. Note that the default for component scanning purposes
 	 * is a plain {@link AnnotationBeanNameGenerator#INSTANCE}, unless overridden through
 	 * {@link #setBeanNameGenerator} with a unified user-level bean name generator.
+	 * 使用类的全限定名作为bean的默认生成策略
 	 * @since 5.2
 	 * @see #setBeanNameGenerator
 	 */
@@ -165,12 +166,15 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	@Nullable
 	private ConfigurationClassBeanDefinitionReader reader;
 
+	//是否是本地xml配置的BeanNameGenerator生成器
 	private boolean localBeanNameGeneratorSet = false;
 
-	/* Using short class names as default bean names by default. */
+	/* Using short class names as default bean names by default.
+	* 使用短类名作为默认bean名称生成策略 */
 	private BeanNameGenerator componentScanBeanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
 
-	/* Using fully qualified class names as default bean names by default. */
+	/* Using fully qualified class names as default bean names by default.
+	* 使用类的全新定名作为bean默认生成策略 */
 	private BeanNameGenerator importBeanNameGenerator = IMPORT_BEAN_NAME_GENERATOR;
 
 	private ApplicationStartup applicationStartup = ApplicationStartup.DEFAULT;

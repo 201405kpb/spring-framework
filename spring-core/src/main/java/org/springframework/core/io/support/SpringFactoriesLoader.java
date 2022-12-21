@@ -94,6 +94,8 @@ public class SpringFactoriesLoader {
 	/**
 	 * The location to look for factories.
 	 * <p>Can be present in multiple JAR files.
+	 *
+	 *  spring.factories文件在jar包中的位置，可以存在于多个不同的jar包
 	 */
 	public static final String FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories";
 
@@ -101,6 +103,7 @@ public class SpringFactoriesLoader {
 
 	private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class);
 
+	// classpath环境变量下所有jar包中的spring.factories配置文件都解析完成后存入字典
 	static final Map<ClassLoader, Map<String, SpringFactoriesLoader>> cache = new ConcurrentReferenceHashMap<>();
 
 
@@ -336,11 +339,15 @@ public class SpringFactoriesLoader {
 	protected static Map<String, List<String>> loadFactoriesResource(ClassLoader classLoader, String resourceLocation) {
 		Map<String, List<String>> result = new LinkedHashMap<>();
 		try {
+			//定位-扫描所有jar包取得资源的URL
 			Enumeration<URL> urls = classLoader.getResources(resourceLocation);
+			//遍历所有的URL
 			while (urls.hasMoreElements()) {
 				UrlResource resource = new UrlResource(urls.nextElement());
+				//将资源解析为properties
 				Properties properties = PropertiesLoaderUtils.loadProperties(resource);
 				properties.forEach((name, value) -> {
+
 					List<String> implementations = result.computeIfAbsent(((String) name).trim(), key -> new ArrayList<>());
 					Arrays.stream(StringUtils.commaDelimitedListToStringArray((String) value))
 							.map(String::trim).forEach(implementations::add);

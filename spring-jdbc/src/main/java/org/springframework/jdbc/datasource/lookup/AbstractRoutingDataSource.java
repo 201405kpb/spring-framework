@@ -36,26 +36,32 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Juergen Hoeller
  * @since 2.0.1
- * @see #setTargetDataSources
- * @see #setDefaultTargetDataSource
- * @see #determineCurrentLookupKey()
+ * @see #setTargetDataSources 设置目标数据源的方法
+ * @see #setDefaultTargetDataSource 设置默认数据源的方法
+ * @see #determineCurrentLookupKey() 通过此方法获取当前线程需要绑定数据源
  */
 public abstract class AbstractRoutingDataSource extends AbstractDataSource implements InitializingBean {
 
+	// 目标多数据源集合
 	@Nullable
 	private Map<Object, Object> targetDataSources;
 
+	// 默认数据源对象
 	@Nullable
 	private Object defaultTargetDataSource;
 
+	// 通过JNDI查找数据源，如果数据源不存在是否回滚到默认数据源，默认：true
 	private boolean lenientFallback = true;
 
+	// 通过JNDI查找多数据源对象默认实现类
 	private DataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
 
 	@Nullable
+	// targetDataSources 数据源集合的解析后的key-value对象
 	private Map<Object, DataSource> resolvedDataSources;
 
 	@Nullable
+	// 解析后的默认数据源对象
 	private DataSource resolvedDefaultDataSource;
 
 
@@ -64,6 +70,7 @@ public abstract class AbstractRoutingDataSource extends AbstractDataSource imple
 	 * The mapped value can either be a corresponding {@link javax.sql.DataSource}
 	 * instance or a data source name String (to be resolved via a
 	 * {@link #setDataSourceLookup DataSourceLookup}).
+	 * 设置整个项目配置的所有数据库，key是动态切换的唯一标识，value是数据源配置对象
 	 * <p>The key can be of arbitrary type; this class implements the
 	 * generic lookup process only. The concrete key representation will
 	 * be handled by {@link #resolveSpecifiedLookupKey(Object)} and
@@ -153,9 +160,11 @@ public abstract class AbstractRoutingDataSource extends AbstractDataSource imple
 	 * @throws IllegalArgumentException in case of an unsupported value type
 	 */
 	protected DataSource resolveSpecifiedDataSource(Object dataSourceObject) throws IllegalArgumentException {
+		// 如果数据源对象是DataSource的实例对象，直接返回
 		if (dataSourceObject instanceof DataSource dataSource) {
 			return dataSource;
 		}
+		// 如果是字符串对象，则视其为dataSourceName，则调用JndiDataSourceLookup的getDataSource方法
 		else if (dataSourceObject instanceof String dataSourceName) {
 			return this.dataSourceLookup.getDataSource(dataSourceName);
 		}
@@ -223,12 +232,17 @@ public abstract class AbstractRoutingDataSource extends AbstractDataSource imple
 	 */
 	protected DataSource determineTargetDataSource() {
 		Assert.notNull(this.resolvedDataSources, "DataSource router not initialized");
+		// 获取当前线程对应数据源的标识key
 		Object lookupKey = determineCurrentLookupKey();
+		// 从数据源集合中获取数据源对象
 		DataSource dataSource = this.resolvedDataSources.get(lookupKey);
+		// 如果lenientFallback回退属性为true
 		if (dataSource == null && (this.lenientFallback || lookupKey == null)) {
+			// 如果数据源不存在，则回退到默认数据源
 			dataSource = this.resolvedDefaultDataSource;
 		}
 		if (dataSource == null) {
+			// 如果数据源不存在，则抛出异常
 			throw new IllegalStateException("Cannot determine target DataSource for lookup key [" + lookupKey + "]");
 		}
 		return dataSource;

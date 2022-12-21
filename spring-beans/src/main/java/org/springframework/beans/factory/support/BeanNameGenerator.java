@@ -28,6 +28,7 @@ public interface BeanNameGenerator {
 
 	/**
 	 * Generate a bean name for the given bean definition.
+	 * 为给定的BeanDefinition生成一个bean名称
 	 * @param definition the bean definition to generate a name for
 	 * @param registry the bean definition registry that the given definition
 	 * is supposed to be registered with

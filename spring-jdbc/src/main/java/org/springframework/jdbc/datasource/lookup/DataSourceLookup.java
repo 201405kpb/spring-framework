@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 /**
  * Strategy interface for looking up DataSources by name.
  *
+ * 函数式接口，提供了一个通过数据源名称查找DataSource对象的接口
+ *
  * <p>Used, for example, to resolve data source names in JPA
  * {@code persistence.xml} files.
  *

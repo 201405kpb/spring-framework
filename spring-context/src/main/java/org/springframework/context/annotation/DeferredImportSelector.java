@@ -39,6 +39,7 @@ public interface DeferredImportSelector extends ImportSelector {
 
 	/**
 	 * Return a specific import group.
+	 * 返回指定的导入结果集
 	 * <p>The default implementations return {@code null} for no grouping required.
 	 * @return the import group class, or {@code null} if none
 	 * @since 5.0
@@ -51,6 +52,7 @@ public interface DeferredImportSelector extends ImportSelector {
 
 	/**
 	 * Interface used to group results from different import selectors.
+	 * 用于从不同DeferredImportSelector中获取需要导入类的结果集
 	 * @since 5.0
 	 */
 	interface Group {
@@ -58,12 +60,14 @@ public interface DeferredImportSelector extends ImportSelector {
 		/**
 		 * Process the {@link AnnotationMetadata} of the importing @{@link Configuration}
 		 * class using the specified {@link DeferredImportSelector}.
+		 * 根据AnnotationMetadata注解元数据获取@Configuration配置的@Import注解导入的DeferredImportSelector选择器对应的bean
 		 */
 		void process(AnnotationMetadata metadata, DeferredImportSelector selector);
 
 		/**
 		 * Return the {@link Entry entries} of which class(es) should be imported
 		 * for this group.
+		 * 返回类应该导入的Entry
 		 */
 		Iterable<Entry> selectImports();
 
@@ -71,6 +75,7 @@ public interface DeferredImportSelector extends ImportSelector {
 		/**
 		 * An entry that holds the {@link AnnotationMetadata} of the importing
 		 * {@link Configuration} class and the class name to import.
+		 * 存放要导入类的全限定名及AnnotationMetadata注解元数据
 		 */
 		class Entry {
 
@@ -86,6 +91,7 @@ public interface DeferredImportSelector extends ImportSelector {
 			/**
 			 * Return the {@link AnnotationMetadata} of the importing
 			 * {@link Configuration} class.
+			 * 返回要引入的Configuration类的AnnotationMetadata注解元数据
 			 */
 			public AnnotationMetadata getMetadata() {
 				return this.metadata;
@@ -93,6 +99,7 @@ public interface DeferredImportSelector extends ImportSelector {
 
 			/**
 			 * Return the fully qualified name of the class to import.
+			 * 返回要导入类的全限定名
 			 */
 			public String getImportClassName() {
 				return this.importClassName;

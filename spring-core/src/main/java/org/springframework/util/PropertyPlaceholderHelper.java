@@ -292,6 +292,7 @@ public class PropertyPlaceholderHelper {
 
 		/**
 		 * Resolve the supplied placeholder name to the replacement value.
+		 * 将提供的占位符名称解析为替换值
 		 * @param placeholderName the name of the placeholder to resolve
 		 * @return the replacement value, or {@code null} if no replacement is to be made
 		 */
