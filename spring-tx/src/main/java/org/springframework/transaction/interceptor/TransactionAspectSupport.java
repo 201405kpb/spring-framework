@@ -346,7 +346,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
 											 final InvocationCallback invocation) throws Throwable {
 		/*
-		 * 1 获取事务属性源，也就是transactionAttributeSource属性，这个属性源在创建bean定义的时候就被设置了。
+		 * 1 获取事务属性源，也就是transactionAttributeSource属性，这个属性源在创建bean定义的时候就被设置。
 		 *
 		 * 基于注解的属性源是AnnotationTransactionAttributeSource
 		 * 基于XML标签的属性源是NameMatchTransactionAttributeSource
@@ -356,7 +356,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		 * 2 调用属性源的getTransactionAttribute方法获取适用于该方法的事务属性，如果TransactionAttribute为null，则该方法为非事务方法。
 		 *
 		 * 对于AnnotationTransactionAttributeSource，它的getTransactionAttribute
-		 * 方法我们在此前的BeanFactoryTransactionAttributeSourceAdvisor部分就讲过了。
+		 * 方法我们在此前的BeanFactoryTransactionAttributeSourceAdvisor部分就讲过。
 		 * 对于NameMatchTransactionAttributeSource，它的getTransactionAttribute就是通过方法名进行匹配。
 		 */
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);

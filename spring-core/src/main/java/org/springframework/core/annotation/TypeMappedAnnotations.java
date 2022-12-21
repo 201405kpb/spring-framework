@@ -151,11 +151,11 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	public <A extends Annotation> MergedAnnotation<A> get(Class<A> annotationType,
 			@Nullable Predicate<? super MergedAnnotation<A>> predicate,
 			@Nullable MergedAnnotationSelector<A> selector) {
-		// 如果查找的注解类型直接通不过过滤器，就没必要继续搜索了
+		// 1、若该注解无法通过过滤，即该注解若属于 `java.lang`、`org.springframework.lang` 包，则直接返回空注解
 		if (this.annotationFilter.matches(annotationType)) {
 			return MergedAnnotation.missing();
 		}
-		// 使用AnnotationScanner对元素层级结构进行查找
+		// 2、使用MergedAnnotationFinder扫描并获取注解
 		MergedAnnotation<A> result = scan(annotationType,
 				new MergedAnnotationFinder<>(annotationType, predicate, selector));
 		return (result != null ? result : MergedAnnotation.missing());
@@ -245,10 +245,12 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	@Nullable
 	private <C, R> R scan(C criteria, AnnotationsProcessor<C, R> processor) {
 		if (this.annotations != null) {
+			// a.若指定了查找的注解，则扫描这些注解以及其元注解的层级结构
 			R result = processor.doWithAnnotations(criteria, 0, this.source, this.annotations);
 			return processor.finish(result);
 		}
 		if (this.element != null && this.searchStrategy != null) {
+			// b.未指定查找的注解，则直接扫描元素以及其父类、父接口的层级结构
 			return AnnotationsScanner.scan(criteria, this.element, this.searchStrategy,
 					this.searchEnclosingClass, processor);
 		}
@@ -387,13 +389,16 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	private class MergedAnnotationFinder<A extends Annotation>
 			implements AnnotationsProcessor<Object, MergedAnnotation<A>> {
 
+		// 要查找的注解类型
 		private final Object requiredType;
 
 		@Nullable
 		private final Predicate<? super MergedAnnotation<A>> predicate;
 
+		// 选择器，作用类似于比较器，用于从两个注解中获得一个权重更高的注解实例
 		private final MergedAnnotationSelector<A> selector;
 
+		// 最终的返回结构
 		@Nullable
 		private MergedAnnotation<A> result;
 
@@ -402,6 +407,8 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 
 			this.requiredType = requiredType;
 			this.predicate = predicate;
+			// 若不指定选择器，则默认使用MergedAnnotationSelectors.Nearest
+			// 当存在两个相同注解式，选择层级更低的，即离根注解更近的注解
 			this.selector = (selector != null ? selector : MergedAnnotationSelectors.nearest());
 		}
 
@@ -417,6 +424,7 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 				@Nullable Object source, Annotation[] annotations) {
 
 			for (Annotation annotation : annotations) {
+				// 找到至少一个不被过滤的、并且可以合成合并注解的注解实例
 				if (annotation != null && !annotationFilter.matches(annotation)) {
 					MergedAnnotation<A> result = process(type, aggregateIndex, source, annotation);
 					if (result != null) {

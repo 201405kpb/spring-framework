@@ -48,6 +48,8 @@ public interface TransactionDefinition {
 	 * Analogous to the EJB transaction attribute of the same name.
 	 * <p>This is typically the default setting of a transaction definition
 	 * and typically defines a transaction synchronization scope.
+	 * 默认的spring事务传播级别，使用该级别的特点是，如果上下文中已经存在事务，那么就加入到事务中执行，
+	 * 如果当前上下文中不存在事务，则新建事务执行。所以这个级别通常能满足处理大多数的业务场景。
 	 */
 	int PROPAGATION_REQUIRED = 0;
 
@@ -67,6 +69,10 @@ public interface TransactionDefinition {
 	 * synchronization conflicts at runtime). If such nesting is unavoidable, make sure
 	 * to configure your transaction manager appropriately (typically switching to
 	 * "synchronization on actual transaction").
+	 *
+	 * 从字面意思就知道，supports，支持，该传播级别的特点是，如果上下文存在事务，则支持事务加入事务，
+	 * 如果没有事务，则使用非事务的方式执行。所以说，并非所有的包在transactionTemplate.execute中的代码都会有事务支持。
+	 * 这个通常是用来处理那些并非原子性的非核心业务逻辑操作。应用场景较少。
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#SYNCHRONIZATION_ON_ACTUAL_TRANSACTION
 	 */
@@ -77,6 +83,9 @@ public interface TransactionDefinition {
 	 * exists. Analogous to the EJB transaction attribute of the same name.
 	 * <p>Note that transaction synchronization within a {@code PROPAGATION_MANDATORY}
 	 * scope will always be driven by the surrounding transaction.
+	 * 该级别的事务要求上下文中必须要存在事务，否则就会抛出异常！
+	 * 配置该方式的传播级别是有效的控制上下文调用代码遗漏添加事务控制的保证手段。
+	 * 比如一段代码不能单独被调用执行，但是一旦被调用，就必须有事务包含的情况，就可以使用这个传播级别。
 	 */
 	int PROPAGATION_MANDATORY = 2;
 
@@ -91,6 +100,8 @@ public interface TransactionDefinition {
 	 * <p>A {@code PROPAGATION_REQUIRES_NEW} scope always defines its own
 	 * transaction synchronizations. Existing synchronizations will be suspended
 	 * and resumed appropriately.
+	 * 从字面即可知道，new，每次都要一个新事务，该传播级别的特点是，每次都会新建一个事务，
+	 * 并且同时将上下文中的事务挂起，执行当前新建事务完成以后，上下文事务恢复再执行。
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
 	int PROPAGATION_REQUIRES_NEW = 3;
@@ -106,6 +117,8 @@ public interface TransactionDefinition {
 	 * <p>Note that transaction synchronization is <i>not</i> available within a
 	 * {@code PROPAGATION_NOT_SUPPORTED} scope. Existing synchronizations
 	 * will be suspended and resumed appropriately.
+	 * 这个也可以从字面得知，not supported ，不支持，当前级别的特点就是上下文中存在事务，
+	 * 则挂起事务，执行当前逻辑，结束后恢复上下文的事务。
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
 	int PROPAGATION_NOT_SUPPORTED = 4;
@@ -115,6 +128,9 @@ public interface TransactionDefinition {
 	 * exists. Analogous to the EJB transaction attribute of the same name.
 	 * <p>Note that transaction synchronization is <i>not</i> available within a
 	 * {@code PROPAGATION_NEVER} scope.
+	 * 该事务更严格，上面一个事务传播级别只是不支持而已，有事务就挂起，
+	 * 而PROPAGATION_NEVER传播级别要求上下文中不能存在事务，一旦有事务，就抛出runtime异常，强制停止执行！
+	 * 这个级别上辈子跟事务有仇。
 	 */
 	int PROPAGATION_NEVER = 5;
 
@@ -127,6 +143,7 @@ public interface TransactionDefinition {
 	 * {@link org.springframework.jdbc.datasource.DataSourceTransactionManager}
 	 * when working on a JDBC 3.0 driver. Some JTA providers might support
 	 * nested transactions as well.
+	 * 字面也可知道，nested，嵌套级别事务。该传播级别特征是，如果上下文中存在事务，则嵌套事务执行，如果不存在事务，则新建事务。
 	 * @see org.springframework.jdbc.datasource.DataSourceTransactionManager
 	 */
 	int PROPAGATION_NESTED = 6;
@@ -135,6 +152,7 @@ public interface TransactionDefinition {
 	/**
 	 * Use the default isolation level of the underlying datastore.
 	 * <p>All other levels correspond to the JDBC isolation levels.
+	 * 默认隔离级别
 	 * @see java.sql.Connection
 	 */
 	int ISOLATION_DEFAULT = -1;

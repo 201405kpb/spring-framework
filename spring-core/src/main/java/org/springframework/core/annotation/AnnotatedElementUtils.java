@@ -843,6 +843,8 @@ public abstract class AnnotatedElementUtils {
 	}
 
 	private static MergedAnnotations findAnnotations(AnnotatedElement element) {
+		// 1、配置重复注解容器：空容器
+		// 2、配置查找策略：查找类、全部父类以及其父接口
 		return MergedAnnotations.from(element, SearchStrategy.TYPE_HIERARCHY, RepeatableContainers.none());
 	}
 

@@ -374,6 +374,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	/**
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
+	 * 如果bean被子类标识为要代理的bean，则使用配置的拦截器创建代理。
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
 	@Override
@@ -455,11 +456,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			return bean;
 		}
 		/*
-		 * 类似于postProcessBeforeInstantiation中创建代理的逻辑
-		 * 尝试创建代理对象
-		 */
-
-		/*
+		 * 类似于postProcessBeforeInstantiation中创建代理的逻辑 尝试创建代理对象
 		 * 1 获取当前bean可用的Advisor通知器，该方法由子类实现
 		 */
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);

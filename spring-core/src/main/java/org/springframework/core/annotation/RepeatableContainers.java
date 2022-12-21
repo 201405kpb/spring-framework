@@ -43,6 +43,7 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class RepeatableContainers {
 
+	// 容器注解
 	@Nullable
 	private final RepeatableContainers parent;
 
@@ -72,6 +73,7 @@ public abstract class RepeatableContainers {
 		if (this.parent == null) {
 			return null;
 		}
+		// 返回父节点的findRepeatedAnnotations方法返回值
 		return this.parent.findRepeatedAnnotations(annotation);
 	}
 
@@ -170,9 +172,11 @@ public abstract class RepeatableContainers {
 
 		private static Object computeRepeatedAnnotationsMethod(Class<? extends Annotation> annotationType) {
 			AttributeMethods methods = AttributeMethods.forAnnotationType(annotationType);
+			// 只有一个名为value的属性
 			Method method = methods.get(MergedAnnotation.VALUE);
 			if (method != null) {
 				Class<?> returnType = method.getReturnType();
+				// 返回值是可重复注解类型的数组，并且可重复注解上存在@Repeatable注解
 				if (returnType.isArray()) {
 					Class<?> componentType = returnType.getComponentType();
 					if (Annotation.class.isAssignableFrom(componentType) &&
@@ -191,10 +195,13 @@ public abstract class RepeatableContainers {
 	 */
 	private static class ExplicitRepeatableContainer extends RepeatableContainers {
 
+		// 可重复的注解
 		private final Class<? extends Annotation> repeatable;
 
+		// 容器注解
 		private final Class<? extends Annotation> container;
 
+		// 容器注解的value方法
 		private final Method valueMethod;
 
 		ExplicitRepeatableContainer(@Nullable RepeatableContainers parent,
@@ -237,12 +244,15 @@ public abstract class RepeatableContainers {
 			return annotation.value();
 		}
 
+		// 获取可重复注解
 		@Override
 		@Nullable
 		Annotation[] findRepeatedAnnotations(Annotation annotation) {
+			// 若容器注解的value方法返回值就是可重复注解，说明容器注解就是该可重复注解的直接容器
 			if (this.container.isAssignableFrom(annotation.annotationType())) {
 				return (Annotation[]) AnnotationUtils.invokeAnnotationMethod(this.valueMethod, annotation);
 			}
+			// 否则说明存在嵌套结构，当前容器注解实际上放的也是一个容器注解，继续递归直到找到符合条件的容器注解为止
 			return super.findRepeatedAnnotations(annotation);
 		}
 

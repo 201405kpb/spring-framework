@@ -123,6 +123,7 @@ public @interface Transactional {
 
 	/**
 	 * Alias for {@link #transactionManager}.
+	 * 可选的限定描述符，指定使用的事务管理器
 	 * @see #transactionManager
 	 */
 	@AliasFor("transactionManager")
@@ -157,6 +158,7 @@ public @interface Transactional {
 	/**
 	 * The transaction propagation type.
 	 * <p>Defaults to {@link Propagation#REQUIRED}.
+	 * 可选的事务传播行为,具体看Propagation中定义的属性
 	 * @see org.springframework.transaction.interceptor.TransactionAttribute#getPropagationBehavior()
 	 */
 	Propagation propagation() default Propagation.REQUIRED;
@@ -170,6 +172,7 @@ public @interface Transactional {
 	 * "true" on your transaction manager if you'd like isolation level declarations
 	 * to get rejected when participating in an existing transaction with a different
 	 * isolation level.
+	 * 可选的事务隔离级别
 	 * @see org.springframework.transaction.interceptor.TransactionAttribute#getIsolationLevel()
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setValidateExistingTransaction
 	 */
@@ -181,6 +184,7 @@ public @interface Transactional {
 	 * <p>Exclusively designed for use with {@link Propagation#REQUIRED} or
 	 * {@link Propagation#REQUIRES_NEW} since it only applies to newly started
 	 * transactions.
+	 * 事务超时时间设置
 	 * @return the timeout in seconds
 	 * @see org.springframework.transaction.interceptor.TransactionAttribute#getTimeout()
 	 */
@@ -192,6 +196,7 @@ public @interface Transactional {
 	 * <p>Exclusively designed for use with {@link Propagation#REQUIRED} or
 	 * {@link Propagation#REQUIRES_NEW} since it only applies to newly started
 	 * transactions.
+	 *  事务超时时间设置
 	 * @return the timeout in seconds as a String value, e.g. a placeholder
 	 * @since 5.3
 	 * @see org.springframework.transaction.interceptor.TransactionAttribute#getTimeout()
@@ -207,6 +212,7 @@ public @interface Transactional {
 	 * A transaction manager which cannot interpret the read-only hint will
 	 * <i>not</i> throw an exception when asked for a read-only transaction
 	 * but rather silently ignore the hint.
+	 * 读写或只读事务，默认读写
 	 * @see org.springframework.transaction.interceptor.TransactionAttribute#isReadOnly()
 	 * @see org.springframework.transaction.support.TransactionSynchronizationManager#isCurrentTransactionReadOnly()
 	 */
@@ -224,6 +230,7 @@ public @interface Transactional {
 	 * {@link #rollbackForClassName}), matching the exception type and its subclasses
 	 * in a type-safe manner. See the {@linkplain Transactional class-level javadocs}
 	 * for further details on rollback rule semantics.
+	 * 导致事务回滚的异常类数组,注意项：即使自定义异常，也必须继承自Throwable
 	 * @see #rollbackForClassName
 	 * @see org.springframework.transaction.interceptor.RollbackRuleAttribute#RollbackRuleAttribute(Class)
 	 * @see org.springframework.transaction.interceptor.DefaultTransactionAttribute#rollbackOn(Throwable)
@@ -237,6 +244,7 @@ public @interface Transactional {
 	 * <p>See the {@linkplain Transactional class-level javadocs} for further details
 	 * on rollback rule semantics, patterns, and warnings regarding possible
 	 * unintentional matches.
+	 * 导致事务回滚的异常类名字数组 类名数组，必须继承自Throwable
 	 * @see #rollbackFor
 	 * @see org.springframework.transaction.interceptor.RollbackRuleAttribute#RollbackRuleAttribute(String)
 	 * @see org.springframework.transaction.interceptor.DefaultTransactionAttribute#rollbackOn(Throwable)
@@ -251,6 +259,7 @@ public @interface Transactional {
 	 * {@link #noRollbackForClassName}), matching the exception type and its subclasses
 	 * in a type-safe manner. See the {@linkplain Transactional class-level javadocs}
 	 * for further details on rollback rule semantics.
+	 * 不会导致事务回滚的异常类数组Class对象数组，必须继承自Throwable
 	 * @see #noRollbackForClassName
 	 * @see org.springframework.transaction.interceptor.NoRollbackRuleAttribute#NoRollbackRuleAttribute(Class)
 	 * @see org.springframework.transaction.interceptor.DefaultTransactionAttribute#rollbackOn(Throwable)
@@ -264,6 +273,7 @@ public @interface Transactional {
 	 * <p>See the {@linkplain Transactional class-level javadocs} for further details
 	 * on rollback rule semantics, patterns, and warnings regarding possible
 	 * unintentional matches.
+	 * 不会导致事务回滚的异常类名字数组 类名数组，必须继承自Throwable
 	 * @see #noRollbackFor
 	 * @see org.springframework.transaction.interceptor.NoRollbackRuleAttribute#NoRollbackRuleAttribute(String)
 	 * @see org.springframework.transaction.interceptor.DefaultTransactionAttribute#rollbackOn(Throwable)
