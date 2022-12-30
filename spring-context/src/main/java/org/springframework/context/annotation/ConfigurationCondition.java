@@ -30,6 +30,7 @@ package org.springframework.context.annotation;
 public interface ConfigurationCondition extends Condition {
 
 	/**
+	 * 当前Condition可以被评估的配置阶段
 	 * Return the {@link ConfigurationPhase} in which the condition should be evaluated.
 	 */
 	ConfigurationPhase getConfigurationPhase();
@@ -44,7 +45,7 @@ public interface ConfigurationCondition extends Condition {
 		/**
 		 * The {@link Condition} should be evaluated as a {@code @Configuration}
 		 * class is being parsed.
-		 * 配置类是否需要在将其转换为ConfigurationClass之前进行评估是否符合条件，否则直接过滤掉
+		 * 配置类是否需要在将其转换为ConfigurationClass之前进行评估是否符合条件，否则直接过滤掉。配置类解析阶段
 		 * <p>If the condition does not match at this point, the {@code @Configuration}
 		 * class will not be added.
 		 */
@@ -54,7 +55,7 @@ public interface ConfigurationCondition extends Condition {
 		 * The {@link Condition} should be evaluated when adding a regular
 		 * (non {@code @Configuration}) bean. The condition will not prevent
 		 * {@code @Configuration} classes from being added.
-		 * 配置类是否需要在将其注册到IOC容器之前进行评估是否符合条件，否则直接过滤掉
+		 * 配置类是否需要在将其注册到IOC容器之前进行评估是否符合条件，否则直接过滤掉。Bean注册阶段
 		 * <p>At the time that the condition is evaluated, all {@code @Configuration}
 		 * classes will have been parsed.
 		 */

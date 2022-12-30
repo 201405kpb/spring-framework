@@ -25,6 +25,9 @@ import java.lang.annotation.Target;
 /**
  * Indicates whether a bean is to be lazily initialized.
  *
+ * 主要是针对单实例 bean: 因为单实例 Bean 默认在容器启动的时候创建对象
+ * 懒加载: 容器启动不创建对象.第一次使用(获取)Bean 创建对象,并初始化
+ *
  * <p>May be used on any class directly or indirectly annotated with {@link
  * org.springframework.stereotype.Component @Component} or on methods annotated with
  * {@link Bean @Bean}.

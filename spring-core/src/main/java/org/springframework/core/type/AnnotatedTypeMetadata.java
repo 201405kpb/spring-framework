@@ -46,8 +46,8 @@ import org.springframework.util.MultiValueMap;
 public interface AnnotatedTypeMetadata {
 
 	/**
-	 * Return annotation details based on the direct annotations of the
-	 * underlying element.
+	 * Return annotation details based on the direct annotations of the underlying element.
+	 * 基于基础元素的直接注释返回注释详细信息。
 	 * @return merged annotations based on the direct annotations
 	 * @since 5.2
 	 */
@@ -56,6 +56,7 @@ public interface AnnotatedTypeMetadata {
 	/**
 	 * Determine whether the underlying element has an annotation or meta-annotation
 	 * of the given type defined.
+	 * 根据“全类名”判断是否被指定 直接注解或元注解 标注
 	 * <p>If this method returns {@code true}, then
 	 * {@link #getAnnotationAttributes} will return a non-null Map.
 	 * @param annotationName the fully qualified class name of the annotation
@@ -70,6 +71,7 @@ public interface AnnotatedTypeMetadata {
 	 * Retrieve the attributes of the annotation of the given type, if any (i.e. if
 	 * defined on the underlying element, as direct annotation or meta-annotation),
 	 * also taking attribute overrides on composed annotations into account.
+	 * 根据”全类名“获取所有注解属性（包括元注解）
 	 * @param annotationName the fully qualified class name of the annotation
 	 * type to look for
 	 * @return a Map of attributes, with the attribute name as key (e.g. "value")
@@ -85,6 +87,10 @@ public interface AnnotatedTypeMetadata {
 	 * Retrieve the attributes of the annotation of the given type, if any (i.e. if
 	 * defined on the underlying element, as direct annotation or meta-annotation),
 	 * also taking attribute overrides on composed annotations into account.
+	 *
+	 * 根据‘全类名’获取所有注解属性（包括元注解）,但是第二个参数传 true 时会把属性中对应值为 Class 的值
+	 * 转为 字符串，避免需要预先加载对应 Class
+	 *
 	 * @param annotationName the fully qualified class name of the annotation
 	 * type to look for
 	 * @param classValuesAsString whether to convert class references to String
@@ -110,7 +116,8 @@ public interface AnnotatedTypeMetadata {
 	 * Retrieve all attributes of all annotations of the given type, if any (i.e. if
 	 * defined on the underlying element, as direct annotation or meta-annotation).
 	 * Note that this variant does <i>not</i> take attribute overrides into account.
-	 * @param annotationName the fully qualified class name of the annotation
+	 * 根据‘全类名’获取所有注解属性（包括元注解）,MultiValueMap 是一个 key 可以对应多个 value 的变种 map
+	 *  @param annotationName the fully qualified class name of the annotation
 	 * type to look for
 	 * @return a MultiMap of attributes, with the attribute name as key (e.g. "value")
 	 * and a list of the defined attribute values as Map value. This return value will

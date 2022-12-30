@@ -53,6 +53,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	/**
 	 * Scope identifier for the standard singleton scope: {@value}.
 	 * <p>Custom scopes can be added via {@code registerScope}.
+	 * 单实例的(默认值): ioc容器启动会调用方法创建对象放到ioc容器中.以后每次获取就是直接从容器(map.get())中拿.
 	 * @see #registerScope
 	 */
 	String SCOPE_SINGLETON = "singleton";
@@ -60,6 +61,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	/**
 	 * Scope identifier for the standard prototype scope: {@value}.
 	 * <p>Custom scopes can be added via {@code registerScope}.
+	 * 多实例的: ioc容器启动并不会去调用方法创建对象放在容器中,每次获取的时候才会调用方法创建对象.
 	 * @see #registerScope
 	 */
 	String SCOPE_PROTOTYPE = "prototype";

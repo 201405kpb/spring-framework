@@ -31,6 +31,8 @@ import org.springframework.util.MultiValueMap;
 /**
  * {@link MethodMetadata} implementation that uses standard reflection
  * to introspect a given {@code Method}.
+ * MethodMetadata 接口的对应方法直接委托 Method，基于 反射 实现,
+ * AnnotatedTypeMetadata 接口对应方法委托给 AnnotatedElementUtils 实现
  *
  * @author Juergen Hoeller
  * @author Mark Pollack

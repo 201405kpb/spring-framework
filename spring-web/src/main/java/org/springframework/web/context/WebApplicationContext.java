@@ -57,12 +57,14 @@ public interface WebApplicationContext extends ApplicationContext {
 	/**
 	 * Scope identifier for request scope: "request".
 	 * Supported in addition to the standard scopes "singleton" and "prototype".
+	 *  同一次请求创建一个实例
 	 */
 	String SCOPE_REQUEST = "request";
 
 	/**
 	 * Scope identifier for session scope: "session".
 	 * Supported in addition to the standard scopes "singleton" and "prototype".
+	 * 同一个session创建一个实例
 	 */
 	String SCOPE_SESSION = "session";
 

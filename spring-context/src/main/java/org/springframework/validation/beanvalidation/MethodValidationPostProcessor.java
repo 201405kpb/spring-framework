@@ -16,14 +16,10 @@
 
 package org.springframework.validation.beanvalidation;
 
-import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
-
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.framework.autoproxy.AbstractBeanFactoryAwareAdvisingPostProcessor;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
@@ -34,6 +30,9 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.function.SingletonSupplier;
 import org.springframework.validation.annotation.Validated;
+
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
 
 /**
  * A convenient {@link BeanPostProcessor} implementation that delegates to a
@@ -63,8 +62,10 @@ import org.springframework.validation.annotation.Validated;
 public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
 		implements InitializingBean {
 
+	// 缺省支持的表示类需要进行验证的注解：Spring 的注解 @Validated
 	private Class<? extends Annotation> validatedAnnotationType = Validated.class;
 
+	// 所要使用的验证器
 	private Supplier<Validator> validator = SingletonSupplier.of(() ->
 			Validation.buildDefaultValidatorFactory().getValidator());
 
@@ -75,6 +76,7 @@ public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvis
 	 * <p>This setter property exists so that developers can provide their own
 	 * (non-Spring-specific) annotation type to indicate that a class is supposed
 	 * to be validated in the sense of applying method validation.
+	 * 设置要支持的表示类需要进行验证的注解，缺省支持Spring提供的@Validated,开发人员可以通过该方法提供自己要支持的注解类型而不一定要是Spring相关的注解
 	 * @param validatedAnnotationType the desired annotation type
 	 */
 	public void setValidatedAnnotationType(Class<? extends Annotation> validatedAnnotationType) {
@@ -86,6 +88,8 @@ public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvis
 	 * Set the JSR-303 ValidatorFactory to delegate to for validating methods,
 	 * using its default Validator.
 	 * <p>Default is the default ValidatorFactory's default Validator.
+	 * 设置JSR-303验证器工厂，最终的方法验证任务代理给由该JSR-303验证器工厂生成的
+	 * 验证器完成。如果使用了该方法，所使用的验证器是工厂的缺省验证器。该方法和setValidator()二者用一个即可
 	 * @see jakarta.validation.ValidatorFactory#getValidator()
 	 */
 	public void setValidatorFactory(ValidatorFactory validatorFactory) {
@@ -95,6 +99,7 @@ public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvis
 	/**
 	 * Set the JSR-303 Validator to delegate to for validating methods.
 	 * <p>Default is the default ValidatorFactory's default Validator.
+	 * 设置JSR-303验证器，最终的方法验证任务代理给该JSR-303验证器完成
 	 */
 	public void setValidator(Validator validator) {
 		this.validator = () -> validator;
@@ -110,6 +115,9 @@ public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvis
 	}
 
 
+	// InitializingBean 接口定义的方法，在该 BeanPostProcessor bean实例创建过程中
+	// 初始化阶段执行，构造一个 DefaultPointcutAdvisor (pointcut + advise) 记录到 this.advisor
+	// 用于对符合条件的方法进行验证
 	@Override
 	public void afterPropertiesSet() {
 		Pointcut pointcut = new AnnotationMatchingPointcut(this.validatedAnnotationType, true);
