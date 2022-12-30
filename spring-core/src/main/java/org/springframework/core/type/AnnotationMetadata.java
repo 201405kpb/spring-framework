@@ -44,6 +44,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Get the fully qualified class names of all annotation types that
 	 * are <em>present</em> on the underlying class.
+	 * 返回目标所有 直接注解 全限定名的集合
 	 * @return the annotation type names
 	 */
 	default Set<String> getAnnotationTypes() {
@@ -56,6 +57,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Get the fully qualified class names of all meta-annotation types that
 	 * are <em>present</em> on the given annotation type on the underlying class.
+	 * 返回目标指定注解上 元注解 的全限定名集合
 	 * @param annotationName the fully qualified class name of the meta-annotation
 	 * type to look for
 	 * @return the meta-annotation type names, or an empty set if none found
@@ -73,6 +75,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Determine whether an annotation of the given type is <em>present</em> on
 	 * the underlying class.
+	 * 是否被指定 直接注解 标注
 	 * @param annotationName the fully qualified class name of the annotation
 	 * type to look for
 	 * @return {@code true} if a matching annotation is present
@@ -84,6 +87,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Determine whether the underlying class has an annotation that is itself
 	 * annotated with the meta-annotation of the given type.
+	 * 是否被 指定元注解 标注
 	 * @param metaAnnotationName the fully qualified class name of the
 	 * meta-annotation type to look for
 	 * @return {@code true} if a matching meta-annotation is present
@@ -96,6 +100,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Determine whether the underlying class has any methods that are
 	 * annotated (or meta-annotated) with the given annotation type.
+	 * 是否存在被指定 直接注解或元注解 标注的方法
 	 * @param annotationName the fully qualified class name of the annotation
 	 * type to look for
 	 */
@@ -106,6 +111,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Retrieve the method metadata for all methods that are annotated
 	 * (or meta-annotated) with the given annotation type.
+	 * 返回上述方法的 MethodMetadata 集合
 	 * <p>For any returned method, {@link MethodMetadata#isAnnotated} will
 	 * return {@code true} for the given annotation type.
 	 * @param annotationName the fully qualified class name of the annotation
@@ -119,6 +125,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Retrieve the method metadata for all user-declared methods on the
 	 * underlying class, preserving declaration order as far as possible.
+	 * 检索基础类上所有用户声明方法的方法元数据，尽可能保留声明顺序
 	 * @return a set of {@link MethodMetadata}
 	 * @since 6.0
 	 */
@@ -128,6 +135,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	/**
 	 * Factory method to create a new {@link AnnotationMetadata} instance
 	 * for the given class using standard reflection.
+	 * 使用标准反射为给定类创建新的AnnotationMetadata实例的Factory方法。
 	 * @param type the class to introspect
 	 * @return a new {@link AnnotationMetadata} instance
 	 * @since 5.2

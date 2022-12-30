@@ -53,9 +53,11 @@ final class SimpleMetadataReader implements MetadataReader {
 	private static ClassReader getClassReader(Resource resource) throws IOException {
 		try (InputStream is = resource.getInputStream()) {
 			try {
+				// 这个Reader的构造器中就将流读取完毕了
 				return new ClassReader(is);
 			}
 			catch (IllegalArgumentException ex) {
+				// 通过这个异常的信息，可以推测出，其实这里是通过ASM读取Class文件的定义了
 				throw new IOException("ASM ClassReader failed to parse class file - " +
 						"probably due to a new Java class file version that isn't supported yet: " + resource, ex);
 			}

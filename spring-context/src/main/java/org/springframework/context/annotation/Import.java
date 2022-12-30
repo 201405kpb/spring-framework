@@ -58,6 +58,8 @@ public @interface Import {
 	/**
 	 * {@link Configuration @Configuration}, {@link ImportSelector},
 	 * {@link ImportBeanDefinitionRegistrar}, or regular component classes to import.
+	 *
+	 * 这个类可以是配置类,或实现了ImportSelector接口的类,或者实现了ImportBeanDefinitionRegistrar接口的类.
 	 */
 	Class<?>[] value();
 

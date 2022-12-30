@@ -60,6 +60,7 @@ public @interface ComponentScan {
 
 	/**
 	 * Alias for {@link #basePackages}.
+	 * 要扫描的包
 	 * <p>Allows for more concise annotation declarations if no other attributes
 	 * are needed &mdash; for example, {@code @ComponentScan("org.my.pkg")}
 	 * instead of {@code @ComponentScan(basePackages = "org.my.pkg")}.
@@ -69,6 +70,7 @@ public @interface ComponentScan {
 
 	/**
 	 * Base packages to scan for annotated components.
+	 * 要扫描带注释组件的基本包
 	 * <p>{@link #value} is an alias for (and mutually exclusive with) this
 	 * attribute.
 	 * <p>Use {@link #basePackageClasses} for a type-safe alternative to
@@ -129,6 +131,7 @@ public @interface ComponentScan {
 
 	/**
 	 * Specifies which types are eligible for component scanning.
+	 * 指定扫描的时候只需要包含哪些组件
 	 * <p>Further narrows the set of candidate components from everything in {@link #basePackages}
 	 * to everything in the base packages that matches the given filter or filters.
 	 * <p>Note that these filters will be applied in addition to the default filters, if specified.
@@ -141,6 +144,7 @@ public @interface ComponentScan {
 
 	/**
 	 * Specifies which types are not eligible for component scanning.
+	 * 指定扫描的时候按照什么规则排除那些组件
 	 * @see #resourcePattern
 	 */
 	Filter[] excludeFilters() default {};

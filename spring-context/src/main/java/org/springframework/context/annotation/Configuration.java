@@ -428,6 +428,7 @@ public @interface Configuration {
 	 * Explicitly specify the name of the Spring bean definition associated with the
 	 * {@code @Configuration} class. If left unspecified (the common case), a bean
 	 * name will be automatically generated.
+	 * 显式指定与类关联的Spring bean定义的名称。如果未指定（常见情况），将自动生成bean名称。
 	 * <p>The custom name applies only if the {@code @Configuration} class is picked
 	 * up via component scanning or supplied directly to an
 	 * {@link AnnotationConfigApplicationContext}. If the {@code @Configuration} class
