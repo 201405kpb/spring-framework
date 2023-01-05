@@ -91,6 +91,7 @@ class ResourceEntityResolverTests {
 		}
 	}
 
+
 	private static class ConfigurableFallbackEntityResolver extends ResourceEntityResolver {
 
 		private final boolean shouldThrow;
@@ -99,7 +100,6 @@ class ResourceEntityResolverTests {
 		private final InputSource returnValue;
 
 		boolean fallbackInvoked = false;
-
 
 		private ConfigurableFallbackEntityResolver(boolean shouldThrow) {
 			super(new NoOpResourceLoader());
@@ -113,9 +113,8 @@ class ResourceEntityResolverTests {
 			this.returnValue = returnValue;
 		}
 
-
-		@Nullable
 		@Override
+		@Nullable
 		protected InputSource resolveSchemaEntity(String publicId, String systemId) {
 			this.fallbackInvoked = true;
 			if (this.shouldThrow) {
@@ -125,11 +124,8 @@ class ResourceEntityResolverTests {
 		}
 	}
 
-	static class ResolutionRejectedException extends RuntimeException {
 
-		@Serial
-		private static final long serialVersionUID = -3042686055658047284L;
-
-	}
+	@SuppressWarnings("serial")
+	static class ResolutionRejectedException extends RuntimeException {}
 
 }
