@@ -16,8 +16,6 @@
 
 package org.springframework.beans.factory.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -27,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Abstract {@link BeanDefinitionParser} implementation providing
@@ -50,10 +49,13 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractBeanDefinitionParser implements BeanDefinitionParser {
 
-	/** Constant for the "id" attribute. */
+	/** Constant for the "id" attribute.
+	 * "id"属性的常量
+	 * */
 	public static final String ID_ATTRIBUTE = "id";
 
-	/** Constant for the "name" attribute. */
+	/** Constant for the "name" attribute.
+	 * "name"属性的常量*/
 	public static final String NAME_ATTRIBUTE = "name";
 
 

@@ -16,16 +16,11 @@
 
 package org.springframework.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
+
+import java.util.*;
 
 /**
  * Utility class for working with Strings that have placeholder values in them.
@@ -91,16 +86,21 @@ public class PropertyPlaceholderHelper {
 
 	/**
 	 * Creates a new {@code PropertyPlaceholderHelper} that uses the supplied prefix and suffix.
+	 * 创建属性占位符辅助对象 设置占位符的解析格式 默认就是 ${...:...}
 	 * @param placeholderPrefix the prefix that denotes the start of a placeholder
+	 *                          表示占位符开头的前缀
 	 * @param placeholderSuffix the suffix that denotes the end of a placeholder
+	 *                          表示占位符结尾的后缀
 	 * @param valueSeparator the separating character between the placeholder variable
 	 * and the associated default value, if any
+	 *                        占位符变量和关联的默认值之间的分隔字符（如果有）
 	 * @param ignoreUnresolvablePlaceholders indicates whether unresolvable placeholders should
 	 * be ignored ({@code true}) or cause an exception ({@code false})
+	 *                         指示是否应忽略无法解析的占位符，true 忽略 false 抛出异常
 	 */
 	public PropertyPlaceholderHelper(String placeholderPrefix, String placeholderSuffix,
 			@Nullable String valueSeparator, boolean ignoreUnresolvablePlaceholders) {
-
+		// 设置相关占位符属性
 		Assert.notNull(placeholderPrefix, "'placeholderPrefix' must not be null");
 		Assert.notNull(placeholderSuffix, "'placeholderSuffix' must not be null");
 		this.placeholderPrefix = placeholderPrefix;
@@ -286,6 +286,7 @@ public class PropertyPlaceholderHelper {
 
 	/**
 	 * Strategy interface used to resolve replacement values for placeholders contained in Strings.
+	 * 用于解析占位符名字的策略接口
 	 */
 	@FunctionalInterface
 	public interface PlaceholderResolver {
@@ -293,8 +294,8 @@ public class PropertyPlaceholderHelper {
 		/**
 		 * Resolve the supplied placeholder name to the replacement value.
 		 * 将提供的占位符名称解析为替换值
-		 * @param placeholderName the name of the placeholder to resolve
-		 * @return the replacement value, or {@code null} if no replacement is to be made
+		 * @param placeholderName the name of the placeholder to resolve 要解析的占位符的名称
+		 * @return the replacement value, or {@code null} if no replacement is to be made 被替换的值，如果无法替换，则返回null
 		 */
 		@Nullable
 		String resolvePlaceholder(String placeholderName);

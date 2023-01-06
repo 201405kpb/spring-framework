@@ -21,6 +21,8 @@ import org.springframework.lang.Nullable;
 /**
  * Interface for resolving properties against any underlying source.
  *
+ * 属性解析器，该接口用于对于底层属性源进行属性解析，提供了通过属性key获取属性value以及解析占位符等基本功能
+ *
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1
@@ -105,6 +107,7 @@ public interface PropertyResolver {
 	 * Resolve ${...} placeholders in the given text, replacing them with corresponding
 	 * property values as resolved by {@link #getProperty}. Unresolvable placeholders with
 	 * no default value will cause an IllegalArgumentException to be thrown.
+	 * 解析必须的给定文本中的占位符，默认占位符语法规则为 ${...}
 	 * @return the resolved String (never {@code null})
 	 * @throws IllegalArgumentException if given text is {@code null}
 	 * or if any placeholders are unresolvable

@@ -16,13 +16,8 @@
 
 package org.springframework.core.env;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -32,8 +27,14 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.SystemPropertyUtils;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * Abstract base class for resolving properties against any underlying source.
+ * ConfigurablePropertyResolver接口的抽象实现类，实现了ConfigurablePropertyResolver接口的所有抽象方法，
+ * 是用于针对任何基础属性源解析属性的抽象基类，定义了默认占位符属性格式“${…:…}”，以及其他比如转换服务属性、必备属性
  *
  * @author Chris Beams
  * @author Juergen Hoeller
@@ -223,11 +224,20 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		return doResolvePlaceholders(text, this.nonStrictHelper);
 	}
 
+	/**
+	 * 该方法是位于PropertySourcesPropertyResolver的父类AbstractPropertyResolver中的方法
+	 * <p>解析必须的给定文本中的占位符，默认占位符语法规则为 ${...}
+	 * @param text 原始的字符串文本
+	 * @return 已解析的字符串
+	 * @throws IllegalArgumentException 如果给定文本为null
+	 */
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+		//创建一个属性占位符解析辅助对象  PropertyPlaceholderHelper
 		if (this.strictHelper == null) {
 			this.strictHelper = createPlaceholderHelper(false);
 		}
+		//调用doResolvePlaceholders方法，解析占位符
 		return doResolvePlaceholders(text, this.strictHelper);
 	}
 
@@ -266,8 +276,19 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 				this.valueSeparator, ignoreUnresolvablePlaceholders);
 	}
 
+	/**
+	 * 实际上内部调用属性占位符辅助对象的replacePlaceholders方法，解析占位符
+	 */
 	private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {
 		return helper.replacePlaceholders(text, this::getPropertyAsRawString);
+		//这个方法引用有点绕，表示resolvePlaceholder方法调用当前PropertySourcesPropertyResolver对象的getPropertyAsRawString方法
+		//使用普通匿名内部类格式如下：
+		//return helper.replacePlaceholders(text, new PropertyPlaceholderHelper.PlaceholderResolver() {
+		//    @Override
+		//    public String resolvePlaceholder(String key) {
+		//        return getPropertyAsRawString(key);
+		//    }
+		//});
 	}
 
 	/**

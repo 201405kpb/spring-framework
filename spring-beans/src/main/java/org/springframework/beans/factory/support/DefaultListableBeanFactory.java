@@ -16,12 +16,22 @@
 
 package org.springframework.beans.factory.support;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.io.Serial;
-import java.io.Serializable;
+import jakarta.inject.Provider;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.TypeConverter;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.core.OrderComparator;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
+import org.springframework.core.log.LogMessage;
+import org.springframework.core.metrics.StartupStep;
+import org.springframework.lang.Nullable;
+import org.springframework.util.*;
+
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -31,47 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import jakarta.inject.Provider;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
-import org.springframework.beans.factory.CannotLoadBeanClassException;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartFactoryBean;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.NamedBeanHolder;
-import org.springframework.core.OrderComparator;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.annotation.MergedAnnotation;
-import org.springframework.core.annotation.MergedAnnotations;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.core.log.LogMessage;
-import org.springframework.core.metrics.StartupStep;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.CompositeIterator;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Spring's default implementation of the {@link ConfigurableListableBeanFactory}
@@ -140,13 +109,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * Map from serialized id to factory instance.
+	 * 从反序列化的ID 映射到 工厂实例
 	 */
 	private static final Map<String, Reference<DefaultListableBeanFactory>> serializableFactories =
 			new ConcurrentHashMap<>(8);
 
 	/**
 	 * Optional id for this factory, for serialization purposes.
-	 * 从反序列化的ID 映射到 工厂实例
+	 * 序列化标识
 	 */
 	@Nullable
 	private String serializationId;
@@ -159,6 +129,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * Whether to allow eager class loading even for lazy-init beans.
+	 * 是否允许即使对于懒惰的init bean也进行急切的类加载
 	 */
 	private boolean allowEagerClassLoading = true;
 
@@ -191,6 +162,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * Map from bean name to merged BeanDefinitionHolder.
+	 * 从bean名称映射到合并的BeanDefinitionHolder。
 	 */
 	private final Map<String, BeanDefinitionHolder> mergedBeanDefinitionHolders = new ConcurrentHashMap<>(256);
 
@@ -279,6 +251,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * Return an id for serialization purposes, if specified, allowing this BeanFactory
 	 * to be deserialized from this id back into the BeanFactory object, if needed.
 	 *
+	 * 返回一个用于序列化的id（如果指定），允许将此BeanFactory从该id反序列化回BeanFactory对象（如果需要）。
+	 *
 	 * @since 4.1.2
 	 */
 	@Nullable
@@ -306,6 +280,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * Return whether it should be allowed to override bean definitions by registering
 	 * a different definition with the same name, automatically replacing the former.
 	 *
+	 * 是否应允许它通过注册具有相同名称的不同定义来覆盖bean定义，并自动替换前者
+	 *
 	 * @since 4.1.2
 	 */
 	public boolean isAllowBeanDefinitionOverriding() {
@@ -320,6 +296,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * In particular, by-type lookups will then simply ignore bean definitions
 	 * without resolved class name, instead of loading the bean classes on
 	 * demand just to perform a type check.
+	 *
+	 * 设置是否允许工厂急切地加载bean类，即使是标记为“lazyinit”的bean定义
+	 * <p> 默认值为“true”。关闭此标志可以抑制惰性init bean的类加载，除非明确请求了这样的bean。
+	 * 特别是，按类型查找将忽略没有解析类名的bean定义，而不是按需加载bean类来执行类型检查。
 	 *
 	 * @see AbstractBeanDefinition#setLazyInit
 	 */
@@ -351,7 +331,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * Return the dependency comparator for this BeanFactory (may be {@code null}.
-	 * <p>返回此BeanFactory的依赖关系比较器(可以为null)</p>
+	 * <p>返回此BeanFactory的依赖关系比较器(可以为null)
 	 *
 	 * @since 4.0
 	 */
@@ -364,6 +344,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * Set a custom autowire candidate resolver for this BeanFactory to use
 	 * when deciding whether a bean definition should be considered as a
 	 * candidate for autowiring.
+	 * 为这个BeanFactory设置一个自定义自动连线候选解析器，以便在决定是否应该将bean定义视为自动连线的候选时使用
 	 */
 	public void setAutowireCandidateResolver(AutowireCandidateResolver autowireCandidateResolver) {
 		Assert.notNull(autowireCandidateResolver, "AutowireCandidateResolver must not be null");
@@ -1068,6 +1049,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 
+	/**
+	 * 查找使用提供的Annotation类型注释的所有bean名称，而不创建相应的bean实例。
+	 * @param annotationType the type of annotation to look for
+	 * (at class, interface or factory method level of the specified bean)
+	 *                       要查找的注释类型
+	 * @return  所有匹配bean的名称
+	 */
 	@Override
 	public String[] getBeanNamesForAnnotation(Class<? extends Annotation> annotationType) {
 		List<String> result = new ArrayList<>();
@@ -1085,6 +1073,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return StringUtils.toStringArray(result);
 	}
 
+	/**
+	 * 查找使用提供的 Annotation类型注释的所有bean，返回带有相应bean实例的bean名称映射。
+	 * @param annotationType 要查找的注释类型
+	 * @return 带有匹配bean的Map，包含bean名称作为键，对应的bean实例作为值
+	 */
 	@Override
 	public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) {
 		String[] beanNames = getBeanNamesForAnnotation(annotationType);
@@ -1455,7 +1448,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 */
 	@Override
 	public void preInstantiateSingletons() throws BeansException {
+		//如果当前日志级别时跟踪
 		if (logger.isTraceEnabled()) {
+			//打印跟踪日志：预实例化单例在该BeanFactory
 			logger.trace("Pre-instantiating singletons in " + this);
 		}
 
@@ -1866,15 +1861,22 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 */
 	@Override
 	public <T> NamedBeanHolder<T> resolveNamedBean(Class<T> requiredType) throws BeansException {
+		//如果requiredType为null,抛出异常
 		Assert.notNull(requiredType, "Required type must not be null");
+		//解析与requiredType唯一匹配的bean实例，包括其bean名
 		NamedBeanHolder<T> namedBean = resolveNamedBean(ResolvableType.forRawClass(requiredType), null, false);
 		if (namedBean != null) {
+			//将nameBean返回出去
 			return namedBean;
 		}
+		//获取父工厂
 		BeanFactory parent = getParentBeanFactory();
+		//如果父工厂是AutowireCapableBeanFactory的实例
 		if (parent instanceof AutowireCapableBeanFactory acbf) {
+			//使用父工厂递归调用该方法来解析与requiredType唯一匹配的bean实例，包括其bean名并将结果返回出去
 			return acbf.resolveNamedBean(requiredType);
 		}
+		//在没能解析时，抛出没有此类BeanDefinition异常
 		throw new NoSuchBeanDefinitionException(requiredType);
 	}
 

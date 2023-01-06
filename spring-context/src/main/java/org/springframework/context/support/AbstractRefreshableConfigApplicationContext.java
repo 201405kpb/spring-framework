@@ -30,6 +30,8 @@ import org.springframework.util.StringUtils;
  * {@link FileSystemXmlApplicationContext}, as well as
  * {@link org.springframework.web.context.support.XmlWebApplicationContext}.
  *
+ * 支持beanFactory的刷新
+ *
  * @author Juergen Hoeller
  * @since 2.5.2
  * @see #setConfigLocation
