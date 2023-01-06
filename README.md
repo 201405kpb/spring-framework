@@ -39,4 +39,11 @@ The Spring Framework is released under version 2.0 of the [Apache License](https
 
 ## 扩展阅读
 
+[源码编译](https://github.com/spring-projects/spring-framework/wiki/Build-from-Source)
+
+[导入idea](https://github.com/spring-projects/spring-framework/wiki/Build-from-Source)
+
+[编译spring-aspects模块](https://blog.51cto.com/u_14998860/4866939)
+
 [元注解功能的实现](https://blog.csdn.net/JavaShark/article/details/125393620)
+

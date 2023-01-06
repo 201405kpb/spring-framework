@@ -25,6 +25,9 @@ import org.springframework.lang.Nullable;
  * {@link org.springframework.core.convert.ConversionService ConversionService}
  * used when converting property values from one type to another.
  *
+ * 接口扩了PropertyResolver的功能，如设置的占位符格式、
+ * 配合org.springframework.core.convert.ConversionService用来转换获取到的属性value的类型等功能
+ *
  * @author Chris Beams
  * @since 3.1
  */

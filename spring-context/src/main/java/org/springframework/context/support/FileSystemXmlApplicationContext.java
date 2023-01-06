@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
  * from the file system or from URLs, interpreting plain paths as relative
  * file system locations (e.g. "mydir/myfile.txt"). Useful for test harnesses
  * as well as for standalone environments.
+ * 默认就是加载文件系统下面的配置文件，可以不加“file:”，有盘符绝对路径的算作项目的根目录。
+ * 但是如果要使用 classpath 路径，就必须需要加上“asspath:”前缀
  *
  * <p><b>NOTE:</b> Plain paths will always be interpreted as relative
  * to the current VM working directory, even if they start with a slash.

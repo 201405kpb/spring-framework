@@ -22,6 +22,10 @@ import org.springframework.lang.Nullable;
  * {@link PropertyResolver} implementation that resolves property values against
  * an underlying set of {@link PropertySources}.
  *
+ * 继承AbstractPropertyResolver抽象类，作为非web环境下的PropertyResolver体系的默认实现也是唯一实现也是，
+ * 它将PropertySources（类型为PropertySource）属性源集合作为属性来源，通过顺序遍历每一个PropertySource属性源，
+ * 返回第一个找到（不为null）的属性key对应的属性value
+ *
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1
@@ -73,9 +77,15 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 		return getProperty(key, targetValueType, true);
 	}
 
+	/**
+	 * 将指定的属性检索为原始字符串，即不解析嵌套占位符。
+	 * @param key the property name to resolve 占位符变量
+	 * @return 解析结果
+	 */
 	@Override
 	@Nullable
 	protected String getPropertyAsRawString(String key) {
+		//调用getProperty方法
 		return getProperty(key, String.class, false);
 	}
 
