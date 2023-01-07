@@ -16,11 +16,8 @@
 
 package org.springframework.context.event;
 
-import java.util.concurrent.Executor;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -29,27 +26,37 @@ import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ErrorHandler;
 
+import java.util.concurrent.Executor;
+
 /**
  * Simple implementation of the {@link ApplicationEventMulticaster} interface.
- *
+ * <p>简单实现的 ApplicationEventMulticaster 接口</p>
  * <p>Multicasts all events to all registered listeners, leaving it up to
  * the listeners to ignore events that they are not interested in.
  * Listeners will usually perform corresponding {@code instanceof}
  * checks on the passed-in event object.
+ * <p>将所有事件多播给所有注册的监听器，让监听器忽略它们不感兴趣的事件。监听器通常
+ * 会对传入的事件对象执行相应的 instanceof 检查</p>
+ * <p>多播:一点对多点的通信</p>
  *
  * <p>By default, all listeners are invoked in the calling thread.
  * This allows the danger of a rogue listener blocking the entire application,
  * but adds minimal overhead. Specify an alternative task executor to have
  * listeners executed in different threads, for example from a thread pool.
+ * <p>默认情况下，所有监听器都在调用线程中调用。这允许恶意监听器阻塞整个应用程序的
+ * 危险，但只增加最小的开销。指定另一个任务执行器，让监听器在不同的线程中执行，例如
+ * 从线程池中执行</p>
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Stephane Nicoll
- * @author Brian Clozel
  * @see #setTaskExecutor
  */
 public class SimpleApplicationEventMulticaster extends AbstractApplicationEventMulticaster {
 
+	/**
+	 * 当前任务线程池
+	 */
 	@Nullable
 	private Executor taskExecutor;
 
@@ -62,12 +69,14 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	/**
 	 * Create a new SimpleApplicationEventMulticaster.
+	 * <p>创建一个新的 SimpleApplicationEventMulticaster </p>
 	 */
 	public SimpleApplicationEventMulticaster() {
 	}
 
 	/**
 	 * Create a new SimpleApplicationEventMulticaster for the given BeanFactory.
+	 * <p>为给定的BeanFactory创建一个新的 SimpleApplicationEventMulticaster </p>
 	 */
 	public SimpleApplicationEventMulticaster(BeanFactory beanFactory) {
 		setBeanFactory(beanFactory);
@@ -83,6 +92,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	 * caller until all listeners have been executed. However, note that asynchronous
 	 * execution will not participate in the caller's thread context (class loader,
 	 * transaction association) unless the TaskExecutor explicitly supports this.
+	 *
 	 * @see org.springframework.core.task.SyncTaskExecutor
 	 * @see org.springframework.core.task.SimpleAsyncTaskExecutor
 	 */
@@ -92,6 +102,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	/**
 	 * Return the current task executor for this multicaster.
+	 *  <p>返回此多播器的当前任务线程池</p>
 	 */
 	@Nullable
 	protected Executor getTaskExecutor() {
@@ -111,6 +122,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	 * {@link org.springframework.scheduling.support.TaskUtils#LOG_AND_SUPPRESS_ERROR_HANDLER})
 	 * or an implementation that logs exceptions while nevertheless propagating them
 	 * (e.g. {@link org.springframework.scheduling.support.TaskUtils#LOG_AND_PROPAGATE_ERROR_HANDLER}).
+	 *
 	 * @since 4.1
 	 */
 	public void setErrorHandler(@Nullable ErrorHandler errorHandler) {
@@ -119,6 +131,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	/**
 	 * Return the current error handler for this multicaster.
+	 * <p>返回此多播器的当前错误处理程序</p>
 	 * @since 4.1
 	 */
 	@Nullable
@@ -133,7 +146,8 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	/**
 	 * 将给定的应用程序事件广播到到适当的监听器
-	 * @param event the event to multicast
+	 *
+	 * @param event     the event to multicast
 	 * @param eventType the type of event (can be {@code null})
 	 */
 	@Override
@@ -167,28 +181,38 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	}
 
 	/**
+	 * <p>回调listener的onApplicationEvent方法，传入 event</p>
 	 * Invoke the given listener with the given event.
+	 * <p>使用给定的事件调用给定的监听器</p>
 	 * @param listener the ApplicationListener to invoke
+	 *                 -- 要调用的ApplicationListenere
 	 * @param event the current event to propagate
+	 *              -- 要传播的当前事件
 	 * @since 4.1
 	 */
 	protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
+		//获取此多播器的当前错误处理程序
 		ErrorHandler errorHandler = getErrorHandler();
+		//如果 errorHandler 不为 null
 		if (errorHandler != null) {
 			try {
+				//回调listener的onApplicationEvent方法，传入 event
 				doInvokeListener(listener, event);
 			}
 			catch (Throwable err) {
+				//交给errorHandler接收处理 err
 				errorHandler.handleError(err);
 			}
 		}
 		else {
+			//回调listener的onApplicationEvent方法，传入 event
 			doInvokeListener(listener, event);
 		}
 	}
 
 	/**
 	 * 真正的调用listener的方法
+	 *
 	 * @param listener
 	 * @param event
 	 */
@@ -198,8 +222,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 			//调用listener的onApplicationEvent方法传播事件，这个方法就是处理事件的方法，不同的ApplicationListener有不同的实现
 			//如果是ApplicationListenerMethodAdapter，即@EventListener方法监听器，那么首先会检验condition规则，只有符合规则才会真正的执行
 			listener.onApplicationEvent(event);
-		}
-		catch (ClassCastException ex) {
+		} catch (ClassCastException ex) { // 捕捉异常信息
 			String msg = ex.getMessage();
 			if (msg == null || matchesClassCastMessage(msg, event.getClass()) ||
 					(event instanceof PayloadApplicationEvent &&
@@ -214,28 +237,41 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 				if (loggerToUse.isTraceEnabled()) {
 					loggerToUse.trace("Non-matching event type for listener: " + listener, ex);
 				}
-			}
-			else {
+			} else {
 				throw ex;
 			}
 		}
 	}
 
+	/**
+	 * 匹配类转换消息，以保证抛出类转换异常是因eventClass引起的
+	 * @param classCastMessage 类转换异常消息
+	 * @param eventClass 事件类型
+	 */
 	private boolean matchesClassCastMessage(String classCastMessage, Class<?> eventClass) {
 		// On Java 8, the message starts with the class name: "java.lang.String cannot be cast..."
+		// 在 JAVA 8中，消息以类名开始：'java.lang.String 不能被转换 .. '
+		//如果 classCastMessage 是以 eventClass类名开头，返回true
 		if (classCastMessage.startsWith(eventClass.getName())) {
+			//返回true
 			return true;
 		}
 		// On Java 11, the message starts with "class ..." a.k.a. Class.toString()
+		// 在 JAVA 11 中，消息是以'class ...' 开始，选择 Class.toString
+		//如果 classCastMessage是以 eventClass.toString()开头，返回true
 		if (classCastMessage.startsWith(eventClass.toString())) {
 			return true;
 		}
 		// On Java 9, the message used to contain the module name: "java.base/java.lang.String cannot be cast..."
+		// 在 Java 9, 用于包含模块名的消息：'java.base/java.lang.String 不能被转换'
+		// 找出 classCastMessage 的 '/' 第一个索引位置
 		int moduleSeparatorIndex = classCastMessage.indexOf('/');
+		//如果找到了'/'位置 && '/'后面的字符串是以eventClass类名开头
 		if (moduleSeparatorIndex != -1 && classCastMessage.startsWith(eventClass.getName(), moduleSeparatorIndex + 1)) {
 			return true;
 		}
 		// Assuming an unrelated class cast failure...
+		// 假设一个不相关的类转换失败
 		return false;
 	}
 

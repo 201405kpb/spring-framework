@@ -16,19 +16,18 @@
 
 package org.springframework.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.util.StringValueResolver;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.StringValueResolver;
 
 /**
  * Simple implementation of the {@link AliasRegistry} interface.
@@ -147,9 +146,13 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		}
 	}
 
-	//判定指定名称是否是别名
+	/**
+	 * 确定此给定名称是否定义为别名：返回name是否存在于别名Map【aliasMap】中
+	 * @param name the name to check -- 要检查的名称
+	 */
 	@Override
 	public boolean isAlias(String name) {
+		//返回name是否存在于别名Map中
 		return this.aliasMap.containsKey(name);
 	}
 
@@ -164,14 +167,33 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
+	 * <p>以递归的形式获取name的所有别名,将所有别名存放的result中:
+	 *  <ol>
+	 *   <li>遍历 aliasMap【key为别名【alias】,value为已注册名称【registeredName】】:
+	 *    <ol>
+	 *     <li>如果registeredName与name相同:
+	 *      <ol>
+	 *       <li>将alias添加到result中</li>
+	 *       <li>递归该方法，查找该alias的别名。</li>
+	 *      </ol>
+	 *     </li>
+	 *    </ol>
+	 *   </li>
+	 *  </ol>
+	 * </p>
 	 * Transitively retrieve all aliases for the given name.
-	 * 检索给定名称的所有别名，如果相同就将别名加入集合
+	 * <p>传递检索给定名称的所有别名</p>
 	 * @param name the target name to find aliases for
+	 *             -- 查找别名的目标名称
 	 * @param result the resulting aliases list
+	 *               -- 结果别名列表
 	 */
 	private void retrieveAliases(String name, List<String> result) {
+		//遍历 aliasMap
 		this.aliasMap.forEach((alias, registeredName) -> {
+			//如果已注册名称与要查找别名的目标名称相同
 			if (registeredName.equals(name)) {
+				//将别名添加到result中
 				result.add(alias);
 				//递归检测含间接关系的别名
 				retrieveAliases(alias, result);
@@ -248,22 +270,31 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
+	 * <p>获取name的最终别名或者是全类名
+	 * 	<ol>
+	 * 	    <li>通过递归形式在aliasMap【别名映射到规范名称集合】中得到最终的规范名称</li>
+	 * 	</ol>
+	 * </p>
 	 * Determine the raw name, resolving aliases to canonical names.
-	 * 循环处理，从aliasMap中根据aliasName获取真实beanName，直到获取到的真实beanName为null
-	 * @param name the user-specified name
-	 * @return the transformed name
+	 * <p>确定原始名称，将别名解析为规范名称</p>
+	 * @param name the user-specified name - 用户指定的名称
+	 * @return the transformed name - 转换后的名称
 	 */
 	public String canonicalName(String name) {
+		//规范名称初始化化传入的name
 		String canonicalName = name;
 		// Handle aliasing...
 		String resolvedName;
 		do {
-			//从字典中获取别名对应的规范名称
+			//通过 规范名称 从 aliasMap中获取解析后的名称
 			resolvedName = this.aliasMap.get(canonicalName);
+			//如果找到了解析后的名称
 			if (resolvedName != null) {
+				//规范名称重新赋值为解析后名称
 				canonicalName = resolvedName;
 			}
 		}
+		//只要找到了解析后的名称
 		while (resolvedName != null);
 		return canonicalName;
 	}
