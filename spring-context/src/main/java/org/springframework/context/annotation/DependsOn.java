@@ -16,11 +16,7 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Beans on which the current bean depends. Any beans specified are guaranteed to be
@@ -42,6 +38,10 @@ import java.lang.annotation.Target;
  * is being used. If a {@link DependsOn}-annotated class is declared via XML,
  * {@link DependsOn} annotation metadata is ignored, and
  * {@code <bean depends-on="..."/>} is respected instead.
+ *
+ * DependsOn注解主要用于指定当前BEAN所依赖的BEANS。任何被指定的依赖的BEAN都由Spring容器保证在当前BEAN之前创建和加载。
+ * 在某些场景下，BEAN不是通过属性或构造函数参数显式依赖于另一个BEAN，但却需要要求另一个BEAN优先完成初始化，则可以使用@DependsOn这个注解。
+ * DependsOn既可以指定初始化的依赖顺序，也可以指定BEAN相应的销毁执行顺序（仅在单例bean的情况下）。
  *
  * @author Juergen Hoeller
  * @since 3.0

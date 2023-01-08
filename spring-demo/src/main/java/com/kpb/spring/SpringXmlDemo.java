@@ -11,6 +11,7 @@ public class SpringXmlDemo {
 		ApplicationContext applicationContext= new ClassPathXmlApplicationContext("classpath:spring-core-config.xml");
 		Object helloWorldService = applicationContext.getBean("mFactoryBean");
 
+
 	}
 }
 
