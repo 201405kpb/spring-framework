@@ -16,25 +16,21 @@
 
 package org.springframework.core;
 
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-import org.springframework.lang.Nullable;
-
 /**
  * {@link ParameterNameDiscoverer} implementation which uses JDK 8's reflection facilities
  * for introspecting parameter names (based on the "-parameters" compiler flag).
- *
- * <p>This is a key element of {@link DefaultParameterNameDiscoverer} where it is being
- * combined with {@link KotlinReflectionParameterNameDiscoverer} if Kotlin is present.
- *
+ * <p>{@link ParameterNameDiscoverer}实现类,使用JDK8的反射工具内省参数名
+ * (基于'-parameters'编译器标记)</p>
  * @author Juergen Hoeller
  * @since 4.0
  * @see java.lang.reflect.Method#getParameters()
  * @see java.lang.reflect.Parameter#getName()
- * @see KotlinReflectionParameterNameDiscoverer
- * @see DefaultParameterNameDiscoverer
  */
 public class StandardReflectionParameterNameDiscoverer implements ParameterNameDiscoverer {
 
@@ -52,15 +48,23 @@ public class StandardReflectionParameterNameDiscoverer implements ParameterNameD
 
 	@Nullable
 	private String[] getParameterNames(Parameter[] parameters) {
+		//初始化一个用于存放参数名的数组，长度为parameters的长度
 		String[] parameterNames = new String[parameters.length];
+		//遍历Parameter对象数组
 		for (int i = 0; i < parameters.length; i++) {
+			//获取Parameters中的第i个Parameter对象
 			Parameter param = parameters[i];
+			//Parameter.isNamePresent：如果参数具有根据类文件的名称，则返回true。否则
+			// 		返回false。参数是否具有名称由声明该参数的方法MethodParameters确定。
+			//  	简单来说就是验证参数名是不是可用
 			if (!param.isNamePresent()) {
+				//返回null，表示获取参数名失败
 				return null;
 			}
+			//获取param的名称赋值给第i个Parameter对象
 			parameterNames[i] = param.getName();
 		}
+		//返回参数名数组
 		return parameterNames;
 	}
-
 }

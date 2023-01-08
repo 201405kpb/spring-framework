@@ -23,6 +23,7 @@ import org.springframework.lang.Nullable;
 /**
  * {@link AutowireCandidateResolver} implementation to use when no annotation
  * support is available. This implementation checks the bean definition only.
+ * 没有注释支持可用时使用的AutowireCandidateResolver实现。此实现仅检查bean定义
  *
  * @author Mark Fisher
  * @author Juergen Hoeller
@@ -37,11 +38,25 @@ public class SimpleAutowireCandidateResolver implements AutowireCandidateResolve
 	public static final SimpleAutowireCandidateResolver INSTANCE = new SimpleAutowireCandidateResolver();
 
 
+	/**
+	 * 确定给定的beanDefinition是否可以自动注入。只对@Autowired注解有效，配置文件中可以通过property显示注入
+	 * <p>简单返回bdHolder的BeanDefinition对象的是否可以自动注入标记结果【{@link AbstractBeanDefinition#isAutowireCandidate()}】</p>
+	 * @param bdHolder the bean definition including bean name and aliases
+	 *                 -- beanDefinition,包括bean名和别名封装对象
+	 * @param descriptor the descriptor for the target method parameter or field
+	 *                   -- 目标方法参数或字段的描述符
+	 * @return  给定的beanDefinition是否可以自动注入
+	 */
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
 		return bdHolder.getBeanDefinition().isAutowireCandidate();
 	}
 
+	/**
+	 * 确定descriptor是否需要依赖项(descriptor是否设置了需要依赖项)。
+	 * @param descriptor the descriptor for the target method parameter or field
+	 *                   -- 目标方法参数或字段描述符
+	 */
 	@Override
 	public boolean isRequired(DependencyDescriptor descriptor) {
 		return descriptor.isRequired();

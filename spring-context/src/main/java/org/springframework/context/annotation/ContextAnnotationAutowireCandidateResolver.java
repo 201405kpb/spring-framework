@@ -16,18 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver;
 import org.springframework.beans.factory.config.DependencyDescriptor;
@@ -37,139 +27,204 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.*;
+
 /**
  * Complete implementation of the
  * {@link org.springframework.beans.factory.support.AutowireCandidateResolver} strategy
  * interface, providing support for qualifier annotations as well as for lazy resolution
  * driven by the {@link Lazy} annotation in the {@code context.annotation} package.
- *
+ * <p>{@link org.springframework.beans.factory.support.AutowireCandidateResolver}策略接口的
+ * 完整实现，提供对限定符注释以及由context.annoation包中的@Lazy注解驱动的延迟解析支持</p>
  * @author Juergen Hoeller
  * @since 4.0
  */
 public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotationAutowireCandidateResolver {
 
+	/**
+	 * 如有必要,获取惰性解析代理
+	 * @param descriptor 目标方法参数或字段描述符
+	 * @param beanName 包含注入点的bean名
+	 * @return 实际依赖关系目标的惰性解决方案代理；如果要执行直接解决方案，则为null
+	 */
 	@Override
 	@Nullable
 	public Object getLazyResolutionProxyIfNecessary(DependencyDescriptor descriptor, @Nullable String beanName) {
+		//如果desciptor指定了懒加载,就会建立延迟解析代理对象然后返回出去,否则返回null
 		return (isLazy(descriptor) ? buildLazyResolutionProxy(descriptor, beanName) : null);
 	}
 
-	@Override
-	@Nullable
-	public Class<?> getLazyResolutionProxyClass(DependencyDescriptor descriptor, @Nullable String beanName) {
-		return (isLazy(descriptor) ? (Class<?>) buildLazyResolutionProxy(descriptor, beanName, true) : null);
-	}
-
 	/**
-	 * @param descriptor 依赖项的描述符，包含MethodParameter的信息
-	 * @return 是否设置了延迟加载
+	 * desciptor是否指定了懒加载:
+	 * <ol>
+	 *  <li>【<b>检查decriptord所封装的Field/MethodParamater对象有没有@Lazy注解</b>】:
+	 *   <ol>
+	 *    <li>遍历decriptord的所有注解,元素为ann:
+	 *     <ol>
+	 *      <li>从an中取出@Lazy对象【变量 lazy】</li>
+	 *      <li>如果有lazy且lazy的值为true，就返回true,表示decriptor指定了懒加载</li>
+	 *     </ol>
+	 *    </li>
+	 *   </ol>
+	 *  </li>
+	 *  <li>【<b>检查decriptord所封装的MethodParamater对象所属的Method上有没有@Lazy注解</b>】:
+	 *   <ol>
+	 *    <li>从descriptor中获取方法参数【变量 methodParam】</li>
+	 *    <li>如果有方法参数
+	 *     <ol>
+	 *      <li>获取methodParam所属方法【变量 method】</li>
+	 *      <li>如果method是构造函数 或者 method是无返回值方法:
+	 *       <ol>
+	 *        <li>从methodParam所属的Method对象的注解中获取@Lazy注解对象</li>
+	 *        <li>如果有lazy且lazy的值为true，就返回true,表示decriptor指定了懒加载</li>
+	 *       </ol>
+	 *      </li>
+	 *     </ol>
+	 *    </li>
+	 *   </ol>
+	 *  </li>
+	 *  <li>如果descriptor所包含的对象没有加上@Lazy注解或者@Lazy没有指定成懒加载，就返回false,
+	 *  表示没有指定了懒加载</li>
+	 * </ol>
 	 */
 	protected boolean isLazy(DependencyDescriptor descriptor) {
-		//获取、遍历descriptor中包装的字段，或者方法/构造器的对应参数上关联的注解
+		//遍历decriptord的所有注解
 		for (Annotation ann : descriptor.getAnnotations()) {
-			//是否含有@Lazy注解
+			//从an中取出@Lazy对象
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
-			//如果具有@Lazy注解，并且设置为true，那么返回true
+			//如果有lazy且lazy的值为true，就返回true,表示decriptor指定了懒加载
 			if (lazy != null && lazy.value()) {
 				return true;
 			}
 		}
-		//获取包装的MethodParameter，即方法/构造器参数
+		//从descriptor中获取方法参数
 		MethodParameter methodParam = descriptor.getMethodParameter();
+		//如果有方法参数
 		if (methodParam != null) {
-			//获取方法，如果参数属于构造器那么返回null
+			//获取methodParam所属方法
 			Method method = methodParam.getMethod();
-			//如果method为null或者返回值为null
-			//表示如果是构造器，或者是方法但是返回值为void，那么符合要求，可以进一步尝试
+			//method==null表示构造函数
+			//如果method是构造函数 或者 method是无返回值方法
 			if (method == null || void.class == method.getReturnType()) {
-				//获取方法或者构造器上的@Lazy注解
+				//从methodParam所属的Method对象的注解中获取@Lazy注解对象
 				Lazy lazy = AnnotationUtils.getAnnotation(methodParam.getAnnotatedElement(), Lazy.class);
-				//如果具有@Lazy注解，并且设置为true，那么返回true
+				//如果有lazy且lazy的值为true，就返回true,表示decriptor指定了懒加载
 				if (lazy != null && lazy.value()) {
 					return true;
 				}
 			}
 		}
-		//返回false
+		//如果descriptor所包含的对象没有加上@Lazy注解或者@Lazy没有指定成懒加载，就返回false,表示没有指定了懒加载
 		return false;
 	}
 
-	protected Object buildLazyResolutionProxy(DependencyDescriptor descriptor, @Nullable String beanName) {
-		return buildLazyResolutionProxy(descriptor, beanName, false);
-	}
-
 	/**
-	 * 构建延迟加载的代理对象
-	 * @param descriptor 依赖项的描述符，包含MethodParameter的信息
-	 * @param beanName
-	 * @param classOnly
-	 * @return
+	 * 建立延迟解析代理:
+	 * <ol>
+	 *  <li>如果bean工厂不是DefaultLisableBeanFactory的实例,抛出异常</li>
+	 *  <li>将bean工厂强转为DefaultLisableBeanFactory对象【变量 beanFactory】</li>
+	 *  <li>新建一个TargetSource对象，用于封装目标对象【变量 ts】:
+	 *   <ol>
+	 *    <li>getTargetClass():要返回的目标类型为descriptor的依赖类型</li>
+	 *    <li>isStatic():所有对getTarget()的调用都不需要返回相同的对象</li>
+	 *    <li>getTarget():
+	 *     <ol>
+	 *      <li>使用bean工厂解析出descriptor所指定的beanName的bean对象作为目标对象【变量 target】</li>
+	 *      <li>如果目标对象【target】为null:
+	 *       <ol>
+	 *        <li>获取目标对象的类型【变量 type】</li>
+	 *        <li>如果type是Mapp类型,返回空Map</li>
+	 *        <li>如果type为List类型,返回空List</li>
+	 *        <li>如果type为Set类型或者Collection类型</li>
+	 *        <li>其他情况抛出无此类BeanDefinition异常：延迟注入点不存在可依赖项</li>
+	 *       </ol>
+	 *      </li>
+	 *      <li>返回目标对象【target】</li>
+	 *     </ol>
+	 *    </li>
+	 *    <li>releaseTarget():空实现</li>
+	 *   </ol>
+	 *  </li>
+	 *  <li>新建一个代理工厂【{@link ProxyFactory}】对象【变量 pf】</li>
+	 *  <li>设置Pf的目标对象为ts</li>
+	 *  <li>获取desciptor所包装的对象的类型【变量 dependencyType】</li>
+	 *  <li>如果dependencyType是接口,设置pf的接口为dependencyType</li>
+	 *  <li>使用bean工厂的bean类加载器来使pf创建一下新的代理对象</li>
+	 * </ol>
+	 * @param descriptor 目标方法参数或字段描述符
+	 * @param beanName 包含注入点的bean名
+	 * @return 实际依赖关系目标的惰性解决方案代理；如果要执行直接解决方案，则为null
 	 */
-	private Object buildLazyResolutionProxy(
-			final DependencyDescriptor descriptor, final @Nullable String beanName, boolean classOnly) {
-
-		BeanFactory beanFactory = getBeanFactory();
-		Assert.state(beanFactory instanceof DefaultListableBeanFactory,
+	protected Object buildLazyResolutionProxy(final DependencyDescriptor descriptor, final @Nullable String beanName) {
+		//如果bean工厂不是DefaultLisableBeanFactory的实例,抛出异常
+		Assert.state(getBeanFactory() instanceof DefaultListableBeanFactory,
 				"BeanFactory needs to be a DefaultListableBeanFactory");
-		final DefaultListableBeanFactory dlbf = (DefaultListableBeanFactory) beanFactory;
-		//AOP的核心对象之一TargetSource，它表示"目标源"，包装了目标对象（被代理的对象）
+		//将bean工厂强转为DefaultLisableBeanFactory对象
+		final DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getBeanFactory();
+		//TargetSource：被代理的target(目标对象)实例的来源
+		// 新建一个TargetSource对象，用于封装目标对象
 		TargetSource ts = new TargetSource() {
 			@Override
 			public Class<?> getTargetClass() {
+				//要返回的目标类型为descriptor的依赖类型
 				return descriptor.getDependencyType();
 			}
 			@Override
 			public boolean isStatic() {
+				//所有对getTarget()的调用都不需要返回相同的对象
 				return false;
 			}
-
-			//获取目标对象，在代理中就是通过该方法获取目标对象并调用目标对象的方法的
 			@Override
 			public Object getTarget() {
-				//同样调用beanFactory.doResolveDependency方法去解析依赖的对象，获取目标对象，这里返回的是真正的Spring bean对象
-				Set<String> autowiredBeanNames = (beanName != null ? new LinkedHashSet<>(1) : null);
-				Object target = dlbf.doResolveDependency(descriptor, beanName, autowiredBeanNames, null);
+				//使用bean工厂解析出descriptor所指定的beanName的bean对象作为目标对象
+				Object target = beanFactory.doResolveDependency(descriptor, beanName, null, null);
+				//如果目标对象为null
 				if (target == null) {
+					//获取目标对象的类型
 					Class<?> type = getTargetClass();
+					//如果目标对象是Mapp类型
 					if (Map.class == type) {
+						//返回空Map
 						return Collections.emptyMap();
 					}
+					//如果目标对象为List类型
 					else if (List.class == type) {
+						//返回空List
 						return Collections.emptyList();
 					}
+					//如果目标对象为Set类型或者Collection类型
 					else if (Set.class == type || Collection.class == type) {
+						//返回空Set
 						return Collections.emptySet();
 					}
+					//其他情况抛出无此类BeanDefinition异常：延迟注入点不存在可依赖项
 					throw new NoSuchBeanDefinitionException(descriptor.getResolvableType(),
 							"Optional dependency not present for lazy injection point");
 				}
-				if (autowiredBeanNames != null) {
-					for (String autowiredBeanName : autowiredBeanNames) {
-						if (dlbf.containsBean(autowiredBeanName)) {
-							dlbf.registerDependentBean(autowiredBeanName, beanName);
-						}
-					}
-				}
+				//返回目标对象
 				return target;
 			}
 			@Override
 			public void releaseTarget(Object target) {
 			}
 		};
-
-		//创建代理工厂
+		//ProxyFactory:用于AOP代理的工厂,以编程方式使用,而不是通过bean工厂中的声明性设置.此类提供了
+		// 	一种在自定义用户代码中获取和配置AOP代理实例的简单方法
+		//新建一个代理工厂对象
 		ProxyFactory pf = new ProxyFactory();
-		//设置目标源，从目标源中获取代理目标实例
+		//设置Pf的目标对象为ts
 		pf.setTargetSource(ts);
-		//获取依赖类型
+		//获取desciptor所包装的对象的类型
 		Class<?> dependencyType = descriptor.getDependencyType();
-		//如果是接口，那么加入到interfaces集合中，后面就可能会使用JDK动态代理
+		//如果依赖类型是接口
 		if (dependencyType.isInterface()) {
+			//设置pf的接口为dependencyType
 			pf.addInterface(dependencyType);
 		}
-		//通过ProxyFactory生成代理对象，根据情况使用JDK代理或者CGLIB代理
-		ClassLoader classLoader = dlbf.getBeanClassLoader();
-		return (classOnly ? pf.getProxyClass(classLoader) : pf.getProxy(classLoader));
+		//使用bean工厂的bean类加载器来使pf创建一下新的代理对象
+		return pf.getProxy(beanFactory.getBeanClassLoader());
 	}
 
 }

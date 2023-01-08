@@ -3063,7 +3063,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected boolean requiresDestruction(Object bean, RootBeanDefinition mbd) {
 		//DestructionAwareBeanPostProcessor ：该处理器将在关闭时应用于单例Bean
-		// 如果 bean类不是 NullBean && (如果bean有desctory方法 || (该工厂持有一个 DestructionAwareBeanPostProcessor) &&
+		// 如果 bean类不是 NullBean && (如果bean有destroy方法 || (该工厂持有一个 DestructionAwareBeanPostProcessor) &&
 		// 	Bean有应用于它的可识别销毁的后处理器)) 就为true;否则返回false
 		return (bean.getClass() != NullBean.class && (DisposableBeanAdapter.hasDestroyMethod(bean, mbd) ||
 				(hasDestructionAwareBeanPostProcessors() && DisposableBeanAdapter.hasApplicableProcessors(
