@@ -16,20 +16,21 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Indicates one or more <em>component classes</em> to import &mdash; typically
  * {@link Configuration @Configuration} classes.
  *
+ * <p>标记要导入的一个或者多个组件类，尤其是被 @Configuration 标记的类。
+ *
  * <p>Provides functionality equivalent to the {@code <import/>} element in Spring XML.
  * Allows for importing {@code @Configuration} classes, {@link ImportSelector} and
  * {@link ImportBeanDefinitionRegistrar} implementations, as well as regular component
  * classes (as of 4.2; analogous to {@link AnnotationConfigApplicationContext#register}).
+ *
+ * <p>和 Spring XML中的 import 标签相同的功能。允许导入@Configuration 类，
+ * ImportSelector 和ImportBeanDefinitionRegistrar 的实现类，以及常规组件类
  *
  * <p>{@code @Bean} definitions declared in imported {@code @Configuration} classes should be
  * accessed by using {@link org.springframework.beans.factory.annotation.Autowired @Autowired}
@@ -38,9 +39,11 @@ import java.lang.annotation.Target;
  * navigation between {@code @Configuration} class methods.
  *
  * <p>May be declared at the class level or as a meta-annotation.
+ * <p>可以在类级别声明或作为元注释声明
  *
  * <p>If XML or other non-{@code @Configuration} bean definition resources need to be
  * imported, use the {@link ImportResource @ImportResource} annotation instead.
+ * <p>如果XML或者其他非@Configuration bean definition 资源需要导入，使用@ImportResource注解替代。
  *
  * @author Chris Beams
  * @author Juergen Hoeller

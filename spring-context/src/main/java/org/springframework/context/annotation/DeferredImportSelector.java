@@ -24,12 +24,19 @@ import org.springframework.lang.Nullable;
  * have been processed. This type of selector can be particularly useful when the selected
  * imports are {@code @Conditional}.
  *
+ * <p>DeferredImportSelector接口是ImportSelector接口的子接口，该接口会在所有的@Configuration配置类
+ * （不包括自动化配置类，即spring.factories文件中的配置类）处理完成后运行
+ *
  * <p>Implementations can also extend the {@link org.springframework.core.Ordered}
  * interface or use the {@link org.springframework.core.annotation.Order} annotation to
  * indicate a precedence against other {@link DeferredImportSelector DeferredImportSelectors}.
  *
+ * <p> 当选择器和@Conditional条件注解一起使用时是特别有用的，
+ * 此接口还可以和接口Ordered或者@Ordered一起使用，定义多个选择器的优先级；
+ *
  * <p>Implementations may also provide an {@link #getImportGroup() import group} which
  * can provide additional sorting and filtering logic across different selectors.
+ * 提供提供一个导入组的方法，它可以在不同选择器之间提供额外的排序和过滤逻辑。
  *
  * @author Phillip Webb
  * @author Stephane Nicoll

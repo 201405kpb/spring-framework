@@ -33,6 +33,7 @@ import org.springframework.core.type.AnnotationMetadata;
  * <p>An {@link ImportBeanDefinitionRegistrar} may implement any of the following
  * {@link org.springframework.beans.factory.Aware Aware} interfaces, and their respective
  * methods will be called prior to {@link #registerBeanDefinitions}:
+ * <p>ImportSelector可以实现以下任何感知接口，在registerBeanDefinitions之前将调用它们各自的方法:
  * <ul>
  * <li>{@link org.springframework.context.EnvironmentAware EnvironmentAware}</li>
  * <li>{@link org.springframework.beans.factory.BeanFactoryAware BeanFactoryAware}
@@ -42,6 +43,7 @@ import org.springframework.core.type.AnnotationMetadata;
  *
  * <p>Alternatively, the class may provide a single constructor with one or more of
  * the following supported parameter types:
+ * <p>或者，该类可以为单个构造函数提供以下一种或多种受支持的参数类型：
  * <ul>
  * <li>{@link org.springframework.core.env.Environment Environment}</li>
  * <li>{@link org.springframework.beans.factory.BeanFactory BeanFactory}</li>
@@ -50,6 +52,7 @@ import org.springframework.core.type.AnnotationMetadata;
  * </ul>
  *
  * <p>See implementations and associated unit tests for usage examples.
+ * <p>有关用法示例，请参阅实现和相关的单元测试。
  *
  * @author Chris Beams
  * @author Juergen Hoeller
