@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,11 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * Internal class for managing injection metadata.
- * Not intended for direct use in applications.
+ *
+ * <p>Not intended for direct use in applications.
  *
  * <p>Used by {@link AutowiredAnnotationBeanPostProcessor},
- * {@link org.springframework.context.annotation.CommonAnnotationBeanPostProcessor} and
+ * {@link org.springframework.context.annotation.CommonAnnotationBeanPostProcessor}, and
  * {@link org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor}.
  *
  * @author Juergen Hoeller
@@ -107,20 +108,25 @@ public class InjectionMetadata {
 	}
 
 	public void checkConfigMembers(RootBeanDefinition beanDefinition) {
-		Set<InjectedElement> checkedElements = new LinkedHashSet<>(this.injectedElements.size());
-		// 1.遍历检查所有要注入的元素
-		for (InjectedElement element : this.injectedElements) {
-			// 2.如果beanDefinition的externallyManagedConfigMembers属性不包含该member
-			Member member = element.getMember();
-			if (!beanDefinition.isExternallyManagedConfigMember(member)) {
-				// 3.将该member添加到beanDefinition的externallyManagedConfigMembers属性
-				beanDefinition.registerExternallyManagedConfigMember(member);
-				// 4.并将element添加到checkedElements
-				checkedElements.add(element);
-			}
+		if (this.injectedElements.isEmpty()) {
+			this.checkedElements = Collections.emptySet();
 		}
-		// 5.赋值给checkedElements（检查过的元素）
-		this.checkedElements = checkedElements;
+		else {
+			// 1.遍历检查所有要注入的元素
+			Set<InjectedElement> checkedElements = new LinkedHashSet<>((this.injectedElements.size() * 4 / 3) + 1);
+			for (InjectedElement element : this.injectedElements) {
+				// 2.如果beanDefinition的externallyManagedConfigMembers属性不包含该member
+				Member member = element.getMember();
+				if (!beanDefinition.isExternallyManagedConfigMember(member)) {
+					// 3.将该member添加到beanDefinition的externallyManagedConfigMembers属性
+					beanDefinition.registerExternallyManagedConfigMember(member);
+					// 4.并将element添加到checkedElements
+					checkedElements.add(element);
+				}
+			}
+			// 5.赋值给checkedElements（检查过的元素）
+			this.checkedElements = checkedElements;
+		}
 	}
 
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
