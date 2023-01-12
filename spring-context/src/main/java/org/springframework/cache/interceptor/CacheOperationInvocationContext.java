@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 /**
  * Representation of the context of the invocation of a cache operation.
+ * 缓存操作执行的上下文：包括 target method CacheOperation args
  *
  * <p>The cache operation is static and independent of a particular invocation;
  * this interface gathers the operation and a particular invocation.

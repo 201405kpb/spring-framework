@@ -16,23 +16,20 @@
 
 package org.springframework.cache.annotation;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.springframework.cache.interceptor.AbstractFallbackCacheOperationSource;
 import org.springframework.cache.interceptor.CacheOperation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.*;
+
 /**
  * Implementation of the {@link org.springframework.cache.interceptor.CacheOperationSource
  * CacheOperationSource} interface for working with caching metadata in annotation format.
+ * 基于注解元数据解析 CacheOperationSource
+ * 它主要基于 Spring 提供 Cacheable CachePut CacheEvict 注解的解析,并暴露相关的缓存操作定义
  *
  * <p>This class reads Spring's {@link Cacheable}, {@link CachePut} and {@link CacheEvict}
  * annotations and exposes corresponding caching operation definition to Spring's cache
@@ -47,8 +44,10 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperationSource implements Serializable {
 
+	// 是否只允许public方法拥有SpringCache，默认true
 	private final boolean publicMethodsOnly;
 
+	// 解析器集合，默认只包括SpringCacheAnnotationParser
 	private final Set<CacheAnnotationParser> annotationParsers;
 
 
@@ -113,12 +112,22 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 		return false;
 	}
 
+	/**
+	 * 根据 Class 计算出 CacheOperation
+	 * @param clazz the class to retrieve the attribute for
+	 * @return
+	 */
 	@Override
 	@Nullable
 	protected Collection<CacheOperation> findCacheOperations(Class<?> clazz) {
 		return determineCacheOperations(parser -> parser.parseCacheAnnotations(clazz));
 	}
 
+	/**
+	 *  根据 Method 计算出 CacheOperation
+	 * @param method the method to retrieve the attribute for
+	 * @return
+	 */
 	@Override
 	@Nullable
 	protected Collection<CacheOperation> findCacheOperations(Method method) {
@@ -127,6 +136,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 
 	/**
 	 * Determine the cache operation(s) for the given {@link CacheOperationProvider}.
+	 * 确定给定 CacheOperationProvider｝的缓存操作
 	 * <p>This implementation delegates to configured
 	 * {@link CacheAnnotationParser CacheAnnotationParsers}
 	 * for parsing known annotations into Spring's metadata attribute class.
@@ -137,6 +147,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	@Nullable
 	protected Collection<CacheOperation> determineCacheOperations(CacheOperationProvider provider) {
 		Collection<CacheOperation> ops = null;
+		// 遍历解析器集合，综合所有解析器的结果
 		for (CacheAnnotationParser parser : this.annotationParsers) {
 			Collection<CacheOperation> annOps = provider.getCacheOperations(parser);
 			if (annOps != null) {
@@ -156,6 +167,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 
 	/**
 	 * By default, only public methods can be made cacheable.
+	 * 默认情况下，只能使公共方法可缓存。
 	 */
 	@Override
 	protected boolean allowPublicMethodsOnly() {

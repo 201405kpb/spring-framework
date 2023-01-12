@@ -34,6 +34,7 @@ public abstract class AbstractCacheInvoker {
 	protected SingletonSupplier<CacheErrorHandler> errorHandler;
 
 
+	// 默认 SimpleCacheErrorHandler
 	protected AbstractCacheInvoker() {
 		this.errorHandler = SingletonSupplier.of(SimpleCacheErrorHandler::new);
 	}
@@ -98,9 +99,11 @@ public abstract class AbstractCacheInvoker {
 	protected void doEvict(Cache cache, Object key, boolean immediate) {
 		try {
 			if (immediate) {
+				// 立即剔除
 				cache.evictIfPresent(key);
 			}
 			else {
+				// 不保证实时性
 				cache.evict(key);
 			}
 		}
@@ -116,9 +119,11 @@ public abstract class AbstractCacheInvoker {
 	protected void doClear(Cache cache, boolean immediate) {
 		try {
 			if (immediate) {
+				// 立即剔除
 				cache.invalidate();
 			}
 			else {
+				// 不保证实时性
 				cache.clear();
 			}
 		}

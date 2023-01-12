@@ -16,18 +16,17 @@
 
 package org.springframework.cache.interceptor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.PatternMatchUtils;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.PatternMatchUtils;
 
 /**
  * Simple {@link CacheOperationSource} implementation that allows attributes to be matched
@@ -46,12 +45,15 @@ public class NameMatchCacheOperationSource implements CacheOperationSource, Seri
 	protected static final Log logger = LogFactory.getLog(NameMatchCacheOperationSource.class);
 
 
-	/** Keys are method names; values are TransactionAttributes. */
+	/** Keys are method names; values are TransactionAttributes.
+	 * k：method names，支持正则匹配
+	 * v：CacheOperation 集合*/
 	private final Map<String, Collection<CacheOperation>> nameMap = new LinkedHashMap<>();
 
 
 	/**
 	 * Set a name/attribute map, consisting of method names
+	 * 指定 nameMap
 	 * (e.g. "myMethod") and CacheOperation instances
 	 * (or Strings to be converted to CacheOperation instances).
 	 * @see CacheOperation
@@ -62,6 +64,7 @@ public class NameMatchCacheOperationSource implements CacheOperationSource, Seri
 
 	/**
 	 * Add an attribute for a cacheable method.
+	 * 给 nameMap 添加新的 kv
 	 * <p>Method names can be exact matches, or of the pattern "xxx*",
 	 * "*xxx" or "*xxx*" for matching multiple methods.
 	 * @param methodName the name of the method
@@ -78,9 +81,10 @@ public class NameMatchCacheOperationSource implements CacheOperationSource, Seri
 	@Nullable
 	public Collection<CacheOperation> getCacheOperations(Method method, @Nullable Class<?> targetClass) {
 		// look for direct name match
+		// 快速匹配
 		String methodName = method.getName();
 		Collection<CacheOperation> ops = this.nameMap.get(methodName);
-
+		// 如果没匹配就以正则形式再匹配一次
 		if (ops == null) {
 			// Look for most specific name match.
 			String bestNameMatch = null;
@@ -98,6 +102,7 @@ public class NameMatchCacheOperationSource implements CacheOperationSource, Seri
 
 	/**
 	 * Return if the given method name matches the mapped name.
+	 * method name 支持正则匹配
 	 * <p>The default implementation checks for "xxx*", "*xxx" and "*xxx*" matches,
 	 * as well as direct equality. Can be overridden in subclasses.
 	 * @param methodName the method name of the class

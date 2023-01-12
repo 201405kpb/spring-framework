@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractValueAdaptingCache implements Cache {
 
+	// 是否允许 null 值
 	private final boolean allowNullValues;
 
 
@@ -55,6 +56,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 	@Override
 	@Nullable
 	public ValueWrapper get(Object key) {
+		// get 操作依赖 toValueWrapper
 		return toValueWrapper(lookup(key));
 	}
 
@@ -62,7 +64,9 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public <T> T get(Object key, @Nullable Class<T> type) {
+		// 查询到的缓存值 fromStoreValue 转换
 		Object value = fromStoreValue(lookup(key));
+		// 转换后非 null 值无法类型转换则抛出异常
 		if (value != null && type != null && !type.isInstance(value)) {
 			throw new IllegalStateException(
 					"Cached value is not of required type [" + type.getName() + "]: " + value);
@@ -72,6 +76,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 
 	/**
 	 * Perform an actual lookup in the underlying store.
+	 * 从缓存中获取 key 对应的 v，子类实现
 	 * @param key the key whose associated value is to be returned
 	 * @return the raw store value for the key, or {@code null} if none
 	 */
@@ -82,6 +87,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 	/**
 	 * Convert the given value from the internal store to a user value
 	 * returned from the get method (adapting {@code null}).
+	 * 对于从缓存中获取的值，允许为空且值为 NullValue 时，处理为 null
 	 * @param storeValue the store value
 	 * @return the value to return to the user
 	 */
@@ -96,6 +102,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 	/**
 	 * Convert the given user value, as passed into the put method,
 	 * to a value in the internal store (adapting {@code null}).
+	 * 对于要插入缓存的 null 值，在允许 null 值的情况下处理为 NullValue，否则抛出异常 IllegalArgumentException
 	 * @param userValue the given user value
 	 * @return the value to store
 	 */
@@ -114,6 +121,7 @@ public abstract class AbstractValueAdaptingCache implements Cache {
 	 * Wrap the given store value with a {@link SimpleValueWrapper}, also going
 	 * through {@link #fromStoreValue} conversion. Useful for {@link #get(Object)}
 	 * and {@link #putIfAbsent(Object, Object)} implementations.
+	 * get 操作基于此完成，查询到缓存值非 null 则 fromStoreValue 转换后包装成 SimpleValueWrapper 返回
 	 * @param storeValue the original value
 	 * @return the wrapped value
 	 */

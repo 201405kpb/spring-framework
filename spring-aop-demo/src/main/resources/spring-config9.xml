@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--advisor-->
+	<!--bean-->
+	<bean id="advisorTarget" class="com.kpb.aop.xml.AdvisorTarget"/>
+	<bean id="transactionManagement" class="com.kpb.aop.xml.TransactionManagement"/>
+
+	<aop:config>
+		<!--切入点-->
+		<aop:pointcut expression="execution(* *.target(..))" id="tx"/>
+		<!--通知器配置  advice-ref指定一个实现了Advice接口的bean  pointcut-ref指向一个切入点-->
+		<aop:advisor advice-ref="transactionManagement" pointcut-ref="tx"/>
+	</aop:config>
+
+
+</beans>

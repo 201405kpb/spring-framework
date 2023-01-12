@@ -16,15 +16,16 @@
 
 package org.springframework.cache.interceptor;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-
 /**
  * Base class for cache operations.
+ * 对 CacheableOperation，CachePutOperation，CacheEvictOperation的共同部分的抽象
  *
  * @author Costin Leau
  * @author Stephane Nicoll
@@ -33,18 +34,39 @@ import org.springframework.util.Assert;
  */
 public abstract class CacheOperation implements BasicOperation {
 
+	/**
+	 * 方法的名称
+	 */
 	private final String name;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict等中的cacheNames字段
+	 */
 	private final Set<String> cacheNames;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict等中的key字段
+	 */
 	private final String key;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict中的keyGenerator字段
+	 */
 	private final String keyGenerator;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict等中的cacheManager字段
+	 */
 	private final String cacheManager;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict等中的cacheResolver字段
+	 */
 	private final String cacheResolver;
 
+	/**
+	 * 注解@Cacheable，@CachePut，@CacheEvict等中的condition字段
+	 */
 	private final String condition;
 
 	private final String toString;
@@ -129,6 +151,7 @@ public abstract class CacheOperation implements BasicOperation {
 
 	/**
 	 * Base class for builders that can be used to create a {@link CacheOperation}.
+	 * 可用于创建 CacheOperation的生成器的基类。
 	 * @since 4.3
 	 */
 	public abstract static class Builder {
@@ -213,6 +236,7 @@ public abstract class CacheOperation implements BasicOperation {
 		/**
 		 * Return an identifying description for this caching operation.
 		 * <p>Available to subclasses, for inclusion in their {@code toString()} result.
+		 * 来设置CacheOperation中的toString字段，而这个toString字段描述了当前被@Cacheable，@CachePut或者@CacheEvict中某一个注解修饰的注解中的所有属性信息
 		 */
 		protected StringBuilder getOperationDescription() {
 			StringBuilder result = new StringBuilder(getClass().getSimpleName());

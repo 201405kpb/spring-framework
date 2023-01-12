@@ -16,14 +16,14 @@
 
 package org.springframework.cache.concurrent;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.core.serializer.support.SerializationDelegate;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Simple {@link org.springframework.cache.Cache} implementation based on the
@@ -48,8 +48,10 @@ public class ConcurrentMapCache extends AbstractValueAdaptingCache {
 
 	private final String name;
 
+	// 基于 ConcurrentMap 缓存
 	private final ConcurrentMap<Object, Object> store;
 
+	// 如果要缓存的是值对象的 copy，则由此序列化代理类处理
 	@Nullable
 	private final SerializationDelegate serialization;
 
@@ -59,6 +61,7 @@ public class ConcurrentMapCache extends AbstractValueAdaptingCache {
 	 * @param name the name of the cache
 	 */
 	public ConcurrentMapCache(String name) {
+		// 默认允许处理 null
 		this(name, new ConcurrentHashMap<>(256), true);
 	}
 
@@ -81,6 +84,7 @@ public class ConcurrentMapCache extends AbstractValueAdaptingCache {
 	 * (adapting them to an internal null holder value)
 	 */
 	public ConcurrentMapCache(String name, ConcurrentMap<Object, Object> store, boolean allowNullValues) {
+		// 默认 serialization = null
 		this(name, store, allowNullValues, null);
 	}
 
@@ -113,6 +117,7 @@ public class ConcurrentMapCache extends AbstractValueAdaptingCache {
 	 * Return whether this cache stores a copy of each entry ({@code true}) or
 	 * a reference ({@code false}, default). If store by value is enabled, each
 	 * entry in the cache must be serializable.
+	 * serialization 不为空是缓存值对象的 copy
 	 * @since 4.3
 	 */
 	public final boolean isStoreByValue() {
@@ -129,12 +134,24 @@ public class ConcurrentMapCache extends AbstractValueAdaptingCache {
 		return this.store;
 	}
 
+	/**
+	 * 实现 lookup：store#get
+	 * @param key the key whose associated value is to be returned
+	 * @return
+	 */
 	@Override
 	@Nullable
 	protected Object lookup(Object key) {
 		return this.store.get(key);
 	}
 
+	/**
+	 * 基于 ConcurrentMap::computeIfAbsent 方法实现，get 和 put 的值由 fromStoreValue 和 toStoreValue 处理 NULL
+	 * @param key the key whose associated value is to be returned
+	 * @param valueLoader
+	 * @return
+	 * @param <T>
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	@Nullable

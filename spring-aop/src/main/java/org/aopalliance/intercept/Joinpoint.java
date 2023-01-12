@@ -16,10 +16,9 @@
 
 package org.aopalliance.intercept;
 
-import java.lang.reflect.AccessibleObject;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.AccessibleObject;
 
 /**
  * This interface represents a generic runtime joinpoint (in the AOP
@@ -48,6 +47,7 @@ public interface Joinpoint {
 
 	/**
 	 * Proceed to the next interceptor in the chain.
+	 * 执行方法到下一个拦截器
 	 * <p>The implementation and the semantics of this method depends
 	 * on the actual joinpoint type (see the children interfaces).
 	 * @return see the children interfaces' proceed definition
@@ -58,6 +58,7 @@ public interface Joinpoint {
 
 	/**
 	 * Return the object that holds the current joinpoint's static part.
+	 * 获取 target object
 	 * <p>For instance, the target object for an invocation.
 	 * @return the object (can be null if the accessible object is static)
 	 */
@@ -66,6 +67,7 @@ public interface Joinpoint {
 
 	/**
 	 * Return the static part of this joinpoint.
+	 *  返回 static part
 	 * <p>The static part is an accessible object on which a chain of
 	 * interceptors is installed.
 	 */

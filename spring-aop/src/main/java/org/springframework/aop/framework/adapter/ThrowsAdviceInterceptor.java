@@ -16,19 +16,18 @@
 
 package org.springframework.aop.framework.adapter;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.AfterAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Interceptor to wrap an after-throwing advice.
@@ -60,10 +59,12 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 
 	private static final Log logger = LogFactory.getLog(ThrowsAdviceInterceptor.class);
 
-
+	// 通知类
 	private final Object throwsAdvice;
 
-	/** Methods on throws advice, keyed by exception class. */
+	/** Methods on throws advice, keyed by exception class.
+	 * K：异常类型
+	 * V：处理该类型异常的方法*/
 	private final Map<Class<?>, Method> exceptionHandlerMap = new HashMap<>();
 
 
@@ -77,12 +78,17 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 		this.throwsAdvice = throwsAdvice;
 
 		Method[] methods = throwsAdvice.getClass().getMethods();
+		/**
+		 * 对应的 Advice 提供的处理异常方法名必须为 afterThrowing，对应参数为 1 个或 4 个，q签名格式：
+		 * 		void afterThrowing([Method, args, target], ThrowableSubclass)
+		 */
 		for (Method method : methods) {
 			if (method.getName().equals(AFTER_THROWING) &&
 					(method.getParameterCount() == 1 || method.getParameterCount() == 4)) {
 				Class<?> throwableParam = method.getParameterTypes()[method.getParameterCount() - 1];
 				if (Throwable.class.isAssignableFrom(throwableParam)) {
 					// An exception handler to register...
+					// 去最后一个参数就是异常类型
 					this.exceptionHandlerMap.put(throwableParam, method);
 					if (logger.isDebugEnabled()) {
 						logger.debug("Found exception handler method on throws advice: " + method);
@@ -113,6 +119,9 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 			return mi.proceed();
 		}
 		catch (Throwable ex) {
+			/**
+			 * 根据抛出的异常类型调用对应的 Advice 方法
+			 */
 			Method handlerMethod = getExceptionHandler(ex);
 			if (handlerMethod != null) {
 				invokeHandlerMethod(mi, ex, handlerMethod);
@@ -132,6 +141,7 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Trying to find handler for exception of type [" + exceptionClass.getName() + "]");
 		}
+		// 找不到当前类型的处理器就依次找父类的，直到 Throwable
 		Method handler = this.exceptionHandlerMap.get(exceptionClass);
 		while (handler == null && exceptionClass != Throwable.class) {
 			exceptionClass = exceptionClass.getSuperclass();

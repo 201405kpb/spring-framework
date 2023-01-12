@@ -16,14 +16,14 @@
 
 package org.springframework.aop.support.annotation;
 
-import java.lang.annotation.Annotation;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
 
 /**
  * Simple {@link Pointcut} that looks for a specific annotation being present on a
@@ -171,12 +171,14 @@ public class AnnotationMatchingPointcut implements Pointcut {
 	 */
 	private static class AnnotationCandidateClassFilter implements ClassFilter {
 
+		// 指定注解
 		private final Class<? extends Annotation> annotationType;
 
 		AnnotationCandidateClassFilter(Class<? extends Annotation> annotationType) {
 			this.annotationType = annotationType;
 		}
 
+		// 依赖 AnnotationUtils#isCandidateClass：类、方法、属性上是否有指定注解
 		@Override
 		public boolean matches(Class<?> clazz) {
 			return AnnotationUtils.isCandidateClass(clazz, this.annotationType);

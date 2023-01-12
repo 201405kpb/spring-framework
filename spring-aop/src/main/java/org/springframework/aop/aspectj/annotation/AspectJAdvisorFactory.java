@@ -16,15 +16,14 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.framework.AopConfigException;
 import org.springframework.lang.Nullable;
+
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Interface for factories that can create Spring AOP Advisors from classes
@@ -41,6 +40,7 @@ public interface AspectJAdvisorFactory {
 	/**
 	 * Determine whether the given class is an aspect, as reported
 	 * by AspectJ's {@link org.aspectj.lang.reflect.AjTypeSystem}.
+	 * 给定class是否切面
 	 * <p>Will simply return {@code false} if the supposed aspect is
 	 * invalid (such as an extension of a concrete aspect class).
 	 * Will return true for some aspects that Spring AOP cannot process,
@@ -53,6 +53,7 @@ public interface AspectJAdvisorFactory {
 
 	/**
 	 * Is the given class a valid AspectJ aspect class?
+	 * 是否有效切面
 	 * @param aspectClass the supposed AspectJ annotation-style class to validate
 	 * @throws AopConfigException if the class is an invalid aspect
 	 * (which can never be legal)

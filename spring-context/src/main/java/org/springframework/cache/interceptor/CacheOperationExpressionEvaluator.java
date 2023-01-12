@@ -16,11 +16,6 @@
 
 package org.springframework.cache.interceptor;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cache.Cache;
 import org.springframework.context.expression.AnnotatedElementKey;
@@ -29,6 +24,11 @@ import org.springframework.context.expression.CachedExpressionEvaluator;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.lang.Nullable;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class handling the SpEL expression parsing.
@@ -60,11 +60,13 @@ class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator {
 	 */
 	public static final String RESULT_VARIABLE = "result";
 
-
+	// key SpEL 表达式缓存
 	private final Map<ExpressionKey, Expression> keyCache = new ConcurrentHashMap<>(64);
 
+	// condition SpEL 表达式缓存
 	private final Map<ExpressionKey, Expression> conditionCache = new ConcurrentHashMap<>(64);
 
+	// unless SpEL 表达式缓存
 	private final Map<ExpressionKey, Expression> unlessCache = new ConcurrentHashMap<>(64);
 
 
@@ -99,16 +101,19 @@ class CacheOperationExpressionEvaluator extends CachedExpressionEvaluator {
 		return evaluationContext;
 	}
 
+	// 基于 SpEL 表达式计算 key
 	@Nullable
 	public Object key(String keyExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
 		return getExpression(this.keyCache, methodKey, keyExpression).getValue(evalContext);
 	}
 
+	// condition SpEL 表达式计算结果是否为 True
 	public boolean condition(String conditionExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
 		return (Boolean.TRUE.equals(getExpression(this.conditionCache, methodKey, conditionExpression).getValue(
 				evalContext, Boolean.class)));
 	}
 
+	// unless SpEL 表达式计算结果是否为 True
 	public boolean unless(String unlessExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
 		return (Boolean.TRUE.equals(getExpression(this.unlessCache, methodKey, unlessExpression).getValue(
 				evalContext, Boolean.class)));

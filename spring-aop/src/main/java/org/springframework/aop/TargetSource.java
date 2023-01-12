@@ -23,6 +23,8 @@ import org.springframework.lang.Nullable;
  * an AOP invocation, which will be invoked via reflection if no around
  * advice chooses to end the interceptor chain itself.
  *
+ * <p>用于返回目标对象实现的连接点. 每次AOP代理处理方法调用时,都会要求目标实例进行 TargetSource 实现.</p>
+ *
  * <p>If a {@code TargetSource} is "static", it will always return
  * the same target, allowing optimizations in the AOP framework. Dynamic
  * target sources can support pooling, hot swapping, etc.
@@ -47,6 +49,7 @@ public interface TargetSource extends TargetClassAware {
 
 	/**
 	 * Will all calls to {@link #getTarget()} return the same object?
+	 * 目标对象是否不可变
 	 * <p>In that case, there will be no need to invoke {@link #releaseTarget(Object)},
 	 * and the AOP framework can cache the return value of {@link #getTarget()}.
 	 * @return {@code true} if the target is immutable
@@ -57,6 +60,7 @@ public interface TargetSource extends TargetClassAware {
 	/**
 	 * Return a target instance. Invoked immediately before the
 	 * AOP framework calls the "target" of an AOP method invocation.
+	 * 返回目标对象（包含 Joinpoint）
 	 * @return the target object which contains the joinpoint,
 	 * or {@code null} if there is no actual target instance
 	 * @throws Exception if the target object can't be resolved
@@ -67,6 +71,7 @@ public interface TargetSource extends TargetClassAware {
 	/**
 	 * Release the given target object obtained from the
 	 * {@link #getTarget()} method, if any.
+	 *  释放 getTarget 方法获取的 target object
 	 * @param target object obtained from a call to {@link #getTarget()}
 	 * @throws Exception if the object can't be released
 	 */

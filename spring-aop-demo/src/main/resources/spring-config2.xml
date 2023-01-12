@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean class="com.kpb.aop.xml.AopAspectOrder" name="aopAspectOrder"/>
+	<bean class="com.kpb.aop.xml.AopTargetOrder" name="aopTargetOrder"/>
+	<aop:config>
+		<!--两个切面，配置同一个切入点-->
+		<!--切面order 2147483647-->
+		<aop:aspect id="myAspect" ref="aopAspectOrder">
+			<aop:before method="advance1" pointcut="execution(public void com.kpb.aop.xml.AopTargetOrder.target())"/>
+			<aop:after method="advance1" pointcut="execution(public void com.kpb.aop.xml.AopTargetOrder.target())"/>
+		</aop:aspect>
+		<!--切面order 2147483646-->
+		<aop:aspect id="myAspect" ref="aopAspectOrder" order="2147483646">
+			<aop:before method="advance2" pointcut="execution(public void com.kpb.aop.xml.AopTargetOrder.target())"/>
+			<aop:after method="advance2" pointcut="execution(public void com.kpb.aop.xml.AopTargetOrder.target())"/>
+		</aop:aspect>
+	</aop:config>
+
+</beans>

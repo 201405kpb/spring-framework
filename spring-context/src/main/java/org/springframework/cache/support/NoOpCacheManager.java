@@ -16,6 +16,10 @@
 
 package org.springframework.cache.support;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.lang.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -23,14 +27,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.lang.Nullable;
-
 /**
  * A basic, no operation {@link CacheManager} implementation suitable
  * for disabling caching, typically used for backing cache declarations
  * without an actual backing store.
+ *
+ * 基于 name 维护一组 NoOpCache
  *
  * <p>Will simply accept any items into the cache not actually storing them.
  *

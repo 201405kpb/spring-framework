@@ -17,7 +17,6 @@
 package org.springframework.aop.framework;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetClassAware;
 import org.springframework.aop.TargetSource;
@@ -40,28 +39,33 @@ public interface Advised extends TargetClassAware {
 	/**
 	 * Return whether the Advised configuration is frozen,
 	 * in which case no advice changes can be made.
+	 * 配置冻结，则 advice 不可改变
 	 */
 	boolean isFrozen();
 
 	/**
 	 * Are we proxying the full target class instead of specified interfaces?
+	 * 是否代理目标类（而不是接口），关系到代理方式（JDK | CGLIB）
 	 */
 	boolean isProxyTargetClass();
 
 	/**
 	 * Return the interfaces proxied by the AOP proxy.
+	 * 返回 target class 以外的所有接口
 	 * <p>Will not include the target class, which may also be proxied.
 	 */
 	Class<?>[] getProxiedInterfaces();
 
 	/**
 	 * Determine whether the given interface is proxied.
+	 * 确定给定接口是否被代理
 	 * @param intf the interface to check
 	 */
 	boolean isInterfaceProxied(Class<?> intf);
 
 	/**
 	 * Change the {@code TargetSource} used by this {@code Advised} object.
+	 * 以 Advised 对象改变 TargetSource（注意isFrozen）
 	 * <p>Only works if the configuration isn't {@linkplain #isFrozen frozen}.
 	 * @param targetSource new TargetSource to use
 	 */
@@ -79,6 +83,8 @@ public interface Advised extends TargetClassAware {
 	 * to invoke a method on itself with advice applied. Otherwise, if an
 	 * advised object invokes a method on {@code this}, no advice will be applied.
 	 * <p>Default is {@code false}, for optimal performance.
+	 * <p> 是否允许 AOP 框架以 ThreadLocal 的形式将代理对象暴露出去，允许通过 AopContext 访问。这个属性默认为 false。
+	 * 设置为 true 时，允许我们使用 AopContext.currentProxy(),获取当前代理对象（内部以 NamedThreadLocal 维护）
 	 */
 	void setExposeProxy(boolean exposeProxy);
 
@@ -98,6 +104,7 @@ public interface Advised extends TargetClassAware {
 	 * <p>Default is "false". Set this to "true" if the advisors have been
 	 * pre-filtered already, meaning that the ClassFilter check can be skipped
 	 * when building the actual advisor chain for proxy invocations.
+	 * 此属性默认为false，设置为 true 时，创建对象时获取 advisor chain 可以跳过 ClassFilter 检查
 	 * @see org.springframework.aop.ClassFilter
 	 */
 	void setPreFiltered(boolean preFiltered);

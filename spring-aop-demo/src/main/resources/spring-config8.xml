@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--Introductions-->
+	<bean class="com.kpb.aop.xml.introduction.BasicFunction" name="basicFunction"/>
+	<aop:config>
+		<aop:aspect>
+			<!--types-matching: 需要增强的的类扫描路径，该路径下的被Spring管理的bean都将被增强-->
+			<!--implement-interface: 新实现的增强接口-->
+			<!--default-impl: 增强接口的方法的默认实现-->
+			<aop:declare-parents
+					types-matching="com.kpb.aop.xml.introduction.*"
+					implement-interface="com.kpb.aop.xml.AddFunction"
+					default-impl="com.kpb.aop.xml.AddFunctionImpl"/>
+		</aop:aspect>
+	</aop:config>
+
+
+</beans>

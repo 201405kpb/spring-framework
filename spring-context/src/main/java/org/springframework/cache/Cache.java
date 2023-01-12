@@ -16,9 +16,9 @@
 
 package org.springframework.cache;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.lang.Nullable;
+
+import java.util.concurrent.Callable;
 
 /**
  * Interface that defines common cache operations.
@@ -36,19 +36,23 @@ public interface Cache {
 
 	/**
 	 * Return the cache name.
+	 * 缓存名称
 	 */
 	String getName();
 
 	/**
 	 * Return the underlying native cache provider.
+	 * 缓存真正负责缓存的对象
 	 */
 	Object getNativeCache();
 
 	/**
 	 * Return the value to which this cache maps the specified key.
+	 * 获取 key 对应的 ValueWrapper
 	 * <p>Returns {@code null} if the cache contains no mapping for this key;
 	 * otherwise, the cached value (which may be {@code null} itself) will
 	 * be returned in a {@link ValueWrapper}.
+	 * 没有对应的 key 就返回 null，key 对应的 v 是 null 的话返回的是 null 对应的 ValueWrapper
 	 * @param key the key whose associated value is to be returned
 	 * @return the value to which this cache maps the specified key,
 	 * contained within a {@link ValueWrapper} which may also hold
@@ -63,6 +67,7 @@ public interface Cache {
 	/**
 	 * Return the value to which this cache maps the specified key,
 	 * generically specifying a type that return value will be cast to.
+	 * 返回 key 对应 type 类型的 v
 	 * <p>Note: This variant of {@code get} does not allow for differentiating
 	 * between a cached {@code null} value and no cache entry found at all.
 	 * Use the standard {@link #get(Object)} variant for that purpose instead.
@@ -86,6 +91,7 @@ public interface Cache {
 	 * that value from {@code valueLoader} if necessary. This method provides
 	 * a simple substitute for the conventional "if cached, return; otherwise
 	 * create, cache and return" pattern.
+	 * 如果有 key 对应的 v 就返回，如果没有就缓存 Callable::call 并返回
 	 * <p>If possible, implementations should ensure that the loading operation
 	 * is synchronized so that the specified {@code valueLoader} is only called
 	 * once in case of concurrent access on the same key.
@@ -102,6 +108,7 @@ public interface Cache {
 
 	/**
 	 * Associate the specified value with the specified key in this cache.
+	 * 缓存目标 kv（替换旧值），不保证实时性
 	 * <p>If the cache previously contained a mapping for this key, the old
 	 * value is replaced by the specified value.
 	 * <p>Actual registration may be performed in an asynchronous or deferred
@@ -117,6 +124,7 @@ public interface Cache {
 	/**
 	 * Atomically associate the specified value with the specified key in this cache
 	 * if it is not set already.
+	 * 立即插入缓存，默认基于先 get 不存在则 put 操作实现
 	 * <p>This is equivalent to:
 	 * <pre><code>
 	 * ValueWrapper existingValue = cache.get(key);
@@ -152,6 +160,7 @@ public interface Cache {
 
 	/**
 	 * Evict the mapping for this key from this cache if it is present.
+	 * 剔除缓存，不保证实时性
 	 * <p>Actual eviction may be performed in an asynchronous or deferred
 	 * fashion, with subsequent lookups possibly still seeing the entry.
 	 * This may for example be the case with transactional cache decorators.
@@ -164,6 +173,7 @@ public interface Cache {
 	/**
 	 * Evict the mapping for this key from this cache if it is present,
 	 * expecting the key to be immediately invisible for subsequent lookups.
+	 * 立即剔除缓存，返回 false 表示剔除前不存在指定 key 或不确定是否存在，返回 true 表示该 key 之前存在
 	 * <p>The default implementation delegates to {@link #evict(Object)},
 	 * returning {@code false} for not-determined prior presence of the key.
 	 * Cache providers and in particular cache decorators are encouraged
@@ -184,6 +194,7 @@ public interface Cache {
 
 	/**
 	 * Clear the cache through removing all mappings.
+	 * 清除所有缓存，不保证实时性
 	 * <p>Actual clearing may be performed in an asynchronous or deferred
 	 * fashion, with subsequent lookups possibly still seeing the entries.
 	 * This may for example be the case with transactional cache decorators.
@@ -195,6 +206,7 @@ public interface Cache {
 	/**
 	 * Invalidate the cache through removing all mappings, expecting all
 	 * entries to be immediately invisible for subsequent lookups.
+	 * 立即清除所有缓存
 	 * @return {@code true} if the cache was known to have mappings before,
 	 * {@code false} if it did not (or if prior presence of entries could
 	 * not be determined)
@@ -209,6 +221,7 @@ public interface Cache {
 
 	/**
 	 * A (wrapper) object representing a cache value.
+	 * 缓存值的一个包装器接口
 	 */
 	@FunctionalInterface
 	interface ValueWrapper {

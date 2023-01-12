@@ -16,12 +16,12 @@
 
 package org.springframework.aop.support.annotation;
 
-import java.lang.annotation.Annotation;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
 
 /**
  * Simple ClassFilter that looks for a specific annotation being present on a class.
@@ -32,8 +32,10 @@ import org.springframework.util.Assert;
  */
 public class AnnotationClassFilter implements ClassFilter {
 
+	// 目标注解
 	private final Class<? extends Annotation> annotationType;
 
+	// 是否检查父类
 	private final boolean checkInherited;
 
 
@@ -60,6 +62,10 @@ public class AnnotationClassFilter implements ClassFilter {
 	}
 
 
+	/**
+	 * 层级检查依赖方法 AnnotatedElementUtils#hasAnnotation
+	 * 非层级检查依赖方法 Class#isAnnotationPresent
+	 */
 	@Override
 	public boolean matches(Class<?> clazz) {
 		return (this.checkInherited ? AnnotatedElementUtils.hasAnnotation(clazz, this.annotationType) :

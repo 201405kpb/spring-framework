@@ -16,15 +16,11 @@
 
 package org.springframework.cache.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
+
+import java.lang.annotation.*;
 
 /**
  * Enables Spring's annotation-driven cache management capability, similar to the
@@ -182,11 +178,14 @@ public @interface EnableCaching {
 	 * be upgraded to subclass proxying at the same time. This approach has no negative
 	 * impact in practice unless one is explicitly expecting one type of proxy vs another,
 	 * e.g. in tests.
+	 *
+	 * 指示是否要创建基于子类的（CGLIB）代理，而不是基于标准Java接口的代理。默认值为false.
 	 */
 	boolean proxyTargetClass() default false;
 
 	/**
 	 * Indicate how caching advice should be applied.
+	 * 指示应如何应用缓存建议.
 	 * <p><b>The default is {@link AdviceMode#PROXY}.</b>
 	 * Please note that proxy mode allows for interception of calls through the proxy
 	 * only. Local calls within the same class cannot get intercepted that way;
@@ -200,6 +199,7 @@ public @interface EnableCaching {
 	/**
 	 * Indicate the ordering of the execution of the caching advisor
 	 * when multiple advices are applied at a specific joinpoint.
+	 * 指示在特定连接点应用多个建议时缓存顾问的执行顺序.
 	 * <p>The default is {@link Ordered#LOWEST_PRECEDENCE}.
 	 */
 	int order() default Ordered.LOWEST_PRECEDENCE;

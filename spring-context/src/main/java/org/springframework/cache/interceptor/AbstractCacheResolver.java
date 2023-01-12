@@ -16,15 +16,15 @@
 
 package org.springframework.cache.interceptor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A base {@link CacheResolver} implementation that requires the concrete
@@ -80,10 +80,12 @@ public abstract class AbstractCacheResolver implements CacheResolver, Initializi
 
 	@Override
 	public Collection<? extends Cache> resolveCaches(CacheOperationInvocationContext<?> context) {
+		// 基于 CacheOperationInvocationContext 获取 cacheNames
 		Collection<String> cacheNames = getCacheNames(context);
 		if (cacheNames == null) {
 			return Collections.emptyList();
 		}
+		// 基于 cacheNames 从 CacheManager 获取对应的 Cache 集合
 		Collection<Cache> result = new ArrayList<>(cacheNames.size());
 		for (String cacheName : cacheNames) {
 			Cache cache = getCacheManager().getCache(cacheName);
@@ -98,6 +100,7 @@ public abstract class AbstractCacheResolver implements CacheResolver, Initializi
 
 	/**
 	 * Provide the name of the cache(s) to resolve against the current cache manager.
+	 * 子类实现，基于 CacheOperationInvocationContext 获取对应的 cacheNames
 	 * <p>It is acceptable to return {@code null} to indicate that no cache could
 	 * be resolved for this invocation.
 	 * @param context the context of the particular invocation

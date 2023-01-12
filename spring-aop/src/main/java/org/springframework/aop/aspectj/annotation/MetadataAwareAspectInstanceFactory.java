@@ -36,6 +36,7 @@ public interface MetadataAwareAspectInstanceFactory extends AspectInstanceFactor
 
 	/**
 	 * Return the AspectJ AspectMetadata for this factory's aspect.
+	 * 切面元数据的获取
 	 * @return the aspect metadata
 	 */
 	AspectMetadata getAspectMetadata();

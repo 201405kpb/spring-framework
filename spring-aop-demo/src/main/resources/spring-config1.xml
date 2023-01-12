@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--被代理类和通知类都交给IoC管理-->
+	<bean class="com.kpb.aop.xml.FirstAopTarget" name="firstAopTarget"/>
+	<bean class="com.kpb.aop.xml.FirstAopAspect" name="firstAopAspect"/>
+	<!--aop的相关配置都写到aop:config标签中-->
+	<aop:config>
+		<!--配置 aspect 切面-->
+		<aop:aspect id="myAspect" ref="firstAopAspect">
+			<!--配置 advice 通知 以及应用的切入点(表达式)-->
+			<aop:before method="helloAop" pointcut="execution(public void com.kpb.aop.xml.FirstAopTarget.target())"/>
+			<aop:after method="helloAop" pointcut="execution(public void com.kpb.aop.xml.FirstAopTarget.target())"/>
+		</aop:aspect>
+	</aop:config>
+
+</beans>

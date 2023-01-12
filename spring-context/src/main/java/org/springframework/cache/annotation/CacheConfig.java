@@ -16,18 +16,17 @@
 
 package org.springframework.cache.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * {@code @CacheConfig} provides a mechanism for sharing common cache-related
  * settings at the class level.
+ * 抽取缓存公共配置，可以标注在类上
  *
  * <p>When this annotation is present on a given class, it provides a set
  * of default settings for any cache operation defined in that class.
+ *
+ * <p>用于方法上，当给定类上存在此注释时，它为该类中定义的任何缓存操作提供一组默认设置。
  *
  * @author Stephane Nicoll
  * @author Sam Brannen
@@ -41,6 +40,7 @@ public @interface CacheConfig {
 	/**
 	 * Names of the default caches to consider for caching operations defined
 	 * in the annotated class.
+	 * 在注释类中定义的缓存操作要考虑的默认缓存的名称
 	 * <p>If none is set at the operation level, these are used instead of the default.
 	 * <p>May be used to determine the target cache (or caches), matching the
 	 * qualifier value or the bean names of a specific bean definition.

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--aop:pointcut测试-->
+	<bean class="com.kpb.aop.xml.AopAspectPointcut" name="aopAspectPointcut"/>
+	<bean class="com.kpb.aop.xml.AopTargetPointcut" name="aopTargetPointcut"/>
+	<aop:config>
+		<!--配置一个所有切面的所有通知都能引用的表达式  aop:pointcut标签要定义在最前面 -->
+		<aop:pointcut id="p1" expression="execution(public void com.kpb.aop.xml.AopTargetPointcut.target1())"/>
+
+		<!--一个切面-->
+		<aop:aspect id="as1" ref="aopAspectPointcut">
+			<!--pointcut-ref 引用切面表达式-->
+			<aop:before method="advice1" pointcut-ref="p1"/>
+		</aop:aspect>
+
+		<!--一个切面-->
+		<aop:aspect id="as2" ref="aopAspectPointcut">
+			<!--配置只能是当前切面内部的所有通知都能引用的表达式-->
+			<aop:pointcut id="p2" expression="execution(public void com.kpb.aop.xml.AopTargetPointcut.target2())"/>
+			<!--pointcut-ref 引用切面表达式-->
+			<aop:before method="advice1" pointcut-ref="p2"/>
+			<aop:after method="advice2" pointcut-ref="p1"/>
+		</aop:aspect>
+	</aop:config>
+
+</beans>

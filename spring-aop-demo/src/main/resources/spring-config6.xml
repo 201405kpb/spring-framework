@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--传递参数-->
+	<bean class="com.kpb.aop.xml.ParamAspectAdvice" name="paramAspectAdvice"/>
+	<bean class="com.kpb.aop.xml.ParamAspectTarget" name="paramAspectTarget"/>
+	<!--通知参数-->
+	<aop:config>
+		<!--args参数名与通知方法的参数名一致-->
+		<aop:pointcut id="par1"
+					  expression="execution(* com.kpb.aop.xml.ParamAspectTarget.target(..)) and args(i2,date,string) "/>
+
+		<aop:pointcut id="par3"
+					  expression="execution(* com.kpb.aop.xml.ParamAspectTarget.target(..)) and args(i,date,..) "/>
+
+		<aop:pointcut id="par4"
+					  expression="execution(* com.kpb.aop.xml.ParamAspectTarget.target(..)) and args(i,date,string) "/>
+
+		<aop:aspect ref="paramAspectAdvice">
+			<!--args参数名与通知方法的参数名一致时，arg-names属性可以省略-->
+			<aop:before method="before" pointcut-ref="par1" arg-names="joinPoint,i2,date,string"/>
+
+			<!--args参数名与通知方法的参数名一致时，arg-names属性可以省略-->
+			<aop:after-throwing method="afterThrowing" pointcut-ref="par3" throwing="e"/>
+			<!--args参数名与通知方法的参数名一致时，arg-names属性可以省略-->
+			<aop:after method="after" pointcut-ref="par4"/>
+			<!--args参数名与通知方法的参数名一致时，arg-names属性可以省略-->
+			<!--<aop:around method="around" pointcut-ref="par4"/>-->
+		</aop:aspect>
+	</aop:config>
+
+</beans>

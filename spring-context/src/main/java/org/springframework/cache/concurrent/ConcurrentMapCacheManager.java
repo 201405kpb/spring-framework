@@ -16,18 +16,18 @@
 
 package org.springframework.cache.concurrent;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.core.serializer.support.SerializationDelegate;
+import org.springframework.lang.Nullable;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.core.serializer.support.SerializationDelegate;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link CacheManager} implementation that lazily builds {@link ConcurrentMapCache}
@@ -49,12 +49,16 @@ public class ConcurrentMapCacheManager implements CacheManager, BeanClassLoaderA
 
 	private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<>(16);
 
+	// 是否动态创建缺省 Cache
 	private boolean dynamic = true;
 
+	// 是否允许空值
 	private boolean allowNullValues = true;
 
+	// 是否缓存值对象的副本
 	private boolean storeByValue = false;
 
+	// 序列化辅助类
 	@Nullable
 	private SerializationDelegate serialization;
 
@@ -69,6 +73,7 @@ public class ConcurrentMapCacheManager implements CacheManager, BeanClassLoaderA
 	/**
 	 * Construct a static ConcurrentMapCacheManager,
 	 * managing caches for the specified cache names only.
+	 * 如果指定一个非 null 的 cacheNames,这里就会基于此创建对应的 静态缓存，即不会再创建新的缺省缓存了
 	 */
 	public ConcurrentMapCacheManager(String... cacheNames) {
 		setCacheNames(Arrays.asList(cacheNames));
@@ -77,6 +82,7 @@ public class ConcurrentMapCacheManager implements CacheManager, BeanClassLoaderA
 
 	/**
 	 * Specify the set of cache names for this CacheManager's 'static' mode.
+	 * 基于传入的 cacheNames 创建静态缓存，之后就不允许创建缺省缓存了
 	 * <p>The number of caches and their names will be fixed after a call to this method,
 	 * with no creation of further cache regions at runtime.
 	 * <p>Calling this with a {@code null} collection argument resets the
@@ -164,6 +170,9 @@ public class ConcurrentMapCacheManager implements CacheManager, BeanClassLoaderA
 	@Nullable
 	public Cache getCache(String name) {
 		Cache cache = this.cacheMap.get(name);
+		/**
+		 * 如果允许创建缺省缓存，则基于 createConcurrentMapCache 创建
+		 */
 		if (cache == null && this.dynamic) {
 			synchronized (this.cacheMap) {
 				cache = this.cacheMap.get(name);
@@ -184,6 +193,7 @@ public class ConcurrentMapCacheManager implements CacheManager, BeanClassLoaderA
 
 	/**
 	 * Create a new ConcurrentMapCache instance for the specified cache name.
+	 * 基于配置属性创建对应的 ConcurrentMapCache
 	 * @param name the name of the cache
 	 * @return the ConcurrentMapCache (or a decorator thereof)
 	 */

@@ -16,14 +16,6 @@
 
 package org.springframework.cache.annotation;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-
 import org.springframework.cache.interceptor.CacheEvictOperation;
 import org.springframework.cache.interceptor.CacheOperation;
 import org.springframework.cache.interceptor.CachePutOperation;
@@ -33,9 +25,19 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 /**
  * Strategy implementation for parsing Spring's {@link Caching}, {@link Cacheable},
  * {@link CacheEvict}, and {@link CachePut} annotations.
+ *
+ * 用于解析Spring的Caching、Cacheable、CacheEvict和CachePut注释的策略实现。
  *
  * @author Costin Leau
  * @author Juergen Hoeller
@@ -48,10 +50,12 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public class SpringCacheAnnotationParser implements CacheAnnotationParser, Serializable {
 
+	// Spring 对应的 CacheOperation 对应注解
 	private static final Set<Class<? extends Annotation>> CACHE_OPERATION_ANNOTATIONS =
 			Set.of(Cacheable.class, CacheEvict.class, CachePut.class, Caching.class);
 
 
+	// 指定类上、类的方法、类的属性上是否包含指定注解
 	@Override
 	public boolean isCandidateClass(Class<?> targetClass) {
 		return AnnotationUtils.isCandidateClass(targetClass, CACHE_OPERATION_ANNOTATIONS);
@@ -60,6 +64,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 	@Override
 	@Nullable
 	public Collection<CacheOperation> parseCacheAnnotations(Class<?> type) {
+		// 基于 @CacheConfig 注解生成的默认配置
 		DefaultCacheConfig defaultConfig = new DefaultCacheConfig(type);
 		return parseCacheAnnotations(defaultConfig, type);
 	}
@@ -67,12 +72,18 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 	@Override
 	@Nullable
 	public Collection<CacheOperation> parseCacheAnnotations(Method method) {
+		// 基于 @CacheConfig 注解生成的默认配置
 		DefaultCacheConfig defaultConfig = new DefaultCacheConfig(method.getDeclaringClass());
 		return parseCacheAnnotations(defaultConfig, method);
 	}
 
 	@Nullable
 	private Collection<CacheOperation> parseCacheAnnotations(DefaultCacheConfig cachingConfig, AnnotatedElement ae) {
+		/**
+		 * 先忽略层级，如果解析的 CacheOperation 多余 1 个
+		 * 		则在本层级再解析一次
+		 * （应该是为了防止接口和实现类都声明注解导致重复）
+		 */
 		Collection<CacheOperation> ops = parseCacheAnnotations(cachingConfig, ae, false);
 		if (ops != null && ops.size() > 1) {
 			// More than one operation found -> local declarations override interface-declared ones...
@@ -89,12 +100,21 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 			DefaultCacheConfig cachingConfig, AnnotatedElement ae, boolean localOnly) {
 
 		Collection<? extends Annotation> anns = (localOnly ?
+				// 获取本层级元素上所有相关注解集合
 				AnnotatedElementUtils.getAllMergedAnnotations(ae, CACHE_OPERATION_ANNOTATIONS) :
+				// 获取包括父级元素上所有相关注解集合
 				AnnotatedElementUtils.findAllMergedAnnotations(ae, CACHE_OPERATION_ANNOTATIONS));
 		if (anns.isEmpty()) {
 			return null;
 		}
 
+		/**
+		 * 把所有注解元素封装成对应的 CacheOperation
+		 * @Cacheable -> CacheableOperation
+		 * @CacheEvict -> CacheEvictOperation
+		 * @CachePut -> CachePutOperation
+		 * @Caching -> 分别解析成上述 CacheOperation
+		 */
 		final Collection<CacheOperation> ops = new ArrayList<>(1);
 		anns.stream().filter(ann -> ann instanceof Cacheable).forEach(
 				ann -> ops.add(parseCacheableAnnotation(ae, cachingConfig, (Cacheable) ann)));
@@ -107,6 +127,9 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		return ops;
 	}
 
+	/**
+	 *  解析 Cacheable 注解，并返回 CacheableOperation 实例
+	 */
 	private CacheableOperation parseCacheableAnnotation(
 			AnnotatedElement ae, DefaultCacheConfig defaultConfig, Cacheable cacheable) {
 
@@ -129,6 +152,9 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		return op;
 	}
 
+	/**
+	 *  解析 CacheEvict 注解，并返回 CacheableOperation 实例
+	 */
 	private CacheEvictOperation parseEvictAnnotation(
 			AnnotatedElement ae, DefaultCacheConfig defaultConfig, CacheEvict cacheEvict) {
 
@@ -151,6 +177,9 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		return op;
 	}
 
+	/**
+	 *  解析 CachePut 注解，并返回 CacheableOperation 实例
+	 */
 	private CacheOperation parsePutAnnotation(
 			AnnotatedElement ae, DefaultCacheConfig defaultConfig, CachePut cachePut) {
 
@@ -172,6 +201,9 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 		return op;
 	}
 
+	/**
+	 *  解析 Caching 注解，并返回 CacheableOperation 实例
+	 */
 	private void parseCachingAnnotation(
 			AnnotatedElement ae, DefaultCacheConfig defaultConfig, Caching caching, Collection<CacheOperation> ops) {
 
@@ -192,19 +224,22 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 
 	/**
 	 * Validates the specified {@link CacheOperation}.
+	 * 验证指定的CacheOperation。
 	 * <p>Throws an {@link IllegalStateException} if the state of the operation is
 	 * invalid. As there might be multiple sources for default values, this ensures
 	 * that the operation is in a proper state before being returned.
-	 * @param ae the annotated element of the cache operation
+	 * @param ae the annotated element of the cache operation 缓存操作的带注释元素
 	 * @param operation the {@link CacheOperation} to validate
 	 */
 	private void validateCacheOperation(AnnotatedElement ae, CacheOperation operation) {
+		// 不能同时指定 key 和 keyGenerator
 		if (StringUtils.hasText(operation.getKey()) && StringUtils.hasText(operation.getKeyGenerator())) {
 			throw new IllegalStateException("Invalid cache annotation configuration on '" +
 					ae.toString() + "'. Both 'key' and 'keyGenerator' attributes have been set. " +
 					"These attributes are mutually exclusive: either set the SpEL expression used to" +
 					"compute the key at runtime or set the name of the KeyGenerator bean to use.");
 		}
+		// 不能同时指定 cacheManager 和 cacheResolver
 		if (StringUtils.hasText(operation.getCacheManager()) && StringUtils.hasText(operation.getCacheResolver())) {
 			throw new IllegalStateException("Invalid cache annotation configuration on '" +
 					ae.toString() + "'. Both 'cacheManager' and 'cacheResolver' attributes have been set. " +
@@ -227,6 +262,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 
 	/**
 	 * Provides default settings for a given set of cache operations.
+	 * 为给定的一组缓存操作提供默认设置。
 	 */
 	private static class DefaultCacheConfig {
 
@@ -252,7 +288,9 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 
 		/**
 		 * Apply the defaults to the specified {@link CacheOperation.Builder}.
+		 * 将默认值应用于指定的CacheOperation.Builder。
 		 * @param builder the operation builder to update
+		 *                -- 要更新的操作生成器
 		 */
 		public void applyDefault(CacheOperation.Builder builder) {
 			if (!this.initialized) {

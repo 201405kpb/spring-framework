@@ -16,17 +16,17 @@
 
 package org.springframework.cache.support;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.lang.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class implementing the common {@link CacheManager} methods.
@@ -39,141 +39,153 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractCacheManager implements CacheManager, InitializingBean {
 
-	private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<>(16);
+    // 基于 ConcurrentMap 管理缓存
+    private final ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<>(16);
 
-	private volatile Set<String> cacheNames = Collections.emptySet();
-
-
-	// Early cache initialization on startup
-
-	@Override
-	public void afterPropertiesSet() {
-		initializeCaches();
-	}
-
-	/**
-	 * Initialize the static configuration of caches.
-	 * <p>Triggered on startup through {@link #afterPropertiesSet()};
-	 * can also be called to re-initialize at runtime.
-	 * @since 4.2.2
-	 * @see #loadCaches()
-	 */
-	public void initializeCaches() {
-		Collection<? extends Cache> caches = loadCaches();
-
-		synchronized (this.cacheMap) {
-			this.cacheNames = Collections.emptySet();
-			this.cacheMap.clear();
-			Set<String> cacheNames = new LinkedHashSet<>(caches.size());
-			for (Cache cache : caches) {
-				String name = cache.getName();
-				this.cacheMap.put(name, decorateCache(cache));
-				cacheNames.add(name);
-			}
-			this.cacheNames = Collections.unmodifiableSet(cacheNames);
-		}
-	}
-
-	/**
-	 * Load the initial caches for this cache manager.
-	 * <p>Called by {@link #afterPropertiesSet()} on startup.
-	 * The returned collection may be empty but must not be {@code null}.
-	 */
-	protected abstract Collection<? extends Cache> loadCaches();
+    // 基于 Set 管理 cache name
+    private volatile Set<String> cacheNames = Collections.emptySet();
 
 
-	// Lazy cache initialization on access
+    // Early cache initialization on startup
 
-	@Override
-	@Nullable
-	public Cache getCache(String name) {
-		// Quick check for existing cache...
-		Cache cache = this.cacheMap.get(name);
-		if (cache != null) {
-			return cache;
-		}
+    @Override
+    public void afterPropertiesSet() {
+        initializeCaches();
+    }
 
-		// The provider may support on-demand cache creation...
-		Cache missingCache = getMissingCache(name);
-		if (missingCache != null) {
-			// Fully synchronize now for missing cache registration
-			synchronized (this.cacheMap) {
-				cache = this.cacheMap.get(name);
-				if (cache == null) {
-					cache = decorateCache(missingCache);
-					this.cacheMap.put(name, cache);
-					updateCacheNames(name);
-				}
-			}
-		}
-		return cache;
-	}
+    /**
+     * Initialize the static configuration of caches.
+     * <p>Triggered on startup through {@link #afterPropertiesSet()};
+     * can also be called to re-initialize at runtime.
+     *
+     * @see #loadCaches()
+     * @since 4.2.2
+     */
+    public void initializeCaches() {
+        // 加载所有 Cache，由子类实现
+        Collection<? extends Cache> caches = loadCaches();
 
-	@Override
-	public Collection<String> getCacheNames() {
-		return this.cacheNames;
-	}
+        synchronized (this.cacheMap) {
+            this.cacheNames = Collections.emptySet();
+            this.cacheMap.clear();
+            Set<String> cacheNames = new LinkedHashSet<>(caches.size());
+            for (Cache cache : caches) {
+                String name = cache.getName();
+                this.cacheMap.put(name, decorateCache(cache));
+                cacheNames.add(name);
+            }
+            this.cacheNames = Collections.unmodifiableSet(cacheNames);
+        }
+    }
 
-
-	// Common cache initialization delegates for subclasses
-
-	/**
-	 * Check for a registered cache of the given name.
-	 * In contrast to {@link #getCache(String)}, this method does not trigger
-	 * the lazy creation of missing caches via {@link #getMissingCache(String)}.
-	 * @param name the cache identifier (must not be {@code null})
-	 * @return the associated Cache instance, or {@code null} if none found
-	 * @since 4.1
-	 * @see #getCache(String)
-	 * @see #getMissingCache(String)
-	 */
-	@Nullable
-	protected final Cache lookupCache(String name) {
-		return this.cacheMap.get(name);
-	}
-
-	/**
-	 * Update the exposed {@link #cacheNames} set with the given name.
-	 * <p>This will always be called within a full {@link #cacheMap} lock
-	 * and effectively behaves like a {@code CopyOnWriteArraySet} with
-	 * preserved order but exposed as an unmodifiable reference.
-	 * @param name the name of the cache to be added
-	 */
-	private void updateCacheNames(String name) {
-		Set<String> cacheNames = new LinkedHashSet<>(this.cacheNames);
-		cacheNames.add(name);
-		this.cacheNames = Collections.unmodifiableSet(cacheNames);
-	}
+    /**
+     * Load the initial caches for this cache manager.
+     * 加载缓存由子类实现
+     * <p>Called by {@link #afterPropertiesSet()} on startup.
+     * The returned collection may be empty but must not be {@code null}.
+     */
+    protected abstract Collection<? extends Cache> loadCaches();
 
 
-	// Overridable template methods for cache initialization
+    // Lazy cache initialization on access
 
-	/**
-	 * Decorate the given Cache object if necessary.
-	 * @param cache the Cache object to be added to this CacheManager
-	 * @return the decorated Cache object to be used instead,
-	 * or simply the passed-in Cache object by default
-	 */
-	protected Cache decorateCache(Cache cache) {
-		return cache;
-	}
+    @Override
+    @Nullable
+    public Cache getCache(String name) {
+        // Quick check for existing cache...
+        Cache cache = this.cacheMap.get(name);
+        if (cache != null) {
+            return cache;
+        }
+		/**
+ 			* 如果没找到对应的 cache，这个地方允许基于 getMissingCache
+ 			* 构造一个对应的缺省 cache
+ 		*/
+        // The provider may support on-demand cache creation...
+        Cache missingCache = getMissingCache(name);
+        if (missingCache != null) {
+            // Fully synchronize now for missing cache registration
+            synchronized (this.cacheMap) {
+                cache = this.cacheMap.get(name);
+                if (cache == null) {
+                    cache = decorateCache(missingCache);
+                    this.cacheMap.put(name, cache);
+                    updateCacheNames(name);
+                }
+            }
+        }
+        return cache;
+    }
 
-	/**
-	 * Return a missing cache with the specified {@code name}, or {@code null} if
-	 * such a cache does not exist or could not be created on demand.
-	 * <p>Caches may be lazily created at runtime if the native provider supports it.
-	 * If a lookup by name does not yield any result, an {@code AbstractCacheManager}
-	 * subclass gets a chance to register such a cache at runtime. The returned cache
-	 * will be automatically added to this cache manager.
-	 * @param name the name of the cache to retrieve
-	 * @return the missing cache, or {@code null} if no such cache exists or could be
-	 * created on demand
-	 * @since 4.1
-	 * @see #getCache(String)
-	 */
-	@Nullable
-	protected Cache getMissingCache(String name) {
-		return null;
-	}
+    @Override
+    public Collection<String> getCacheNames() {
+        return this.cacheNames;
+    }
+
+
+    // Common cache initialization delegates for subclasses
+
+    /**
+     * Check for a registered cache of the given name.
+     * In contrast to {@link #getCache(String)}, this method does not trigger
+     * the lazy creation of missing caches via {@link #getMissingCache(String)}.
+     *
+     * @param name the cache identifier (must not be {@code null})
+     * @return the associated Cache instance, or {@code null} if none found
+     * @see #getCache(String)
+     * @see #getMissingCache(String)
+     * @since 4.1
+     */
+    @Nullable
+    protected final Cache lookupCache(String name) {
+        return this.cacheMap.get(name);
+    }
+
+    /**
+     * Update the exposed {@link #cacheNames} set with the given name.
+     * <p>This will always be called within a full {@link #cacheMap} lock
+     * and effectively behaves like a {@code CopyOnWriteArraySet} with
+     * preserved order but exposed as an unmodifiable reference.
+     *
+     * @param name the name of the cache to be added
+     */
+    private void updateCacheNames(String name) {
+        Set<String> cacheNames = new LinkedHashSet<>(this.cacheNames);
+        cacheNames.add(name);
+        this.cacheNames = Collections.unmodifiableSet(cacheNames);
+    }
+
+
+    // Overridable template methods for cache initialization
+
+    /**
+     * Decorate the given Cache object if necessary.
+     *
+     * @param cache the Cache object to be added to this CacheManager
+     * @return the decorated Cache object to be used instead,
+     * or simply the passed-in Cache object by default
+     */
+    protected Cache decorateCache(Cache cache) {
+        return cache;
+    }
+
+    /**
+     * Return a missing cache with the specified {@code name}, or {@code null} if
+     * such a cache does not exist or could not be created on demand.
+     * <p>Caches may be lazily created at runtime if the native provider supports it.
+     * If a lookup by name does not yield any result, an {@code AbstractCacheManager}
+     * subclass gets a chance to register such a cache at runtime. The returned cache
+     * will be automatically added to this cache manager.
+     *
+     * @param name the name of the cache to retrieve
+     * @return the missing cache, or {@code null} if no such cache exists or could be
+     * created on demand
+     * @see #getCache(String)
+     * @since 4.1
+     */
+    @Nullable
+    protected Cache getMissingCache(String name) {
+        return null;
+    }
 
 }

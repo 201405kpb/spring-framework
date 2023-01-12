@@ -16,15 +16,15 @@
 
 package org.springframework.aop.support.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.StaticMethodMatcher;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * Simple {@link org.springframework.aop.MethodMatcher MethodMatcher} that looks
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  */
 public class AnnotationMethodMatcher extends StaticMethodMatcher {
 
+	// 目标注解
 	private final Class<? extends Annotation> annotationType;
 
 	private final boolean checkInherited;
@@ -71,19 +72,24 @@ public class AnnotationMethodMatcher extends StaticMethodMatcher {
 
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		// 先进行一次快速匹配
 		if (matchesMethod(method)) {
 			return true;
 		}
 		// Proxy classes never have annotations on their redeclared methods.
+		// 忽略代理类，因为代理类没有注解信息
 		if (Proxy.isProxyClass(targetClass)) {
 			return false;
 		}
 		// The method may be on an interface, so let's check on the target class as well.
+		// 假设是接口方法，尝试获取实现类方法
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
+		// 如果获取到了再匹配一次
 		return (specificMethod != method && matchesMethod(specificMethod));
 	}
 
 	private boolean matchesMethod(Method method) {
+		// 根据 checkInherited 区分是否需要检查父类方法
 		return (this.checkInherited ? AnnotatedElementUtils.hasAnnotation(method, this.annotationType) :
 				method.isAnnotationPresent(this.annotationType));
 	}

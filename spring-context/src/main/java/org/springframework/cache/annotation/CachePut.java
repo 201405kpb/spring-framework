@@ -16,19 +16,16 @@
 
 package org.springframework.cache.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.core.annotation.AliasFor;
+
+import java.lang.annotation.*;
 
 /**
  * Annotation indicating that a method (or all methods on a class) triggers a
  * {@link org.springframework.cache.Cache#put(Object, Object) cache put} operation.
+ *
+ * <p>用于方法上，能够根据方法的请求参数对其结果进行缓存，和@Cacheable不同的是，它每次都会触发真实方法的调用</p>
  *
  * <p>In contrast to the {@link Cacheable @Cacheable} annotation, this annotation
  * does not cause the advised method to be skipped. Rather, it always causes the

@@ -123,7 +123,7 @@ public class ResolvableType implements Serializable {
 
 	/**
 	 * The component type for an array or {@code null} if the type should be deduced.
-	 * <p>数组的元素类型；如果应该推到类型，则为{@code null}</p>
+	 * <p>数组的元素类型；如果应该推到类型，则为 null</p>
 	 */
 	@Nullable
 	private final ResolvableType componentType;

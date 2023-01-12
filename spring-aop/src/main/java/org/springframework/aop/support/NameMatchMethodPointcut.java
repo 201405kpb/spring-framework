@@ -16,14 +16,14 @@
 
 package org.springframework.aop.support;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.PatternMatchUtils;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.PatternMatchUtils;
 
 /**
  * Pointcut bean for simple method name matches, as an alternative to regexp patterns.
@@ -39,6 +39,7 @@ import org.springframework.util.PatternMatchUtils;
 @SuppressWarnings("serial")
 public class NameMatchMethodPointcut extends StaticMethodMatcherPointcut implements Serializable {
 
+	// 匹配模板
 	private List<String> mappedNames = new ArrayList<>();
 
 
@@ -64,6 +65,7 @@ public class NameMatchMethodPointcut extends StaticMethodMatcherPointcut impleme
 	 * Add another eligible method name, in addition to those already named.
 	 * Like the set methods, this method is for use when configuring proxies,
 	 * before a proxy is used.
+	 * 添加模板方法
 	 * <p><b>NB:</b> This method does not work after the proxy is in
 	 * use, as advice chains will be cached.
 	 * @param name the name of the additional method that will match
@@ -75,6 +77,12 @@ public class NameMatchMethodPointcut extends StaticMethodMatcherPointcut impleme
 	}
 
 
+	/**
+	 * 静态匹配，equals 或者正则匹配
+	 * @param method the candidate method
+	 * @param targetClass the target class
+	 * @return
+	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
 		for (String mappedName : this.mappedNames) {
@@ -89,6 +97,7 @@ public class NameMatchMethodPointcut extends StaticMethodMatcherPointcut impleme
 	 * Return if the given method name matches the mapped name.
 	 * <p>The default implementation checks for "xxx*", "*xxx" and "*xxx*" matches,
 	 * as well as direct equality. Can be overridden in subclasses.
+	 * <p>支持形如 "xxx*", "*xxx" 的正则匹配</p>
 	 * @param methodName the method name of the class
 	 * @param mappedName the name in the descriptor
 	 * @return if the names match

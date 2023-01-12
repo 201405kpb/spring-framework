@@ -16,15 +16,17 @@
 
 package org.springframework.cache.interceptor;
 
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Interface used by {@link CacheInterceptor}. Implementations know how to source
  * cache operation attributes, whether from configuration, metadata attributes at
  * source level, or elsewhere.
+ *
+ * CacheInterceptor使用的接口。实现知道如何从配置、源级别的元数据属性或其他地方获取缓存操作属性。
  *
  * @author Costin Leau
  * @author Juergen Hoeller
@@ -35,6 +37,7 @@ public interface CacheOperationSource {
 	/**
 	 * Determine whether the given class is a candidate for cache operations
 	 * in the metadata format of this {@code CacheOperationSource}.
+	 * <p>确定给定类是否是此CacheOperationSource的元数据格式的缓存操作的候选类。
 	 * <p>If this method returns {@code false}, the methods on the given class
 	 * will not get traversed for {@link #getCacheOperations} introspection.
 	 * Returning {@code false} is therefore an optimization for non-affected
@@ -53,6 +56,7 @@ public interface CacheOperationSource {
 	/**
 	 * Return the collection of cache operations for this method,
 	 * or {@code null} if the method contains no <em>cacheable</em> annotations.
+	 * 返回此方法的缓存操作集合，如果该方法不包含可缓存注释，则返回 null。
 	 * @param method the method to introspect
 	 * @param targetClass the target class (may be {@code null}, in which case
 	 * the declaring class of the method must be used)

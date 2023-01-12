@@ -46,6 +46,8 @@ public class AsyncConfigurationSelector extends AdviceModeImportSelector<EnableA
 	 * Returns {@link ProxyAsyncConfiguration} or {@code AspectJAsyncConfiguration}
 	 * for {@code PROXY} and {@code ASPECTJ} values of {@link EnableAsync#mode()},
 	 * respectively.
+	 *
+	 * 分别为 EnableAsync.mode的 PROXY和ASPECTJ值返回ProxyAsyncConfiguration或AspectJAsyncConfiguration。
 	 */
 	@Override
 	@NonNull

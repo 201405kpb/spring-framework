@@ -35,12 +35,14 @@ public interface AspectInstanceFactory extends Ordered {
 
 	/**
 	 * Create an instance of this factory's aspect.
+	 * 创建切面实例
 	 * @return the aspect instance (never {@code null})
 	 */
 	Object getAspectInstance();
 
 	/**
 	 * Expose the aspect class loader that this factory uses.
+	 * 暴露切面的类加载器
 	 * @return the aspect class loader (or {@code null} for the bootstrap loader)
 	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
 	 */

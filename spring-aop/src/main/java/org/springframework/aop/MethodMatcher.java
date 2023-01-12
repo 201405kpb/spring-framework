@@ -54,6 +54,7 @@ public interface MethodMatcher {
 
 	/**
 	 * Perform static checking whether the given method matches.
+	 * 静态匹配
 	 * <p>If this returns {@code false} or if the {@link #isRuntime()}
 	 * method returns {@code false}, no runtime check (i.e. no
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} call)
@@ -68,6 +69,7 @@ public interface MethodMatcher {
 	 * Is this MethodMatcher dynamic, that is, must a final call be made on the
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} method at
 	 * runtime even if the 2-arg matches method returns {@code true}?
+	 * true 动态 false 静态
 	 * <p>Can be invoked when an AOP proxy is created, and need not be invoked
 	 * again before each method invocation,
 	 * @return whether a runtime match via the 3-arg
@@ -79,6 +81,7 @@ public interface MethodMatcher {
 	/**
 	 * Check whether there a runtime (dynamic) match for this method,
 	 * which must have matched statically.
+	 * 动态匹配
 	 * <p>This method is invoked only if the 2-arg matches method returns
 	 * {@code true} for the given method and target class, and if the
 	 * {@link #isRuntime()} method returns {@code true}. Invoked
@@ -95,6 +98,7 @@ public interface MethodMatcher {
 
 	/**
 	 * Canonical instance that matches all methods.
+	 * 匹配所有方法
 	 */
 	MethodMatcher TRUE = TrueMethodMatcher.INSTANCE;
 

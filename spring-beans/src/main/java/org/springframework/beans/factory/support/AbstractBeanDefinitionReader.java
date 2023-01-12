@@ -16,13 +16,8 @@
 
 package org.springframework.beans.factory.support;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.EnvironmentCapable;
@@ -33,6 +28,10 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Abstract base class for bean definition readers which implement
@@ -234,14 +233,14 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		 * 如果支持资源Ant模式匹配，走这一条分支
 		 * ClassPathXmlApplicationContext和XmlWebApplicationContext都是ResourcePatternResolver的实现
 		 */
-		if (resourceLoader instanceof ResourcePatternResolver) {
+		if (resourceLoader instanceof ResourcePatternResolver resourcePatternResolver) {
 			try {
 				/*
 				 * 2 调用resourceLoader的方法，将给定的路径的XML文件资源解析为Resource资源对象数组
 				 * 通常一个路径对应一个XML文件，则resources数组只有一个Resource元素
 				 * 但是如果路径有模式匹配，匹配到多个资源文件，则resources数组可能有多个Resource元素
 				 */
-				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				Resource[] resources = resourcePatternResolver.getResources(location);
 				/*
 				 * 3 调用AbstractBeanDefinitionReader的另一个loadBeanDefinitions方法，解析Resource资源数组，返回解析到的bean 定义数量
 				 * 这个方法我们之前的"loadBeanDefinitions(beanDefinitionReader)"中就见过了

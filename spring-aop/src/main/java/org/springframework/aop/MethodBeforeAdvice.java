@@ -16,13 +16,16 @@
 
 package org.springframework.aop;
 
-import java.lang.reflect.Method;
-
 import org.springframework.lang.Nullable;
+
+import java.lang.reflect.Method;
 
 /**
  * Advice invoked before a method is invoked. Such advices cannot
  * prevent the method call proceeding, unless they throw a Throwable.
+ *
+ * 前置通知是一种简单的通知,它并不需要 MethodInvocation 对象,因为它只会在执行方法前调用
+ * 前置通知的主要优势就是它没有必要去触发 proceed() 方法,因此当拦截器链失败时对它是没有影响的.
  *
  * @author Rod Johnson
  * @see AfterReturningAdvice

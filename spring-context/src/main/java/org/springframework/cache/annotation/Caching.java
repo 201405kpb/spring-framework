@@ -16,20 +16,18 @@
 
 package org.springframework.cache.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.aot.hint.annotation.Reflective;
+
+import java.lang.annotation.*;
 
 /**
  * Group annotation for multiple cache annotations (of different or the same type).
+ * 多个缓存注释的组注释。
  *
  * <p>This annotation may be used as a <em>meta-annotation</em> to create custom
  * <em>composed annotations</em> with attribute overrides.
+ *
+ * <p>此注释可以用作元注释，以创建具有属性覆盖的自定义组合注释.
  *
  * @author Costin Leau
  * @author Chris Beams

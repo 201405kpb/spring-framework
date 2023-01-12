@@ -16,8 +16,6 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.io.Serializable;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.Ordered;
@@ -25,6 +23,8 @@ import org.springframework.core.annotation.OrderUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.io.Serializable;
 
 /**
  * {@link org.springframework.aop.aspectj.AspectInstanceFactory} implementation
@@ -76,6 +76,7 @@ public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInst
 		Assert.notNull(name, "Bean name must not be null");
 		this.beanFactory = beanFactory;
 		this.name = name;
+		// 如果没有传入 type ，则从 beanFactory 获取
 		Class<?> resolvedType = type;
 		if (type == null) {
 			resolvedType = beanFactory.getType(name);
@@ -85,6 +86,7 @@ public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInst
 	}
 
 
+	// 基于 beanFactory 获取 Aspect 实例
 	@Override
 	public Object getAspectInstance() {
 		return this.beanFactory.getBean(this.name);

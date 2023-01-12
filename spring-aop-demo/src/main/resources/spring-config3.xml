@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean class="com.kpb.aop.xml.AopAspect4Advice"
+		  name="aopAspect4Advice"/>
+	<bean class="com.kpb.aop.xml.AopTarget4Advice" name="aopTarget4Advice"/>
+	<aop:config>
+		<aop:aspect id="4Advice" ref="aopAspect4Advice">
+			<aop:before method="beforeAdvice"
+						pointcut="execution(public int com.kpb.aop.xml.AopTarget4Advice.target())"/>
+			<!--可以尝试接收切入点方法的返回值-->
+			<aop:after-returning method="afterReturningAdvance"
+								 pointcut="execution(public int com.kpb.aop.xml.AopTarget4Advice.target())"
+								 returning="i"/>
+			<!--可以尝试接收前置通知、切入点方法、后置通知的抛出的异常-->
+			<aop:after-throwing method="afterThrowingAdvance"
+								pointcut="execution(public int com.kpb.aop.xml.AopTarget4Advice.target())"
+								throwing="e"/>
+			<aop:after method="afterAdvance"
+					   pointcut="execution(public int com.kpb.aop.xml.AopTarget4Advice.target())"/>
+		</aop:aspect>
+	</aop:config>
+
+</beans>

@@ -16,19 +16,16 @@
 
 package org.springframework.cache.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.core.annotation.AliasFor;
+
+import java.lang.annotation.*;
 
 /**
  * Annotation indicating that a method (or all methods on a class) triggers a
  * {@link org.springframework.cache.Cache#evict(Object) cache evict} operation.
+ *
+ * <p>用于方法上，清除该方法的缓存，用在类上清除整个类的方法的缓存</p>
  *
  * <p>This annotation may be used as a <em>meta-annotation</em> to create custom
  * <em>composed annotations</em> with attribute overrides.
@@ -133,6 +130,7 @@ public @interface CacheEvict {
 
 	/**
 	 * Whether all the entries inside the cache(s) are removed.
+	 * 是否移除目标 Cache 的所有缓存，默认 false 意味着只清除指定 key 的缓存，为 true 时就不允许指定 key 属性
 	 * <p>By default, only the value under the associated key is removed.
 	 * <p>Note that setting this parameter to {@code true} and specifying a
 	 * {@link #key} is not allowed.
@@ -141,6 +139,7 @@ public @interface CacheEvict {
 
 	/**
 	 * Whether the eviction should occur before the method is invoked.
+	 * 剔除缓存操作是否发生在方法执行前,默认 false 表示只有目标方法 成功 执行才会进行剔除操作,true 则表示先剔除，不管方法执行结果如何
 	 * <p>Setting this attribute to {@code true}, causes the eviction to
 	 * occur irrespective of the method outcome (i.e., whether it threw an
 	 * exception or not).

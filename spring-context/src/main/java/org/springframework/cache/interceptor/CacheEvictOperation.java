@@ -25,8 +25,14 @@ package org.springframework.cache.interceptor;
  */
 public class CacheEvictOperation extends CacheOperation {
 
+	/**
+	 * 清除整个cache的数据
+	 */
 	private final boolean cacheWide;
 
+	/**
+	 * 方法调用前清除缓存
+	 */
 	private final boolean beforeInvocation;
 
 

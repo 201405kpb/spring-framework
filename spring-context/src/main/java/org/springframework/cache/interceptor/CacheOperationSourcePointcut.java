@@ -16,9 +16,6 @@
 
 package org.springframework.cache.interceptor;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.cache.CacheManager;
@@ -26,9 +23,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+
 /**
  * A Pointcut that matches if the underlying {@link CacheOperationSource}
  * has an attribute for a given method.
+ *
+ * StaticMethodMatcherPointcut 是一个 MethodMatcher 又是一个 Pointcut，
+ * 因此可以基于 Pointcut 拓展 ClassFilter 的能力
  *
  * @author Costin Leau
  * @author Juergen Hoeller
@@ -37,11 +40,15 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 
+	// 指定 ClassFilter
 	protected CacheOperationSourcePointcut() {
 		setClassFilter(new CacheOperationSourceClassFilter());
 	}
 
 
+	/**
+	 * 通过Class+Method查找是否有CacheOperation操作，如果有的话，说明这个方法可能涉及到缓存的操作
+	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
 		CacheOperationSource cas = getCacheOperationSource();
@@ -73,6 +80,7 @@ abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut 
 	/**
 	 * Obtain the underlying {@link CacheOperationSource} (may be {@code null}).
 	 * To be implemented by subclasses.
+	 * 实现类指定具体的 CacheOperationSource
 	 */
 	@Nullable
 	protected abstract CacheOperationSource getCacheOperationSource();
@@ -81,14 +89,20 @@ abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut 
 	/**
 	 * {@link ClassFilter} that delegates to {@link CacheOperationSource#isCandidateClass}
 	 * for filtering classes whose methods are not worth searching to begin with.
+	 * 内部类维护对应的 ClassFilter
 	 */
 	private class CacheOperationSourceClassFilter implements ClassFilter {
 
+		/**
+		 * ClassFilter#match 委托 CacheOperationSource 实现
+		 */
 		@Override
 		public boolean matches(Class<?> clazz) {
+			// 不代理 CacheManager
 			if (CacheManager.class.isAssignableFrom(clazz)) {
 				return false;
 			}
+			// 基于 CacheOperationSource#isCandidateClass 过滤
 			CacheOperationSource cas = getCacheOperationSource();
 			return (cas == null || cas.isCandidateClass(clazz));
 		}

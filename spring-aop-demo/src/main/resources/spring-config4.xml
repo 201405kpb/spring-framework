@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--环绕通知测试-->
+	<bean class="com.kpb.aop.xml.AopAspectAround" name="aopAspectAround"/>
+	<bean class="com.kpb.aop.xml.AopTargetAround" name="aopTargetAround"/>
+	<aop:config>
+		<aop:aspect id="around" ref="aopAspectAround">
+			<!--配置环绕通知 和其他通知的配置都差不多-->
+			<aop:around method="around" pointcut="execution(public int com.kpb.aop.xml.AopTargetAround.target(int,int))"/>
+		</aop:aspect>
+	</aop:config>
+
+</beans>

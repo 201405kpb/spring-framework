@@ -16,10 +16,6 @@
 
 package org.springframework.cache.annotation;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -34,9 +30,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.function.SingletonSupplier;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 /**
  * Abstract base {@code @Configuration} class providing common structure
  * for enabling Spring's annotation-driven cache management capability.
+ *
+ * 基于Configuration类提供了用于启用Spring的注释驱动缓存管理功能的抽象公共类。
  *
  * @author Chris Beams
  * @author Stephane Nicoll
@@ -75,6 +77,7 @@ public abstract class AbstractCachingConfiguration implements ImportAware {
 
 	@Autowired
 	void setConfigurers(ObjectProvider<CachingConfigurer> configurers) {
+		// 收集容器中用户定义的所有 CachingConfigurer
 		Supplier<CachingConfigurer> configurer = () -> {
 			List<CachingConfigurer> candidates = configurers.stream().toList();
 			if (CollectionUtils.isEmpty(candidates)) {
@@ -88,6 +91,7 @@ public abstract class AbstractCachingConfiguration implements ImportAware {
 			}
 			return candidates.get(0);
 		};
+		// 基于提供的 CachingConfigurer 对属性进行配置
 		useCachingConfigurer(new CachingConfigurerSupplier(configurer));
 	}
 

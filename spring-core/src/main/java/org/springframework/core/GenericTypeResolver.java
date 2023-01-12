@@ -16,24 +16,22 @@
 
 package org.springframework.core;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
+import java.lang.reflect.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Helper class for resolving generic types against type variables.
+ * 用于根据类型变量解析泛型类型的帮助程序类.
  *
  * <p>Mainly intended for usage within the framework, resolving method
  * parameter types even when they are declared generically.
+ * <p>主要用于在框架内使用，即使在泛型声明方法参数类型时也可以解析它们。
  *
  * @author Juergen Hoeller
  * @author Rob Harrop
@@ -43,7 +41,8 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  */
 public final class GenericTypeResolver {
 
-	/** Cache from Class to TypeVariable Map. */
+	/** Cache from Class to TypeVariable Map.
+	 * 从类到TypeVariable映射的缓存。*/
 	@SuppressWarnings("rawtypes")
 	private static final Map<Class<?>, Map<TypeVariable, Type>> typeVariableCache = new ConcurrentReferenceHashMap<>();
 
@@ -54,9 +53,12 @@ public final class GenericTypeResolver {
 
 	/**
 	 * Determine the target type for the given generic parameter type.
+	 * 确定给定泛型参数类型的目标类型
 	 * @param methodParameter the method parameter specification
+	 *                        --方法参数说明
 	 * @param implementationClass the class to resolve type variables against
-	 * @return the corresponding generic parameter or return type
+	 *                            -- 要解析类型变量的类
+	 * @return the corresponding generic parameter or return type 对应的泛型参数或返回类型
 	 * @deprecated since 5.2 in favor of {@code methodParameter.withContainingClass(implementationClass).getParameterType()}
 	 */
 	@Deprecated
@@ -70,9 +72,10 @@ public final class GenericTypeResolver {
 	/**
 	 * Determine the target type for the generic return type of the given method,
 	 * where formal type variables are declared on the given class.
+	 * <p>确定给定方法的泛型返回类型的目标类型，其中在给定类上声明了形式类型变量。
 	 * @param method the method to introspect
-	 * @param clazz the class to resolve type variables against
-	 * @return the corresponding generic parameter or return type
+	 * @param clazz the class to resolve type variables against 要解析类型变量的类
+	 * @return the corresponding generic parameter or return type 对应的泛型参数或返回类型
 	 */
 	public static Class<?> resolveReturnType(Method method, Class<?> clazz) {
 		Assert.notNull(method, "Method must not be null");
@@ -84,10 +87,14 @@ public final class GenericTypeResolver {
 	 * Resolve the single type argument of the given generic interface against the given
 	 * target method which is assumed to return the given interface or an implementation
 	 * of it.
+	 * <p>针对假定返回给定接口或其实现的给定目标方法，解析给定泛型接口的单个类型参数。
 	 * @param method the target method to check the return type of
+	 *               --检查返回类型的目标方法
 	 * @param genericIfc the generic interface or superclass to resolve the type argument from
+	 *                   --从中解析类型参数的泛型接口或超类
 	 * @return the resolved parameter type of the method return type, or {@code null}
 	 * if not resolvable or if the single argument is of type {@link WildcardType}.
+	 * 方法返回类型的已解析参数类型，如果不可解析或单个参数类型为WildcardType，则返回 null
 	 */
 	@Nullable
 	public static Class<?> resolveReturnTypeArgument(Method method, Class<?> genericIfc) {
@@ -103,9 +110,15 @@ public final class GenericTypeResolver {
 	 * Resolve the single type argument of the given generic interface against
 	 * the given target class which is assumed to implement the generic interface
 	 * and possibly declare a concrete type for its type variable.
+	 *
+	 * 针对给定目标类解析给定泛型接口的单个类型参数，该类假定实现泛型接口，并可能为其类型变量声明具体类型。
+	 *
 	 * @param clazz the target class to check against
+	 *              -- 要检查的目标类
 	 * @param genericIfc the generic interface or superclass to resolve the type argument from
+	 *                   -- 从中解析类型参数的泛型接口或超类
 	 * @return the resolved type of the argument, or {@code null} if not resolvable
+	 * 参数的已解析类型，如果不可解析，则为 null
 	 */
 	@Nullable
 	public static Class<?> resolveTypeArgument(Class<?> clazz, Class<?> genericIfc) {
@@ -129,10 +142,16 @@ public final class GenericTypeResolver {
 	 * Resolve the type arguments of the given generic interface against the given
 	 * target class which is assumed to implement the generic interface and possibly
 	 * declare concrete types for its type variables.
+	 *
+	 * 针对给定目标类解析给定泛型接口的类型参数，该类假定实现泛型接口，并可能为其类型变量声明具体类型
+	 *
 	 * @param clazz the target class to check against
+	 *              -- 要检查的目标类
 	 * @param genericIfc the generic interface or superclass to resolve the type argument from
+	 *                   -- 从中解析类型参数的泛型接口或超类
 	 * @return the resolved type of each argument, with the array size matching the
 	 * number of actual type arguments, or {@code null} if not resolvable
+	 * 每个参数的已解析类型，数组大小与实际类型参数的数量匹配，如果不可解析，则为 null
 	 */
 	@Nullable
 	public static Class<?>[] resolveTypeArguments(Class<?> clazz, Class<?> genericIfc) {
@@ -146,10 +165,13 @@ public final class GenericTypeResolver {
 	/**
 	 * Resolve the given generic type against the given context class,
 	 * substituting type variables as far as possible.
-	 * @param genericType the (potentially) generic type
+	 * 根据给定的上下文类解析给定的泛型类型，尽可能替换类型变量。
+	 * @param genericType the (potentially) generic type 潜在的泛型类型
 	 * @param contextClass a context class for the target type, for example a class
 	 * in which the target type appears in a method signature (can be {@code null})
+	 * 目标类型的上下文类，例如目标类型出现在方法签名中的类（可以是 null）
 	 * @return the resolved type (possibly the given generic type as-is)
+	 * 解析的类型（可能是给定的泛型类型）
 	 * @since 5.0
 	 */
 	public static Type resolveType(Type genericType, @Nullable Class<?> contextClass) {
@@ -227,10 +249,15 @@ public final class GenericTypeResolver {
 
 	/**
 	 * Resolve the specified generic type against the given TypeVariable map.
+	 * 根据给定的TypeVariable映射解析指定的泛型类型。
 	 * <p>Used by Spring Data.
+	 * <p>由Spring Data使用。
 	 * @param genericType the generic type to resolve
+	 *                    -- 要解析的泛型类型
 	 * @param map the TypeVariable Map to resolved against
+	 *            -- 要解析的TypeVariable映射
 	 * @return the type if it resolves to a Class, or {@code Object.class} otherwise
+	 * 如果类型解析为Class，则返回该类型，否则返回Object.Class
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Class<?> resolveType(Type genericType, Map<TypeVariable, Type> map) {
@@ -240,7 +267,9 @@ public final class GenericTypeResolver {
 	/**
 	 * Build a mapping of {@link TypeVariable#getName TypeVariable names} to
 	 * {@link Class concrete classes} for the specified {@link Class}.
+	 * 为指定的 Class构建映射。
 	 * Searches all supertypes, enclosing types and interfaces.
+	 * 搜索所有超类型、封闭类型和接口。
 	 * @see #resolveType(Type, Map)
 	 */
 	@SuppressWarnings("rawtypes")

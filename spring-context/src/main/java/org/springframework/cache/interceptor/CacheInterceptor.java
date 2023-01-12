@@ -16,14 +16,13 @@
 
 package org.springframework.cache.interceptor;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
 
 /**
  * AOP Alliance MethodInterceptor for declarative cache
@@ -48,7 +47,7 @@ public class CacheInterceptor extends CacheAspectSupport implements MethodInterc
 	@Nullable
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
-
+		// 缓存操作本身的执行，比如：缓存中未查到，或者更新缓存结果等时
 		CacheOperationInvoker aopAllianceInvoker = () -> {
 			try {
 				return invocation.proceed();

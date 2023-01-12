@@ -16,15 +16,11 @@
 
 package org.springframework.transaction.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
+
+import java.lang.annotation.*;
 
 /**
  * Enables Spring's annotation-driven transaction management capability, similar to
@@ -32,6 +28,8 @@ import org.springframework.core.Ordered;
  * {@link org.springframework.context.annotation.Configuration @Configuration}
  * classes to configure traditional, imperative transaction management or
  * reactive transaction management.
+ *
+ * 启用Spring的注释驱动事务管理功能，类似于Spring的<tx:>XML命名空间中的支持。用于Configuration类，以配置传统的命令式事务管理或反应式事务管理。
  *
  * <p>The following example demonstrates imperative transaction management
  * using a {@link org.springframework.transaction.PlatformTransactionManager
