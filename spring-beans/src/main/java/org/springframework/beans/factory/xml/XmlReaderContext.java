@@ -16,11 +16,6 @@
 
 package org.springframework.beans.factory.xml;
 
-import java.io.StringReader;
-
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.ProblemReporter;
@@ -32,6 +27,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import java.io.StringReader;
 
 /**
  * Extension of {@link org.springframework.beans.factory.parsing.ReaderContext},
@@ -138,13 +137,17 @@ public class XmlReaderContext extends ReaderContext {
 	/**
 	 * Call the bean name generator for the given bean definition
 	 * and register the bean definition under the generated name.
+	 * 调用给定的 bean 名称生成器生成beanName，并注册 bean 定义，最后返回生成的beanName
 	 * @see XmlBeanDefinitionReader#getBeanNameGenerator()
 	 * @see org.springframework.beans.factory.support.BeanNameGenerator#generateBeanName
 	 * @see BeanDefinitionRegistry#registerBeanDefinition
 	 */
 	public String registerWithGeneratedName(BeanDefinition beanDefinition) {
+		//生成beanName，采用的生成器默认就是DefaultBeanNameGenerator，生成的beanName类似于 "org.springframework.aop.aspectj.AspectJExpressionPointcut#0"
 		String generatedName = generateBeanName(beanDefinition);
+		//调用registerBeanDefinition注册bean定义
 		getRegistry().registerBeanDefinition(generatedName, beanDefinition);
+		//返回生成的beanName
 		return generatedName;
 	}
 

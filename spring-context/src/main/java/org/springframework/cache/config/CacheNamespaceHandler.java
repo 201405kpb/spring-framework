@@ -39,15 +39,26 @@ public class CacheNamespaceHandler extends NamespaceHandlerSupport {
 
 	static final String CACHE_MANAGER_ATTRIBUTE = "cache-manager";
 
-	static final String DEFAULT_CACHE_MANAGER_BEAN_NAME = "cacheManager";
+	static final String DEFAULT_CACHE_MANAGER_BEAN_NAME = "cache-manager";
 
 
+	/**
+	 *  从标签中提取 cache-manager
+	 * @param element
+	 * @return
+	 */
 	static String extractCacheManager(Element element) {
 		return (element.hasAttribute(CacheNamespaceHandler.CACHE_MANAGER_ATTRIBUTE) ?
 				element.getAttribute(CacheNamespaceHandler.CACHE_MANAGER_ATTRIBUTE) :
 				CacheNamespaceHandler.DEFAULT_CACHE_MANAGER_BEAN_NAME);
 	}
 
+	/**
+	 *  提取 KeyGenerator
+	 * @param element
+	 * @param def
+	 * @return
+	 */
 	static BeanDefinition parseKeyGenerator(Element element, BeanDefinition def) {
 		String name = element.getAttribute("key-generator");
 		if (StringUtils.hasText(name)) {
@@ -57,9 +68,14 @@ public class CacheNamespaceHandler extends NamespaceHandlerSupport {
 	}
 
 
+	/**
+	 * 注册一些列的BeanDefinitionParser，用于解析<cache:annotation-driven/>、<cache:advice/> 标签及其子标签
+	 */
 	@Override
 	public void init() {
+		// <cache:annotation-driven /> 标签的解析器
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenCacheBeanDefinitionParser());
+		// <cache:advice/> 标签的解析器
 		registerBeanDefinitionParser("advice", new CacheAdviceParser());
 	}
 

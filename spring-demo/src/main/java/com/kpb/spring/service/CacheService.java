@@ -1,14 +1,11 @@
 package com.kpb.spring.service;
 
 import com.kpb.spring.tx.Book;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
 
-@Service
 public class CacheService {
 
-    @Cacheable("default")
     public Book find(Integer id) {
+		System.out.println("执行方法");
 		if(id==1){
 			Book book = new Book();
 			book.setId(id);

@@ -32,6 +32,8 @@ import java.util.Map;
  * Simple {@link CacheOperationSource} implementation that allows attributes to be matched
  * by registered name.
  *
+ * 简单的CacheOperationSource实现，允许按注册名称匹配属性。基于方法名称来获取对应的 CacheOperations，支持指定和条件对应的关系。
+ *
  * @author Costin Leau
  * @since 3.1
  */

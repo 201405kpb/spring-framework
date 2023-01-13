@@ -1,17 +1,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
 	   xmlns:cache="http://www.springframework.org/schema/cache"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context.xsd   http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
 
-	<context:component-scan base-package="com.kpb.spring.service"/>
-
-	<context:annotation-config/>
-
-	<cache:annotation-driven mode="proxy" order="0" />
+	<bean class="com.kpb.spring.service.CacheService" id="cacheService"/>
 
 	<bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
 		<property name="caches">
@@ -25,5 +18,20 @@
 			</set>
 		</property>
 	</bean>
+	<!--配置切面-->
+	<cache:advice id="cacheAdvice" cache-manager="cacheManager">
+		<cache:caching cache="default">
+			<cache:cacheable method="find"/>
+		</cache:caching>
+	</cache:advice>
+
+	<aop:config>
+		<!--配置切点-->
+		<aop:pointcut id="cachePoint" expression="execution(* com.kpb.spring.service.CacheService.*(..))"/>
+		<!--配置增强器-->
+		<aop:advisor advice-ref="cacheAdvice"
+					 pointcut-ref="cachePoint"/>
+	</aop:config>
+
 
 </beans>

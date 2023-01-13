@@ -97,7 +97,7 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 
 		ManagedMap<TypedStringValue, Collection<CacheOperation>> cacheOpMap = new ManagedMap<>();
 		cacheOpMap.setSource(parserContext.extractSource(definition));
-
+		// 构建 cacheable
 		List<Element> cacheableCacheMethods = DomUtils.getChildElementsByTagName(definition, CACHEABLE_ELEMENT);
 
 		for (Element opElement : cacheableCacheMethods) {
@@ -113,6 +113,7 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 			col.add(builder.build());
 		}
 
+		// 构建 cache-evict
 		List<Element> evictCacheMethods = DomUtils.getChildElementsByTagName(definition, CACHE_EVICT_ELEMENT);
 
 		for (Element opElement : evictCacheMethods) {
@@ -136,6 +137,7 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 			col.add(builder.build());
 		}
 
+		// 构建 cache-evict
 		List<Element> putCacheMethods = DomUtils.getChildElementsByTagName(definition, CACHE_PUT_ELEMENT);
 
 		for (Element opElement : putCacheMethods) {
@@ -149,14 +151,20 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 			Collection<CacheOperation> col = cacheOpMap.computeIfAbsent(nameHolder, k -> new ArrayList<>(2));
 			col.add(builder.build());
 		}
-
+		// 构建 NameMatchCacheOperationSource 对象 BeanDefinition
 		RootBeanDefinition attributeSourceDefinition = new RootBeanDefinition(NameMatchCacheOperationSource.class);
 		attributeSourceDefinition.setSource(parserContext.extractSource(definition));
 		attributeSourceDefinition.getPropertyValues().add("nameMap", cacheOpMap);
 		return attributeSourceDefinition;
 	}
 
-
+	/**
+	 *  获取默认值
+	 * @param element 元素
+	 * @param attributeName 属性名称
+	 * @param defaultValue 默认值
+	 * @return 元素的属性值
+	 */
 	private static String getAttributeValue(Element element, String attributeName, String defaultValue) {
 		String attribute = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attribute)) {
@@ -168,6 +176,7 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 
 	/**
 	 * Simple, reusable class used for overriding defaults.
+	 * 用于重写默认值的简单、可重用类。
 	 */
 	private static class Props {
 
@@ -193,16 +202,18 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 			this.method = root.getAttribute(METHOD_ATTRIBUTE);
 
 			if (StringUtils.hasText(defaultCache)) {
+				// 使用逗号分割 defaultCache
 				this.caches = StringUtils.commaDelimitedListToStringArray(defaultCache.trim());
 			}
 		}
 
 		<T extends CacheOperation.Builder> T merge(Element element, ReaderContext readerCtx, T builder) {
-			String cache = element.getAttribute("cache");
 
+			String cache = element.getAttribute("cache");
 			// sanity check
 			String[] localCaches = this.caches;
 			if (StringUtils.hasText(cache)) {
+				// 使用逗号分割 cache
 				localCaches = StringUtils.commaDelimitedListToStringArray(cache.trim());
 			}
 			if (localCaches != null) {
@@ -219,7 +230,7 @@ class CacheAdviceParser extends AbstractSingleBeanDefinitionParser {
 
 			if (StringUtils.hasText(builder.getKey()) && StringUtils.hasText(builder.getKeyGenerator())) {
 				throw new IllegalStateException("Invalid cache advice configuration on '" +
-						element.toString() + "'. Both 'key' and 'keyGenerator' attributes have been set. " +
+						element + "'. Both 'key' and 'keyGenerator' attributes have been set. " +
 						"These attributes are mutually exclusive: either set the SpEL expression used to" +
 						"compute the key at runtime or set the name of the KeyGenerator bean to use.");
 			}

@@ -50,26 +50,4 @@ public class AspectAdvice {
 		System.out.println("---after---");
 	}
 
-//    /**
-//     * 环绕通知
-//     *
-//     * @param pjp 连接点
-//     */
-//    @Around("pt()")
-//    public Object around(ProceedingJoinPoint pjp) {
-//        System.out.println("---around---");
-//        try {
-//            System.out.println("前置通知");
-//            //调用目标方法
-//            Object proceed = pjp.proceed();
-//            System.out.println("后置通知");
-//            return proceed;
-//        } catch (Throwable throwable) {
-//            System.out.println("异常通知");
-//            throwable.printStackTrace();
-//            return null;
-//        } finally {
-//            System.out.println("最终通知");
-//        }
-//    }
 }

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * {@code NamespaceHandler} for the {@code aop} namespace.
+ * aop 命名空间处理器
  *
  * <p>Provides a {@link org.springframework.beans.factory.xml.BeanDefinitionParser} for the
  * {@code <aop:config>} tag. A {@code config} tag can include nested
@@ -58,6 +59,8 @@ public class AopNamespaceHandler extends NamespaceHandlerSupport {
 	 * Register the {@link BeanDefinitionParser BeanDefinitionParsers} for the
 	 * '{@code config}', '{@code spring-configured}', '{@code aspectj-autoproxy}'
 	 * and '{@code scoped-proxy}' tags.
+	 * 注册一些列的BeanDefinitionParser，用于解析<aop:config/>
+	 * <aop:aspectj-autoproxy/>、<aop:scoped-proxy/>、<aop:spring-configured/>标签及其子标签
 	 */
 	@Override
 	public void init() {
