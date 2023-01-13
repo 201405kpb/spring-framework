@@ -16,23 +16,6 @@
 
 package org.springframework.core.io.support;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import kotlin.jvm.JvmClassMappingKt;
 import kotlin.reflect.KFunction;
 import kotlin.reflect.KParameter;
@@ -41,21 +24,26 @@ import kotlin.reflect.jvm.KCallablesJvm;
 import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.log.LogMessage;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * General purpose factory loading mechanism for internal use within the framework.
+ * 框架内部使用的通用工厂加载机制。
  *
  * <p>{@code SpringFactoriesLoader} {@linkplain #loadFactories loads} and instantiates
  * factories of a given type from {@value #FACTORIES_RESOURCE_LOCATION} files which
@@ -64,10 +52,17 @@ import org.springframework.util.StringUtils;
  * name of the interface or abstract class, and the value is a comma-separated list of
  * implementation class names. For example:
  *
+ * <p>SpringFactoriesLoader#loadFactories设计用于加载和实例化指定类型的工厂，这些工厂类型的定义
+ * 来自classpath中多个JAR包内常量FACTORIES_RESOURCE_LOCATION所指定的那些spring.factories文件。
+ * spring.factories文件的格式必须是属性文件格式，每条属性的key必须是接口或者抽象类的全限定名，
+ * 而属性值value是一个逗号分割的实现类的名称。</p>
+ * <p>举例来讲，一条属性定义如下:</p>
  * <pre class="code">example.MyService=example.MyServiceImpl1,example.MyServiceImpl2</pre>
  *
  * where {@code example.MyService} is the name of the interface, and {@code MyServiceImpl1}
  * and {@code MyServiceImpl2} are two implementations.
+ *
+ * <p>这里 example.MyService 是接口或者抽象类的全限定名, MyServiceImpl1和MyServiceImpl2是相应的两个实现类</p>
  *
  * <p>Implementation classes <b>must</b> have a single resolvable constructor that will
  * be used to create the instance, either:
@@ -80,6 +75,14 @@ import org.springframework.util.StringUtils;
  * <p>If the resolvable constructor has arguments, a suitable {@link ArgumentResolver
  * ArgumentResolver} should be provided. To customize how instantiation failures
  * are handled, consider providing a {@link FailureHandler FailureHandler}.
+ *
+ * <p>
+ *   SpringFactoriesLoader可以加载jar包下META-INF下的spring.factories，
+ *   把相关接口的实现按照key,value的形式加载到内存，一个接口的多个实现可以按照","进行分割。
+ *   对程序员来说，利用SpringFactoriesLoader可以加载自定义的ApplicationListener、
+ *   ApplicationContextInitializer、Configuration类等，spring-boot的starter
+ *   就是通过SpringFactoriesLoader加载了相关Configuration配置类。
+ * </p>
  *
  * @author Arjen Poutsma
  * @author Juergen Hoeller
@@ -94,8 +97,8 @@ public class SpringFactoriesLoader {
 	/**
 	 * The location to look for factories.
 	 * <p>Can be present in multiple JAR files.
-	 *
-	 *  spring.factories文件在jar包中的位置，可以存在于多个不同的jar包
+	 * 在classpath中的多个JAR中要扫描的工厂配置文件的在本JAR包中的路径。
+	 * 实际上，Springboot的每个 autoconfigure包都包含一个这样的文件。
 	 */
 	public static final String FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories";
 
@@ -103,7 +106,12 @@ public class SpringFactoriesLoader {
 
 	private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class);
 
-	// classpath环境变量下所有jar包中的spring.factories配置文件都解析完成后存入字典
+	/**
+	 * 缓存，在 loadFactoryNames 首次被调用时，所有jar包中的 META-INF/spring.factories
+	 * 文件内容都会被加载，然后缓存在 cache 中， 注意 cache Map 的 key 是 loadFactoryNames
+	 * 调用时的参数 classLoader, 而 value 是另外一个 Map，其 key 是工厂类的名称,
+	 * 也就是每个 META-INF/spring.factories 属性文件中属性名部分
+	 */
 	static final Map<ClassLoader, Map<String, SpringFactoriesLoader>> cache = new ConcurrentReferenceHashMap<>();
 
 
@@ -219,6 +227,15 @@ public class SpringFactoriesLoader {
 		return this.factories.getOrDefault(factoryType.getName(), Collections.emptyList());
 	}
 
+	/**
+	 *
+	 * @param implementationName 工厂实现类全限定名称
+	 * @param type 类型
+	 * @param argumentResolver 参数解析器
+	 * @param failureHandler 失败处理器
+	 * @return
+	 * @param <T>
+	 */
 	@Nullable
 	protected <T> T instantiateFactory(String implementationName, Class<T> type,
 			@Nullable ArgumentResolver argumentResolver, FailureHandler failureHandler) {
@@ -336,6 +353,10 @@ public class SpringFactoriesLoader {
 				new SpringFactoriesLoader(classLoader, loadFactoriesResource(resourceClassLoader, resourceLocation)));
 	}
 
+	/**
+	 * 使用指定的classloader扫描classpath上所有的JAR包中的文件META-INF/spring.factories，加载其中的多值
+	 * 工厂属性定义，使用多值Map的形式返回
+	 **/
 	protected static Map<String, List<String>> loadFactoriesResource(ClassLoader classLoader, String resourceLocation) {
 		Map<String, List<String>> result = new LinkedHashMap<>();
 		try {
@@ -344,11 +365,11 @@ public class SpringFactoriesLoader {
 			//遍历所有的URL
 			while (urls.hasMoreElements()) {
 				UrlResource resource = new UrlResource(urls.nextElement());
-				//将资源解析为properties
+				// 把spring.factories数据加载到Properties
 				Properties properties = PropertiesLoaderUtils.loadProperties(resource);
 				properties.forEach((name, value) -> {
-
 					List<String> implementations = result.computeIfAbsent(((String) name).trim(), key -> new ArrayList<>());
+					// 把value按照,分割成数组
 					Arrays.stream(StringUtils.commaDelimitedListToStringArray((String) value))
 							.map(String::trim).forEach(implementations::add);
 				});
