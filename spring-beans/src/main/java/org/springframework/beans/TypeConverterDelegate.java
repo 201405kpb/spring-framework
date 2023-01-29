@@ -643,15 +643,15 @@ class TypeConverterDelegate {
 	}
 
 	/**
-	 * 将input转换为 commpentedType类型数组对象
+	 * 将input转换为 componentType类型数组对象
 	 * @param input 要转换的值
 	 * @param propertyName 属性名
 	 * @param componentType 数组的元素类型
-	 * @return 转换的 commpentedType类型数组对象
+	 * @return 转换的 componentType类型数组对象
 	 */
 	private Object convertToTypedArray(Object input, @Nullable String propertyName, Class<?> componentType) {
 		//如果 input是 Collection 实例
-		if (input instanceof Collection coll) {
+		if (input instanceof Collection<?> coll) {
 			// Convert Collection elements to array elements.
 			//新建一个元素类型为componentType,长度为coll.size的列表
 			Object result = Array.newInstance(componentType, coll.size());
