@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 @SuppressWarnings("serial")
 public class CacheInterceptor extends CacheAspectSupport implements MethodInterceptor, Serializable {
 
+	// 拦截原始方法的执行，在之前、之后增加逻辑
 	@Override
 	@Nullable
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
@@ -50,6 +51,7 @@ public class CacheInterceptor extends CacheAspectSupport implements MethodInterc
 		// 缓存操作本身的执行，比如：缓存中未查到，或者更新缓存结果等时
 		CacheOperationInvoker aopAllianceInvoker = () -> {
 			try {
+				// 原始方法的执行
 				return invocation.proceed();
 			}
 			catch (Throwable ex) {

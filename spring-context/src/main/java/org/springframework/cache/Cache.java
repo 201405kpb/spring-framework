@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Interface that defines common cache operations.
+ * 定义公共缓存操作的接口
  *
  * <b>Note:</b> Due to the generic use of caching, it is recommended that
  * implementations allow storage of {@code null} values (for example to
@@ -228,6 +229,7 @@ public interface Cache {
 
 		/**
 		 * Return the actual value in the cache.
+		 * 返回缓存中的实际值
 		 */
 		@Nullable
 		Object get();

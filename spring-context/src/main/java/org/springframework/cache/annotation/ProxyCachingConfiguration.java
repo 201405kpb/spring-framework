@@ -43,6 +43,7 @@ public class ProxyCachingConfiguration extends AbstractCachingConfiguration {
 
 	@Bean(name = CacheManagementConfigUtils.CACHE_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	// 基于cache操作的Advisor，在spring切面(pointcut)判断是否拦截(是否有缓存注解)，并调用CacheInterceptor
 	public BeanFactoryCacheOperationSourceAdvisor cacheAdvisor(
 			CacheOperationSource cacheOperationSource, CacheInterceptor cacheInterceptor) {
 
@@ -59,6 +60,7 @@ public class ProxyCachingConfiguration extends AbstractCachingConfiguration {
 
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	// 缓存注解解析，把Cacheable、CachePut和CacheEvict注解解析为相应的缓存操作(CacheOperation)
 	public CacheOperationSource cacheOperationSource() {
 		// Accept protected @Cacheable etc methods on CGLIB proxies, as of 6.0.
 		// 方法不是 public 也行
@@ -67,6 +69,7 @@ public class ProxyCachingConfiguration extends AbstractCachingConfiguration {
 
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	// 实现MethodInterceptor接口，aop的方法拦截器，缓存代理类会调用此方法进行相应的缓存处理
 	public CacheInterceptor cacheInterceptor(CacheOperationSource cacheOperationSource) {
 		CacheInterceptor interceptor = new CacheInterceptor();
 		/**

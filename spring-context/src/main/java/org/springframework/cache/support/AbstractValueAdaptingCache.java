@@ -28,6 +28,10 @@ import org.springframework.lang.Nullable;
  * {@link NullValue#INSTANCE}, if configured to support {@code null} values
  * (as indicated by {@link #isAllowNullValues()}).
  *
+ * 保存的value为null时，如果allowNullValues=true，则保存NullValue，如果allowNullValues=false，则抛出异常。默认为true；
+ * 读取的value为NullValue时，返回null，不受allowNullValues影响；
+ * lookup方法直接从底层存储获取value，不会进行任何处理和转换，其它方法会对value进行一些处理；
+ *
  * @author Juergen Hoeller
  * @since 4.2.2
  */

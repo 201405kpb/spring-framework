@@ -16,13 +16,14 @@
 
 package org.springframework.cache.interceptor;
 
+import org.springframework.cache.Cache;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import org.springframework.cache.Cache;
-
 /**
  * Class describing the root object used during the expression evaluation.
+ * 代表缓存注解中#root对象，CacheExpressionRootObject的属性即#root可引用的参数
  *
  * @author Costin Leau
  * @author Sam Brannen

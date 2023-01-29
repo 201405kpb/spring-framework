@@ -80,8 +80,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 	@Nullable
 	private Collection<CacheOperation> parseCacheAnnotations(DefaultCacheConfig cachingConfig, AnnotatedElement ae) {
 		/**
-		 * 先忽略层级，如果解析的 CacheOperation 多余 1 个
-		 * 		则在本层级再解析一次
+		 * 先忽略层级，如果解析的 CacheOperation 多余 1 个 则在本层级再解析一次
 		 * （应该是为了防止接口和实现类都声明注解导致重复）
 		 */
 		Collection<CacheOperation> ops = parseCacheAnnotations(cachingConfig, ae, false);
@@ -303,7 +302,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 				}
 				this.initialized = true;
 			}
-
+			// 如果注解在方法上未设置这些字段，用注解在类上的字段去填充
 			if (builder.getCacheNames().isEmpty() && this.cacheNames != null) {
 				builder.setCacheNames(this.cacheNames);
 			}
@@ -314,6 +313,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser, Seria
 
 			if (StringUtils.hasText(builder.getCacheManager()) || StringUtils.hasText(builder.getCacheResolver())) {
 				// One of these is set so we should not inherit anything
+				// cacheManager和cacheResolver 是互斥字段，不可能同时有；一个字段设置了，那么这两个字段都不需要覆盖
 			}
 			else if (StringUtils.hasText(this.cacheResolver)) {
 				builder.setCacheResolver(this.cacheResolver);

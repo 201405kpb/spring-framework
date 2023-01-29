@@ -26,4 +26,9 @@ public class CacheConfig {
 		return new ConcurrentMapCache("default");
 	}
 
+	@Bean
+	public ConcurrentMapCache CacheBean(){
+		return new ConcurrentMapCache("default2");
+	}
+
 }

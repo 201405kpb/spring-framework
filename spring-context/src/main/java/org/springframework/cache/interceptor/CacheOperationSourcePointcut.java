@@ -40,7 +40,7 @@ import java.lang.reflect.Method;
 @SuppressWarnings("serial")
 abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 
-	// 指定 ClassFilter
+	// 使用CacheOperationSourceClassFilter类过滤器
 	protected CacheOperationSourcePointcut() {
 		setClassFilter(new CacheOperationSourceClassFilter());
 	}
@@ -51,10 +51,15 @@ abstract class CacheOperationSourcePointcut extends StaticMethodMatcherPointcut 
 	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		//获取缓存操作源
 		CacheOperationSource cas = getCacheOperationSource();
+		//如果缓存操作源不为空 && 缓存操作源能获取到目标方法上的缓存操作，则需拦截目标方法
 		return (cas != null && !CollectionUtils.isEmpty(cas.getCacheOperations(method, targetClass)));
 	}
 
+	/**
+	 * 是否相等
+	 */
 	@Override
 	public boolean equals(@Nullable Object other) {
 		if (this == other) {

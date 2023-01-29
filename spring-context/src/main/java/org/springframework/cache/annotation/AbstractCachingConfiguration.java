@@ -65,6 +65,7 @@ public abstract class AbstractCachingConfiguration implements ImportAware {
 	protected Supplier<CacheErrorHandler> errorHandler;
 
 
+	// 获取EnableCaching注解
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.enableCaching = AnnotationAttributes.fromMap(
@@ -97,6 +98,7 @@ public abstract class AbstractCachingConfiguration implements ImportAware {
 
 	/**
 	 * Extract the configuration from the nominated {@link CachingConfigurer}.
+	 * 如果自定义了CachingConfigurer配置，则使用自定义CachingConfigurer的配置
 	 */
 	protected void useCachingConfigurer(CachingConfigurerSupplier cachingConfigurerSupplier) {
 		this.cacheManager = cachingConfigurerSupplier.adapt(CachingConfigurer::cacheManager);

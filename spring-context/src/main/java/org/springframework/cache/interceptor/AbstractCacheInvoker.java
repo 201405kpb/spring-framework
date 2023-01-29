@@ -24,6 +24,8 @@ import org.springframework.util.function.SingletonSupplier;
  * A base component for invoking {@link Cache} operations and using a
  * configurable {@link CacheErrorHandler} when an exception occurs.
  *
+ * CacheAspectSupport的父类，封装了最终查询Cache接口的逻辑
+ *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
  * @since 4.1
@@ -66,11 +68,13 @@ public abstract class AbstractCacheInvoker {
 	 * invoke the error handler if an exception occurs. Return {@code null}
 	 * if the handler does not throw any exception, which simulates a cache
 	 * miss in case of error.
+	 * 最终查询缓存的方法
 	 * @see Cache#get(Object)
 	 */
 	@Nullable
 	protected Cache.ValueWrapper doGet(Cache cache, Object key) {
 		try {
+			// 调用Spring Cache接口的查询方法
 			return cache.get(key);
 		}
 		catch (RuntimeException ex) {

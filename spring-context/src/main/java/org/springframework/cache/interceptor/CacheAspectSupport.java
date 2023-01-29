@@ -42,6 +42,8 @@ import java.util.function.Supplier;
  * Base class for caching aspects, such as the {@link CacheInterceptor} or an
  * AspectJ aspect.
  *
+ * 缓存切面支持类，是CacheInterceptor的父类，封装了所有的缓存操作的主体逻辑
+ *
  * <p>This enables the underlying Spring caching infrastructure to be used easily
  * to implement an aspect for any aspect system.
  *
@@ -340,12 +342,14 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		this.evaluator.clear();
 	}
 
+	// CacheInterceptor调父类的该方法
 	@Nullable
 	protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] args) {
 		// Check whether aspect is enabled (to cope with cases where the AJ is pulled in automatically)
 		if (this.initialized) {
 			// 已经初始化完成
 			Class<?> targetClass = getTargetClass(target);
+			// CacheInterceptor调父类的该方法
 			CacheOperationSource cacheOperationSource = getCacheOperationSource();
 			if (cacheOperationSource != null) {
 				// 根据Class+Method获取 Collection<CacheOperation>
@@ -558,6 +562,12 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		}
 	}
 
+	/**
+	 *  验证日志信息
+	 * @param context
+	 * @param operation 缓存操作
+	 * @param key 缓存标识
+	 */
 	private void logInvalidating(CacheOperationContext context, CacheEvictOperation operation, @Nullable Object key) {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Invalidating " + (key != null ? "cache key [" + key + "]" : "entire cache") +
@@ -567,6 +577,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 	/**
 	 * Find a cached item only for {@link CacheableOperation} that passes the condition.
+	 * 仅为通过条件的CacheableOperation查找缓存项。
 	 * @param contexts the cacheable operations
 	 * @return a {@link Cache.ValueWrapper} holding the cached item,
 	 * or {@code null} if none is found
@@ -575,8 +586,11 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	private Cache.ValueWrapper findCachedItem(Collection<CacheOperationContext> contexts) {
 		Object result = CacheOperationExpressionEvaluator.NO_RESULT;
 		for (CacheOperationContext context : contexts) {
+			// 如果满足condition条件，才查询缓存
 			if (isConditionPassing(context, result)) {
+				// 生成缓存key，如果注解中指定了key，则按照Spring表达式解析，否则使用KeyGenerator类生成
 				Object key = generateKey(context, result);
+				// 根据缓存key，查询缓存值
 				Cache.ValueWrapper cached = findInCaches(context, key);
 				if (cached != null) {
 					return cached;
@@ -594,6 +608,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	/**
 	 * Collect the {@link CachePutRequest} for all {@link CacheOperation} using
 	 * the specified result item.
+	 * 使用指定的结果项收集所有CacheOperation 的CachePutRequest。
 	 * @param contexts the contexts to handle
 	 * @param result the result item (never {@code null})
 	 * @param putRequests the collection to update
@@ -612,6 +627,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	@Nullable
 	private Cache.ValueWrapper findInCaches(CacheOperationContext context, Object key) {
 		for (Cache cache : context.getCaches()) {
+			// 调用父类AbstractCacheInvoker的doGet方法，查询缓存
 			Cache.ValueWrapper wrapper = doGet(cache, key);
 			if (wrapper != null) {
 				if (logger.isTraceEnabled()) {
@@ -694,8 +710,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 				return false;
 			}
 			/**
-			 * 如果上述 CacheableOperation 操作里只要有一个指定属性 sync = true 的，
-			 * 			就开始判断是否真的满足同步执行条件
+			 * 如果上述 CacheableOperation 操作里只要有一个指定属性 sync = true 的，就开始判断是否真的满足同步执行条件
 			 */
 			boolean syncEnabled = false;
 			for (CacheOperationContext cacheOperationContext : cacheOperationContexts) {
@@ -704,6 +719,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 					break;
 				}
 			}
+			// 校验信息
 			if (syncEnabled) {
 				// 多个 contexts 意味多种缓存操作，不支持同步执行
 				if (this.contexts.size() > 1) {
@@ -788,6 +804,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 	/**
 	 * A {@link CacheOperationInvocationContext} context for a {@link CacheOperation}.
+	 * 缓存操作上下文：保存单个缓存操作执行时的参数信息，并计算condition和unless参数是否通过
 	 */
 	protected class CacheOperationContext implements CacheOperationInvocationContext<CacheOperation> {
 

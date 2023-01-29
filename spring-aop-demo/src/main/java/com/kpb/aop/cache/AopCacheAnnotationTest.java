@@ -15,9 +15,9 @@ public class AopCacheAnnotationTest {
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(CacheConfig.class);
 		//2.获取对象
 		CacheService cacheService = ac.getBean("cacheService", CacheService.class);
-		String strValue = cacheService.find(1);
+		String strValue = cacheService.find2(10);
 		System.out.println(strValue);
-		String strValue2 = cacheService.find(1);
+		String strValue2 = cacheService.find3(10);
 		System.out.println(strValue2);
 
 	}

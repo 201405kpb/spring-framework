@@ -16,16 +16,15 @@
 
 package org.springframework.aop.support;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
 import org.aopalliance.aop.Advice;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  * Abstract BeanFactory-based PointcutAdvisor that allows for any Advice
@@ -49,6 +48,7 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 	@Nullable
 	private BeanFactory beanFactory;
 
+	// 处理缓存的额外逻辑，volatile保证线程安全
 	@Nullable
 	private transient volatile Advice advice;
 
@@ -81,6 +81,9 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 		resetAdviceMonitor();
 	}
 
+	/**
+	 * 重置advice锁
+	 */
 	private void resetAdviceMonitor() {
 		if (this.beanFactory instanceof ConfigurableBeanFactory cbf) {
 			this.adviceMonitor = cbf.getSingletonMutex();
@@ -103,6 +106,7 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 
 	@Override
 	public Advice getAdvice() {
+		//如果设置了advice，直接返回advice
 		Advice advice = this.advice;
 		if (advice != null) {
 			return advice;
