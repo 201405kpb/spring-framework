@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2557,17 +2557,17 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					return clazz;
 				}
 				// 如果evaluated属于String实例
-				else if (evaluated instanceof String str) {
+				else if (evaluated instanceof String name) {
 					//将evaluated作为className的值
-					className = str;
-					//标记mdb的配置的bean类名需要重新被dynameicLoader加载
+					className = name;
+					//标记mdb的配置的bean类名需要重新被dynamicLoader加载
 					freshResolve = true;
 				} else {
 					//抛出非法状态异常：无效的类名表达式结果：evaluated
 					throw new IllegalStateException("Invalid class name expression result: " + evaluated);
 				}
 			}
-			//如果mdb的配置的bean类名需要重新被dynameicLoader加载
+			//如果mdb的配置的bean类名需要重新被dynamicLoader加载
 			if (freshResolve) {
 				// When resolving against a temporary class loader, exit early in order
 				// to avoid storing the resolved Class in the bean definition.

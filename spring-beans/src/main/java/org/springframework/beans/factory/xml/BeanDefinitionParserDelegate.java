@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1112,7 +1112,7 @@ public class BeanDefinitionParserDelegate {
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
 			//如果node属于标签，并且不属于<description/>和<meta/>标签，比如<ref/>, <value/>, <list/>, <etc/>,<map/>等等
-			if (node instanceof Element && !nodeNameEquals(node, DESCRIPTION_ELEMENT) &&
+			if (node instanceof Element currentElement && !nodeNameEquals(node, DESCRIPTION_ELEMENT) &&
 					!nodeNameEquals(node, META_ELEMENT)) {
 				// Child element is what we're looking for.
 				//如果subElement不为null，说明在循环中找到了多个值子标签，那么直接抛出异常
@@ -1121,7 +1121,7 @@ public class BeanDefinitionParserDelegate {
 				}
 				//否则，subElement记录找到的子节点标签
 				else {
-					subElement = (Element) node;
+					subElement = currentElement;
 				}
 			}
 		}
@@ -1472,9 +1472,9 @@ public class BeanDefinitionParserDelegate {
 		for (int i = 0; i < elementNodes.getLength(); i++) {
 			Node node = elementNodes.item(i);
 			//如果属于标签并且不是description标签
-			if (node instanceof Element && !nodeNameEquals(node, DESCRIPTION_ELEMENT)) {
+			if (node instanceof Element currentElement && !nodeNameEquals(node, DESCRIPTION_ELEMENT)) {
 				//那么递归调用parsePropertySubElement解析这些标签，将返回的结果添加到target中
-				target.add(parsePropertySubElement((Element) node, bd, defaultElementType));
+				target.add(parsePropertySubElement(currentElement, bd, defaultElementType));
 			}
 		}
 	}
@@ -1697,12 +1697,14 @@ public class BeanDefinitionParserDelegate {
 		//遍历集合
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
-			if (node instanceof Element) {
+			if (node instanceof Element currentElement) {
+				// Child element is what we're looking for.
 				// 同样<key/>标签的子标签只能有一个
 				if (subElement != null) {
 					error("<key> element must not contain more than one value sub-element", keyEle);
-				} else {
-					subElement = (Element) node;
+				}
+				else {
+					subElement = currentElement;
 				}
 			}
 		}

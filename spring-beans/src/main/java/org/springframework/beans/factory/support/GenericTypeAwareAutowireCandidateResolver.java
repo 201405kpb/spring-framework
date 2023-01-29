@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,10 +179,9 @@ public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCan
 		boolean cacheType = false;
 		//定义用于引用bhHolder的RootBeanDefinition对象的RootBeanDefinition对象，默认为null
 		RootBeanDefinition rbd = null;
-		//如果bdHolder的BeanDefinition对象是RootBeanDefinition对象实例
-		if (bdHolder.getBeanDefinition() instanceof RootBeanDefinition) {
+		if (bdHolder.getBeanDefinition() instanceof RootBeanDefinition rootBeanDef) {
 			//让rbd引用bhHolder的RootBeanDefinition对象
-			rbd = (RootBeanDefinition) bdHolder.getBeanDefinition();
+			rbd = rootBeanDef;
 		}
 		//如果rbd不为null
 		if (rbd != null) {
@@ -305,9 +304,9 @@ public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCan
 				//获取defDef所指bean名的合并后BeanDefinition
 				BeanDefinition dbd = clbf.getMergedBeanDefinition(decDef.getBeanName());
 				//如果dbd是RootBeanDefinition对象
-				if (dbd instanceof RootBeanDefinition) {
+				if (dbd instanceof RootBeanDefinition rootBeanDef) {
 					//将dbd强转为RootBeanDefinition对象返回出去
-					return (RootBeanDefinition) dbd;
+					return rootBeanDef;
 				}
 			}
 		}

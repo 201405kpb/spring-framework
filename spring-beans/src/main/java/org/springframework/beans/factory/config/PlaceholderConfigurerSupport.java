@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,6 +254,7 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 		}
 		/*
 		 * 2 Spring 2.5 中的新功能：也解析别名映射缓存aliasMap中的 value-目标名称和key-别名 中的占位符。
+		 * Resolve placeholders in alias target names and aliases as well.
 		 */
 		beanFactoryToProcess.resolveAliases(valueResolver);
 
@@ -261,6 +262,7 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 		 * 3 Spring 3.0 中的新功能：将当前的valueResolver加入embeddedValueResolvers中，用于后续比如@Value、@Resource注解中的占位符解析，
 		 * 注意这里并没有立即解析，因为invokeBeanFactoryPostProcessors方法调用的时候，bean的相关注解还没有被解析，
 		 * 在后面的finishBeanFactoryInitialization方法中才会用到
+		 *  Resolve placeholders in embedded values such as annotation attributes.
 		 */
 		beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
 	}

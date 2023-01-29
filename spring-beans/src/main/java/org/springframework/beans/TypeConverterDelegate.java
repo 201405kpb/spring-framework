@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ class TypeConverterDelegate {
 		if (editor != null || (requiredType != null && !ClassUtils.isAssignableValue(requiredType, convertedValue))) {
 			// 如果 typeDescriptor 不为null && requiredType 不为null && requiredType是Collection的子类或实现 && coventedValue 是 String类型
 			if (typeDescriptor != null && requiredType != null && Collection.class.isAssignableFrom(requiredType) &&
-					convertedValue instanceof String) {
+					convertedValue instanceof String text) {
 				//获取该 typeDescriptor的元素TypeDescriptor
 				TypeDescriptor elementTypeDesc = typeDescriptor.getElementTypeDescriptor();
 				//如果elementTypeDesc不为null
@@ -214,7 +214,7 @@ class TypeConverterDelegate {
 					//如果elementType是Class类 || elementType 是 Enum 的子类或实现
 					if (Class.class == elementType || Enum.class.isAssignableFrom(elementType)) {
 						//将convertedValue强转为String，以 逗号 分割 convertedValue 返回空字符串
-						convertedValue = StringUtils.commaDelimitedListToStringArray((String) convertedValue);
+						convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 					}
 				}
 			}
@@ -247,29 +247,29 @@ class TypeConverterDelegate {
 					// Array required -> apply appropriate conversion of elements.
 					// 数组所需 -> 应用适当的元素转换
 					//如果convertedValue是String的实例 && requiredType的元素类型是Enum的子类或实现
-					if (convertedValue instanceof String && Enum.class.isAssignableFrom(requiredType.getComponentType())) {
+					if (convertedValue instanceof String text && Enum.class.isAssignableFrom(requiredType.getComponentType())) {
 						// 将逗号分割的列表(例如 csv 文件中的一行)转换为字符串数组
-						convertedValue = StringUtils.commaDelimitedListToStringArray((String) convertedValue);
+						convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 					}
 					//将 convertedValue 转换为 ComponentType类型数组对象
 					return (T) convertToTypedArray(convertedValue, propertyName, requiredType.getComponentType());
 				}
 				//如果convertedValue是Collection对象
-				else if (convertedValue instanceof Collection) {
+				else if (convertedValue instanceof Collection<?> coll) {
 					// Convert elements to target type, if determined.
 					// 如果确定，则将元素转换为目标类型
 					// 将 convertedValue 转换为 Collection 类型 对象
 					convertedValue = convertToTypedCollection(
-							(Collection<?>) convertedValue, propertyName, requiredType, typeDescriptor);
+							coll, propertyName, requiredType, typeDescriptor);
 					// 更新 standardConversion 标记
 					standardConversion = true;
 				}
 				//如果convertedValue是 Map 对象
-				else if (convertedValue instanceof Map) {
+				else if (convertedValue instanceof Map<?, ?> map) {
 					// Convert keys and values to respective target type, if determined.
 					// 如果确定了，则将建和值转换为相应的目标类型
 					convertedValue = convertToTypedMap(
-							(Map<?, ?>) convertedValue, propertyName, requiredType, typeDescriptor);
+							map, propertyName, requiredType, typeDescriptor);
 					// 更新 standardConversion 标记
 					standardConversion = true;
 				}
@@ -288,7 +288,7 @@ class TypeConverterDelegate {
 					return (T) convertedValue.toString();
 				}
 				//如果 convertedValue 是 String 类型 && convertedValue不是requiredType类型
-				else if (convertedValue instanceof String && !requiredType.isInstance(convertedValue)) {
+				else if (convertedValue instanceof String text && !requiredType.isInstance(convertedValue)) {
 					//conversionAttemptEx 为 null 意味着 自定义ConversionService转换newValue转换失败 或者 没有自定义ConversionService
 					// 如果conversionAttemptEx 为 null && requiredType不是接口 && requireType不是枚举类
 					if (conversionAttemptEx == null && !requiredType.isInterface() && !requiredType.isEnum()) {
@@ -316,8 +316,8 @@ class TypeConverterDelegate {
 						}
 					}
 					//将convertedValue强转为字符串，并去掉前后的空格
-					String trimmedValue = ((String) convertedValue).trim();
-					//如果 requireTyoe是枚举 && trimmedValue 是空字符串
+					String trimmedValue = text.trim();
+					//如果 requireType是枚举 && trimmedValue 是空字符串
 					if (requiredType.isEnum() && trimmedValue.isEmpty()) {
 						// It's an empty enum identifier: reset the enum value to null.
 						// 这个一个空枚举标识符：重置枚举值为null
@@ -329,10 +329,10 @@ class TypeConverterDelegate {
 					standardConversion = true;
 				}
 				//如果convertedValue是Number实例 && requiredType是Number的实现或子类
-				else if (convertedValue instanceof Number && Number.class.isAssignableFrom(requiredType)) {
+				else if (convertedValue instanceof Number num && Number.class.isAssignableFrom(requiredType)) {
 					//NumberUtils.convertNumberToTargetClass：将convertedValue为requiredType的实例
 					convertedValue = NumberUtils.convertNumberToTargetClass(
-							(Number) convertedValue, (Class<Number>) requiredType);
+							num, (Class<Number>) requiredType);
 					//更新 standardConversion 标记
 					standardConversion = true;
 				}
@@ -567,8 +567,8 @@ class TypeConverterDelegate {
 		}
 		//默认返回值为转换后的值
 		Object returnValue = convertedValue;
-		//如果 requireType不为null && requiredType不是数组 && covertedValue 是 String 数组
-		if (requiredType != null && !requiredType.isArray() && convertedValue instanceof String[]) {
+		//如果 requireType不为null && requiredType不是数组 && convertedValue 是 String 数组
+		if (requiredType != null && !requiredType.isArray() && convertedValue instanceof String[] array) {
 			// Convert String array to a comma-separated String.
 			// 将 字符串数组 转换为 逗号分割的字符串
 			// Only applies if no PropertyEditor converted the String array before.
@@ -581,11 +581,11 @@ class TypeConverterDelegate {
 				logger.trace("Converting String array to comma-delimited String [" + convertedValue + "]");
 			}
 			//将convertedValue转换为以逗号分隔的String(即CSV).
-			convertedValue = StringUtils.arrayToCommaDelimitedString((String[]) convertedValue);
+			convertedValue = StringUtils.arrayToCommaDelimitedString(array);
 		}
 
 		//如果convertedValue是String 实例
-		if (convertedValue instanceof String) {
+		if (convertedValue instanceof String newTextValue) {
 			//如果编辑器不为null
 			if (editor != null) {
 				// Use PropertyEditor's setAsText in case of a String value.
@@ -595,8 +595,6 @@ class TypeConverterDelegate {
 					//转换字符串为[requiredType]适用属性编辑器[editor]
 					logger.trace("Converting String to [" + requiredType + "] using property editor [" + editor + "]");
 				}
-				//将convertedValue强转为String对象
-				String newTextValue = (String) convertedValue;
 				//使用editor转换newTextValue，并将转换后的值返回出去
 				return doConvertTextValue(oldValue, newTextValue, editor);
 			}
@@ -653,11 +651,8 @@ class TypeConverterDelegate {
 	 */
 	private Object convertToTypedArray(Object input, @Nullable String propertyName, Class<?> componentType) {
 		//如果 input是 Collection 实例
-		if (input instanceof Collection) {
+		if (input instanceof Collection coll) {
 			// Convert Collection elements to array elements.
-			// 将集合元素转换为数组元素
-			// 将input强转为Collection对象
-			Collection<?> coll = (Collection<?>) input;
 			//新建一个元素类型为componentType,长度为coll.size的列表
 			Object result = Array.newInstance(componentType, coll.size());
 			int i = 0;

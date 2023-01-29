@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1915,8 +1915,8 @@ public abstract class ClassUtils {
 	/**
 	 * Given a method, which may come from an interface, and a target class used
 	 * in the current reflective invocation, find the corresponding target method
-	 * if there is one. E.g. the method may be {@code IFoo.bar()} and the
-	 * target class may be {@code DefaultFoo}. In this case, the method may be
+	 * if there is one &mdash; for example, the method may be {@code IFoo.bar()},
+	 * and the target class may be {@code DefaultFoo}. In this case, the method may be
 	 * {@code DefaultFoo.bar()}. This enables attributes on that method to be found.
 	 * <p>
 	 *     给定一个可能来自接口以及在当前反射调用中使用的目标类的方法,找到相应的目标方法
@@ -1926,21 +1926,11 @@ public abstract class ClassUtils {
 	 * <p><b>NOTE:</b> In contrast to {@link org.springframework.aop.support.AopUtils#getMostSpecificMethod},
 	 * this method does <i>not</i> resolve Java 5 bridge methods automatically.
 	 * Call {@link org.springframework.core.BridgeMethodResolver#findBridgedMethod}
-	 * if bridge method resolution is desirable (e.g. for obtaining metadata from
-	 * the original method definition).
-	 * <p>
-	 *     注意：与之相反的 {@link org.springframework.aop.support.AopUtils#getMostSpecificMethod},
-	 *     该方法不会自动解析Java 5的桥接方法.
-	 *     如果桥接方法解析度是可取的(例如用于从原始方法定义中获取元数据),调用
-	 * 	   {@link org.springframework.core.BridgeMethodResolver#findBridgedMethod}
-	 * </p>
-	 * <p><b>NOTE:</b> Since Spring 3.1.1, if Java security settings disallow reflective
-	 * access (e.g. calls to {@code Class#getDeclaredMethods} etc, this implementation
-	 * will fall back to returning the originally provided method.
-	 * <p>
-	 *     注意：从Spring3.1.1开始，如果Java安全设置不允许反射访问(例如,调用
-	 *      {@code Class#getDeclaredMethods}等等，该实现将退回到最初提供的方法。
-	 * </p>
+	 * if bridge method resolution is desirable &mdash; for example, to obtain
+	 * metadata from the original method definition.
+	 * <p><b>NOTE:</b> If Java security settings disallow reflective access &mdash;
+	 * for example, calls to {@code Class#getDeclaredMethods}, etc. &mdash; this
+	 * implementation will fall back to returning the originally provided method.
 	 * @param method the method to be invoked, which may come from an interface
 	 *               	要调用的方法，可能来自接口
 	 * @param targetClass the target class for the current invocation
@@ -1970,7 +1960,7 @@ public abstract class ClassUtils {
 					//反射获取targetClass的方法名为method的方法名和参数类型数组为method的参数类型数组的方法对象
 					Method specificMethod =
 							ReflectionUtils.findMethod(targetClass, method.getName(), method.getParameterTypes());
-					//如果specifiMethod不为null,就返回specifiMetho,否则返回给定的方法
+					//如果specificMethod不为null,就返回specifiMetho,否则返回给定的方法
 					return (specificMethod != null ? specificMethod : method);
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,17 +86,18 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		this.registry = registry;
 		//初始化resourceLoader
 		// Determine ResourceLoader to use.
-		if (this.registry instanceof ResourceLoader) {
-			this.resourceLoader = (ResourceLoader) this.registry;
-		} else {
-			//将会创建一个PathMatchingResourcePatternResolver，支持模式匹配
+		if (this.registry instanceof ResourceLoader _resourceLoader) {
+			this.resourceLoader = _resourceLoader;
+		}
+		else {
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
 		//初始化environment
 		// Inherit Environment if possible
-		if (this.registry instanceof EnvironmentCapable) {
-			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
-		} else {
+		if (this.registry instanceof EnvironmentCapable environmentCapable) {
+			this.environment = environmentCapable.getEnvironment();
+		}
+		else {
 			this.environment = new StandardEnvironment();
 		}
 	}

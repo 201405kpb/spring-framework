@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,8 +132,8 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 			return null;
 		}
 		//已经初始化
-		else if (handlerOrClassName instanceof NamespaceHandler) {
-			return (NamespaceHandler) handlerOrClassName;
+		else if (handlerOrClassName instanceof NamespaceHandler namespaceHandler) {
+			return namespaceHandler;
 		}
 		//需要进行初始化
 		else {

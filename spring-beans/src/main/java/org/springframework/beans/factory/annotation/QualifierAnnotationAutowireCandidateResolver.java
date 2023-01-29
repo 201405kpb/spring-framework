@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -564,7 +564,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			//如果actualValue为null且属性名是'value'且期望值是String类型且期望值与bean名称或者
 			// expectedValue是bdHolder中存储的别名
 			if (actualValue == null && attributeName.equals(AutowireCandidateQualifier.VALUE_KEY) &&
-					expectedValue instanceof String && bdHolder.matchesName((String) expectedValue)) {
+					expectedValue instanceof String name && bdHolder.matchesName(name)) {
 				// Fall back on bean name (or alias) match
 				// 回退bean名称(或别名匹配)
 				// 既然与别名匹配，就可以检查下一个属性了，以后下面的操作不是针对value属性的。

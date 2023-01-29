@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,9 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 
 			// Use original ClassLoader if bean class not locally loaded in overriding class loader
 			ClassLoader classLoader = getProxyClassLoader();
-			if (classLoader instanceof SmartClassLoader && classLoader != beanClass.getClassLoader()) {
-				classLoader = ((SmartClassLoader) classLoader).getOriginalClassLoader();
+			if (classLoader instanceof SmartClassLoader smartClassLoader &&
+					classLoader != beanClass.getClassLoader()) {
+				classLoader = smartClassLoader.getOriginalClassLoader();
 			}
 			return proxyFactory.getProxyClass(classLoader);
 		}
@@ -105,7 +106,13 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 				if (this.beforeExistingAdvisors) {
 					//将我们的本地通知器添加到现有代理的通知器链的头部
 					advised.addAdvisor(0, this.advisor);
-				} else {
+				}
+				else if (advised.getTargetSource() == AdvisedSupport.EMPTY_TARGET_SOURCE && advised.getAdvisorCount() > 0) {
+					// No target, leave last advisor in place
+					advised.addAdvisor(advised.getAdvisorCount() - 1, this.advisor);
+					return bean;
+				}
+				else {
 					//否则添加到尾部
 					advised.addAdvisor(this.advisor);
 				}

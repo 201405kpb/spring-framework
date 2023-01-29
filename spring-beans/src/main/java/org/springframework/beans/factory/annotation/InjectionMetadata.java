@@ -322,9 +322,9 @@ public class InjectionMetadata {
 						return true;
 					}
 					//否则如果是MutablePropertyValues
-					else if (pvs instanceof MutablePropertyValues) {
+					else if (pvs instanceof MutablePropertyValues mpvs) {
 						//标记为已处理
-						((MutablePropertyValues) pvs).registerProcessedProperty(this.pd.getName());
+						mpvs.registerProcessedProperty(this.pd.getName());
 					}
 				}
 				//设置为false，返回false，不可跳过
@@ -342,8 +342,8 @@ public class InjectionMetadata {
 				return;
 			}
 			synchronized (pvs) {
-				if (Boolean.FALSE.equals(this.skip) && this.pd != null && pvs instanceof MutablePropertyValues) {
-					((MutablePropertyValues) pvs).clearProcessedProperty(this.pd.getName());
+				if (Boolean.FALSE.equals(this.skip) && this.pd != null && pvs instanceof MutablePropertyValues mpvs) {
+					mpvs.clearProcessedProperty(this.pd.getName());
 				}
 			}
 		}
