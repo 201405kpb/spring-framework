@@ -131,16 +131,14 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 	}
 
 	/**
+	 * Determine whether the Advisors contain matching introductions.
 	 * 确定Advisors是否包含匹配的引介增强
 	 */
 	private static boolean hasMatchingIntroductions(Advisor[] advisors, Class<?> actualClass) {
 		for (Advisor advisor : advisors) {
-			if (advisor instanceof IntroductionAdvisor) {
-				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
-				//引介匹配，也就是比较types-matching属性
-				if (ia.getClassFilter().matches(actualClass)) {
-					return true;
-				}
+			//引介匹配，也就是比较types-matching属性
+			if (advisor instanceof IntroductionAdvisor ia && ia.getClassFilter().matches(actualClass)) {
+				return true;
 			}
 		}
 		return false;

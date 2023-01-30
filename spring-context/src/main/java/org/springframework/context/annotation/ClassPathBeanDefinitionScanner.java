@@ -138,7 +138,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 			Environment environment) {
 
 		this(registry, useDefaultFilters, environment,
-				(registry instanceof ResourceLoader ? (ResourceLoader) registry : null));
+				(registry instanceof ResourceLoader resourceLoader ? resourceLoader : null));
 	}
 
 	/**
@@ -295,12 +295,12 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				//为Bean生成名称
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				//如果扫描到的Bean不是Spring的注解Bean，则为Bean设置默认值，设置Bean的自动依赖注入装配属性等
-				if (candidate instanceof AbstractBeanDefinition) {
-					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
+				if (candidate instanceof AbstractBeanDefinition abstractBeanDefinition) {
+					postProcessBeanDefinition(abstractBeanDefinition, beanName);
 				}
 				//如果扫描到的Bean是Spring的注解Bean，则处理其通用的Spring注解
-				if (candidate instanceof AnnotatedBeanDefinition) {
-					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
+				if (candidate instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
+					AnnotationConfigUtils.processCommonDefinitionAnnotations(annotatedBeanDefinition);
 				}
 				//根据Bean名称检查指定的Bean是否需要在容器中注册，或者在容器中冲突
 				if (checkCandidate(beanName, candidate)) {
@@ -410,8 +410,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-		if (registry instanceof EnvironmentCapable) {
-			return ((EnvironmentCapable) registry).getEnvironment();
+		if (registry instanceof EnvironmentCapable environmentCapable) {
+			return environmentCapable.getEnvironment();
 		}
 		return new StandardEnvironment();
 	}

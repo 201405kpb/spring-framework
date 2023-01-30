@@ -160,14 +160,14 @@ class ConfigurationClassParser {
 			//根据类型调用不同的parse方法，其内部都是调用的processConfigurationClass方法
 			try {
 				//如果属于AnnotatedBeanDefinition，比如AnnotatedGenericBeanDefinition、ScannedGenericBeanDefinition、ConfigurationClassBeanDefinition
-				if (bd instanceof AnnotatedBeanDefinition) {
+				if (bd instanceof AnnotatedBeanDefinition annotatedBeanDef) {
 					//调用另一个parse方法解析，内部调用processConfigurationClass方法
-					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
+					parse(annotatedBeanDef.getMetadata(), holder.getBeanName());
 				}
 				//否则，如果是AbstractBeanDefinition类型，比如GenericBeanDefinition，并且已经解析了class
-				else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
+				else if (bd instanceof AbstractBeanDefinition abstractBeanDef && abstractBeanDef.hasBeanClass()) {
 					//调用另一个parse方法解析，内部调用processConfigurationClass方法
-					parse(((AbstractBeanDefinition) bd).getBeanClass(), holder.getBeanName());
+					parse(abstractBeanDef.getBeanClass(), holder.getBeanName());
 				}
 				else {
 					//调用另一个parse方法解析，内部调用processConfigurationClass方法
@@ -567,8 +567,8 @@ class ConfigurationClassParser {
 						// 判断这个类是否实现了DeferredImportSelector接口，如果实现了就加入deferredImportSelectorHandler处理器，这一步和自动装配有关，所以整个流程中只有这一步是我们关注的重点
 						// 我们所熟知的@SpringBootApplication 中就有一个@AutoConfigurationPackage注解，
 						// 而整个@AutoConfigurationPackage注解中就有 @Import注解，他导入的类AutoConfigurationImportSelector，就实现了这个接口
-						if (selector instanceof DeferredImportSelector) {
-							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
+						if (selector instanceof DeferredImportSelector deferredImportSelectorHandler) {
+							this.deferredImportSelectorHandler.handle(configClass, deferredImportSelectorHandler);
 						}
 						else {
 							// 否则就再次进行一次要导入类的解析
@@ -635,8 +635,8 @@ class ConfigurationClassParser {
 	 */
 	private SourceClass asSourceClass(ConfigurationClass configurationClass, Predicate<String> filter) throws IOException {
 		AnnotationMetadata metadata = configurationClass.getMetadata();
-		if (metadata instanceof StandardAnnotationMetadata) {
-			return asSourceClass(((StandardAnnotationMetadata) metadata).getIntrospectedClass(), filter);
+		if (metadata instanceof StandardAnnotationMetadata standardAnnotationMetadata) {
+			return asSourceClass(standardAnnotationMetadata.getIntrospectedClass(), filter);
 		}
 		return asSourceClass(metadata.getClassName(), filter);
 	}
@@ -943,8 +943,8 @@ class ConfigurationClassParser {
 
 		public SourceClass(Object source) {
 			this.source = source;
-			if (source instanceof Class) {
-				this.metadata = AnnotationMetadata.introspect((Class<?>) source);
+			if (source instanceof Class<?> sourceClass) {
+				this.metadata = AnnotationMetadata.introspect(sourceClass);
 			}
 			else {
 				this.metadata = ((MetadataReader) source).getAnnotationMetadata();
@@ -962,23 +962,23 @@ class ConfigurationClassParser {
 		}
 
 		public Class<?> loadClass() throws ClassNotFoundException {
-			if (this.source instanceof Class) {
-				return (Class<?>) this.source;
+			if (this.source instanceof Class<?> sourceClass) {
+				return sourceClass;
 			}
 			String className = ((MetadataReader) this.source).getClassMetadata().getClassName();
 			return ClassUtils.forName(className, resourceLoader.getClassLoader());
 		}
 
 		public boolean isAssignable(Class<?> clazz) throws IOException {
-			if (this.source instanceof Class) {
-				return clazz.isAssignableFrom((Class<?>) this.source);
+			if (this.source instanceof Class<?> sourceClass) {
+				return clazz.isAssignableFrom(sourceClass);
 			}
 			return new AssignableTypeFilter(clazz).match((MetadataReader) this.source, metadataReaderFactory);
 		}
 
 		public ConfigurationClass asConfigClass(ConfigurationClass importedBy) {
-			if (this.source instanceof Class) {
-				return new ConfigurationClass((Class<?>) this.source, importedBy);
+			if (this.source instanceof Class<?> sourceClass) {
+				return new ConfigurationClass(sourceClass, importedBy);
 			}
 			return new ConfigurationClass((MetadataReader) this.source, importedBy);
 		}
@@ -1021,8 +1021,8 @@ class ConfigurationClassParser {
 		}
 
 		public SourceClass getSuperClass() throws IOException {
-			if (this.source instanceof Class) {
-				return asSourceClass(((Class<?>) this.source).getSuperclass(), DEFAULT_EXCLUSION_FILTER);
+			if (this.source instanceof Class<?> sourceClass) {
+				return asSourceClass(sourceClass.getSuperclass(), DEFAULT_EXCLUSION_FILTER);
 			}
 			return asSourceClass(
 					((MetadataReader) this.source).getClassMetadata().getSuperClassName(), DEFAULT_EXCLUSION_FILTER);
@@ -1089,9 +1089,9 @@ class ConfigurationClassParser {
 		}
 
 		private SourceClass getRelated(String className) throws IOException {
-			if (this.source instanceof Class) {
+			if (this.source instanceof Class<?> sourceClass) {
 				try {
-					Class<?> clazz = ClassUtils.forName(className, ((Class<?>) this.source).getClassLoader());
+					Class<?> clazz = ClassUtils.forName(className, sourceClass.getClassLoader());
 					return asSourceClass(clazz, DEFAULT_EXCLUSION_FILTER);
 				}
 				catch (ClassNotFoundException ex) {
@@ -1106,9 +1106,9 @@ class ConfigurationClassParser {
 		}
 
 		@Override
-		public boolean equals(@Nullable Object other) {
-			return (this == other || (other instanceof SourceClass &&
-					this.metadata.getClassName().equals(((SourceClass) other).metadata.getClassName())));
+		public boolean equals(@Nullable Object obj) {
+			return (this == obj || (obj instanceof SourceClass that &&
+					this.metadata.getClassName().equals(that.metadata.getClassName())));
 		}
 
 		@Override

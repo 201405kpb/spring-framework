@@ -283,14 +283,10 @@ class CglibAopProxy implements AopProxy, Serializable {
 	private void validateClassIfNecessary(Class<?> proxySuperClass, @Nullable ClassLoader proxyClassLoader) {
 		if (!this.advised.isOptimize() && logger.isInfoEnabled()) {
 			synchronized (validatedClasses) {
-				//如果不包含该class，表示还没有校验
-				if (!validatedClasses.containsKey(proxySuperClass)) {
-					//校验该class
-					doValidateClass(proxySuperClass, proxyClassLoader,
-							ClassUtils.getAllInterfacesForClassAsSet(proxySuperClass));
-					//存入validatedClasses缓存
-					validatedClasses.put(proxySuperClass, Boolean.TRUE);
-				}
+				validatedClasses.computeIfAbsent(proxySuperClass, clazz -> {
+					doValidateClass(clazz, proxyClassLoader, ClassUtils.getAllInterfacesForClassAsSet(clazz));
+					return Boolean.TRUE;
+				});
 			}
 		}
 	}
@@ -800,9 +796,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 					retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
 				}
 				//如果有可能，将返回值替换为代理对象本身
-				retVal = processReturnType(proxy, target, method, retVal);
-				//返回返回值
-				return retVal;
+				return processReturnType(proxy, target, method, retVal);
 			}
 			finally {
 				if (target != null && !targetSource.isStatic()) {

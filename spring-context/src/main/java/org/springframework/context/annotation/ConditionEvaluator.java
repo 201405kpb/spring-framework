@@ -86,8 +86,8 @@ class ConditionEvaluator {
 		//如果注册过程为空
 		if (phase == null) {
 			//配置类上被注解标注，并且也被@Configuration或@Bean等注解标注
-			if (metadata instanceof AnnotationMetadata &&
-					ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
+			if (metadata instanceof AnnotationMetadata annotationMetadata &&
+					ConfigurationClassUtils.isConfigurationCandidate(annotationMetadata)) {
 				//将当前注册阶段标记为转换为配置类阶段继续判定
 				return shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);
 			}
@@ -110,8 +110,8 @@ class ConditionEvaluator {
 
 		for (Condition condition : conditions) {
 			ConfigurationPhase requiredPhase = null;
-			if (condition instanceof ConfigurationCondition) {
-				requiredPhase = ((ConfigurationCondition) condition).getConfigurationPhase();
+			if (condition instanceof ConfigurationCondition configurationCondition) {
+				requiredPhase = configurationCondition.getConfigurationPhase();
 			}
 			//调用具体条件判定类的matches方法判定是否匹配
 			if ((requiredPhase == null || requiredPhase == phase) && !condition.matches(this.context, metadata)) {
@@ -166,32 +166,32 @@ class ConditionEvaluator {
 		}
 
 		@Nullable
-		private ConfigurableListableBeanFactory deduceBeanFactory(@Nullable BeanDefinitionRegistry source) {
-			if (source instanceof ConfigurableListableBeanFactory) {
-				return (ConfigurableListableBeanFactory) source;
+		private static ConfigurableListableBeanFactory deduceBeanFactory(@Nullable BeanDefinitionRegistry source) {
+			if (source instanceof ConfigurableListableBeanFactory configurableListableBeanFactory) {
+				return configurableListableBeanFactory;
 			}
-			if (source instanceof ConfigurableApplicationContext) {
-				return (((ConfigurableApplicationContext) source).getBeanFactory());
+			if (source instanceof ConfigurableApplicationContext configurableApplicationContext) {
+				return configurableApplicationContext.getBeanFactory();
 			}
 			return null;
 		}
 
-		private Environment deduceEnvironment(@Nullable BeanDefinitionRegistry source) {
-			if (source instanceof EnvironmentCapable) {
-				return ((EnvironmentCapable) source).getEnvironment();
+		private static Environment deduceEnvironment(@Nullable BeanDefinitionRegistry source) {
+			if (source instanceof EnvironmentCapable environmentCapable) {
+				return environmentCapable.getEnvironment();
 			}
 			return new StandardEnvironment();
 		}
 
-		private ResourceLoader deduceResourceLoader(@Nullable BeanDefinitionRegistry source) {
-			if (source instanceof ResourceLoader) {
-				return (ResourceLoader) source;
+		private static ResourceLoader deduceResourceLoader(@Nullable BeanDefinitionRegistry source) {
+			if (source instanceof ResourceLoader resourceLoader) {
+				return resourceLoader;
 			}
 			return new DefaultResourceLoader();
 		}
 
 		@Nullable
-		private ClassLoader deduceClassLoader(@Nullable ResourceLoader resourceLoader,
+		private static ClassLoader deduceClassLoader(@Nullable ResourceLoader resourceLoader,
 				@Nullable ConfigurableListableBeanFactory beanFactory) {
 
 			if (resourceLoader != null) {

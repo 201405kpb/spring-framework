@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,16 +112,14 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 		for (Element elt : childElts) {
 			//获取子标签本地名称，即去除"aop:"之后的名称
 			String localName = parserContext.getDelegate().getLocalName(elt);
-			if (POINTCUT.equals(localName)) {
+			switch (localName) {
 				//处理 <aop:pointcut /> 子标签，解析出 AspectJExpressionPointcut 对象并注册
-				parsePointcut(elt, parserContext);
-			} else if (ADVISOR.equals(localName)) {
+				case POINTCUT -> parsePointcut(elt, parserContext);
 				// 处理 <aop:advisor /> 子标签，解析出 DefaultBeanFactoryPointcutAdvisor 对象并注册，了指定 Advice 和 Pointcut（如果有）
-				parseAdvisor(elt, parserContext);
-			} else if (ASPECT.equals(localName)) {
+				case ADVISOR -> parseAdvisor(elt, parserContext);
 				//处理 <aop:aspectj /> 子标签，解析出所有的 AspectJPointcutAdvisor 对象并注册，里面包含了 Advice 对象和对应的 Pointcut 对象
 				// 同时存在 Pointcut 配置，也会解析出 AspectJExpressionPointcut 对象并注册
-				parseAspect(elt, parserContext);
+				case ASPECT -> parseAspect(elt, parserContext);
 			}
 		}
 		//出栈并注册，并不是注册到注册表中……，可能什么也不做

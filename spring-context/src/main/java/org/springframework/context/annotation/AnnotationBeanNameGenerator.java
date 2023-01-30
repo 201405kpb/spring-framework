@@ -83,9 +83,9 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	@Override
 	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
 		//如果definition属于AnnotatedBeanDefinition，一般都是这个逻辑
-		if (definition instanceof AnnotatedBeanDefinition) {
+		if (definition instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
 			//从类上的注解中查找指定的 beanName，就是看有没有设置注解的value属性值
-			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
+			String beanName = determineBeanNameFromAnnotation(annotatedBeanDefinition);
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
 				return beanName;
@@ -133,20 +133,17 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 				if (isStereotypeWithNameValue(type, metaTypes, attributes)) {
 					//如果有资格，那么获取value属性的值
 					Object value = attributes.get("value");
-					//如果是String类型
-					if (value instanceof String) {
-						String strVal = (String) value;
-						//如果不为空
-						if (StringUtils.hasLength(strVal)) {
-							//如果beanName不为null，并且此前的beanName和刚获取的beanName不相等，那么抛出异常
-							//即，如果设置了多个beanName，那么必须相等
-							if (beanName != null && !strVal.equals(beanName)) {
-								throw new IllegalStateException("Stereotype annotations suggest inconsistent " +
-										"component names: '" + beanName + "' versus '" + strVal + "'");
-							}
-							//beanName保存strVal
-							beanName = strVal;
+					//如果是String类型且不为空
+					if (value instanceof String strVal && !strVal.isEmpty()) {
+						//如果beanName不为null，并且此前的beanName和刚获取的beanName不相等，那么抛出异常
+						//即，如果设置了多个beanName，那么必须相等
+						if (beanName != null && !strVal.equals(beanName)) {
+							throw new IllegalStateException("Stereotype annotations suggest inconsistent " +
+									"component names: '" + beanName + "' versus '" + strVal + "'");
 						}
+						//beanName保存strVal
+						beanName = strVal;
+
 					}
 				}
 			}

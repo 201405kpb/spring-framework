@@ -333,14 +333,14 @@ public class AnnotatedBeanDefinitionReader {
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		//如果属于EnvironmentCapable类型，即可获取环境，AnnotationConfigApplicationContext就属于该类型
-		if (registry instanceof EnvironmentCapable) {
+		if (registry instanceof EnvironmentCapable environmentCapable) {
 			/*
 			 * 调用getEnvironment获取环境变量，这个方法实际上就是父类AbstractApplicationContext的方法
 			 * 如果AbstractApplicationContext的environment属性为null,就会创建一个StandardEnvironment对象返回
 			 * 这个StandardEnvironment环境变量我们在IoC容器初始化的第一篇文章就讲过了默认会初始化：
 			 * systemProperties - JVM 系统属性属性源和systemEnvironment - 系统环境属性源，这是两个基本属性源
 			 */
-			return ((EnvironmentCapable) registry).getEnvironment();
+			return environmentCapable.getEnvironment();
 		}
 		return new StandardEnvironment();
 	}
