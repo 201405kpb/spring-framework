@@ -67,6 +67,7 @@ public enum ClientHttpObservationDocumentation implements ObservationDocumentati
 
 		/**
 		 * URI template used for HTTP request, or {@value KeyValue#NONE_VALUE} if none was provided.
+		 * Only the path part of the URI is considered.
 		 */
 		URI {
 			@Override
@@ -88,6 +89,7 @@ public enum ClientHttpObservationDocumentation implements ObservationDocumentati
 
 		/**
 		 * Client name derived from the request URI host.
+		 * @since 6.0.5
 		 */
 		CLIENT_NAME {
 			@Override
@@ -123,7 +125,7 @@ public enum ClientHttpObservationDocumentation implements ObservationDocumentati
 	public enum HighCardinalityKeyNames implements KeyName {
 
 		/**
-		 * HTTP request URI.
+		 * The full HTTP request URI.
 		 */
 		HTTP_URL {
 			@Override
