@@ -16,15 +16,15 @@
 
 package org.springframework.aop.framework.autoproxy;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.aop.TargetSource;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Auto proxy creator that identifies beans to proxy via a list of names.
@@ -97,7 +97,9 @@ public class BeanNameAutoProxyCreator extends AbstractAutoProxyCreator {
 	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
-
+		// 对当前的 beanName 进行一个基于 PatternMatchUtils#simpleMatch 的匹配
+		// 匹配成功返回 PROXY_WITHOUT_ADDITIONAL_INTERCEPTORS：一个空的拦截链
+		// 否则 DO_NOT_PROXY：不进行代理
 		return (isSupportedBeanName(beanClass, beanName) ?
 				PROXY_WITHOUT_ADDITIONAL_INTERCEPTORS : DO_NOT_PROXY);
 	}

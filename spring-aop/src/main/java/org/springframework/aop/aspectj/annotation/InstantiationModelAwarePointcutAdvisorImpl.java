@@ -16,14 +16,8 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.lang.reflect.Method;
-
 import org.aopalliance.aop.Advice;
 import org.aspectj.lang.reflect.PerClauseKind;
-
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.aspectj.AspectJPrecedenceInformation;
@@ -33,9 +27,16 @@ import org.springframework.aop.support.DynamicMethodMatcherPointcut;
 import org.springframework.aop.support.Pointcuts;
 import org.springframework.lang.Nullable;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+
 /**
  * Internal implementation of AspectJPointcutAdvisor.
+ * AspectJPointcutAdvisor的内部实现。
  * Note that there will be one instance of this advisor for each target method.
+ * 注意，每个目标方法都有一个此顾问的实例。
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
@@ -314,6 +315,7 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 
 	/**
 	 * Pointcut implementation that changes its behaviour when the advice is instantiated.
+	 * 当建议被实例化时改变其行为的切入点实现
 	 * Note that this is a <i>dynamic</i> pointcut; otherwise it might be optimized out
 	 * if it does not at first match statically.
 	 */

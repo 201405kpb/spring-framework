@@ -16,6 +16,17 @@
 
 package org.springframework.aop.aspectj.annotation;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.AjType;
+import org.aspectj.lang.reflect.AjTypeSystem;
+import org.aspectj.lang.reflect.PerClauseKind;
+import org.springframework.aop.framework.AopConfigException;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -23,30 +34,13 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.AjType;
-import org.aspectj.lang.reflect.AjTypeSystem;
-import org.aspectj.lang.reflect.PerClauseKind;
-
-import org.springframework.aop.framework.AopConfigException;
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.Nullable;
-
 /**
  * Abstract base class for factories that can create Spring AOP Advisors
  * given AspectJ classes from classes honoring the AspectJ 5 annotation syntax.
- *
+ * <p>AspectJAdvisorFactory 的抽象基类，可以从满足 AspectJ 5 注解语法的 AspectJ 类中创建 Spring AOP Advisor。
  * <p>This class handles annotation parsing and validation functionality.
  * It does not actually generate Spring AOP Advisors, which is deferred to subclasses.
+ * <p>此类处理注释解析和验证功能。它实际上并没有生成Spring AOP Advisors，它被推迟到子类。
  *
  * @author Rod Johnson
  * @author Adrian Colyer
@@ -62,7 +56,8 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 			Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class};
 
 
-	/** Logger available to subclasses. */
+	/** Logger available to subclasses.
+	 * 日志记录器 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	protected final ParameterNameDiscoverer parameterNameDiscoverer = new AspectJAnnotationParameterNameDiscoverer();
@@ -110,7 +105,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	}
 
 	/**
-	 * 校验切面类
+	 * 校验切面类，判断给定的类是否是有效的 AspectJ aspect 类
 	 * @param aspectClass 切面类的类型
 	 */
 	@Override

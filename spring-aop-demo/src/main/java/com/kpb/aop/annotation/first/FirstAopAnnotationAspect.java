@@ -1,4 +1,4 @@
-package com.kpb.aop.annotation;
+package com.kpb.aop.annotation.first;
 
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;

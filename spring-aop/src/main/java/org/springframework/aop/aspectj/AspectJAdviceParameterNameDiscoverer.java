@@ -16,6 +16,14 @@
 
 package org.springframework.aop.aspectj;
 
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.weaver.tools.PointcutParser;
+import org.aspectj.weaver.tools.PointcutPrimitive;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -23,15 +31,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.weaver.tools.PointcutParser;
-import org.aspectj.weaver.tools.PointcutPrimitive;
-
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link ParameterNameDiscoverer} implementation that tries to deduce parameter names
@@ -224,15 +223,21 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	@Override
 	@Nullable
 	public String[] getParameterNames(Method method) {
+		// 参数类型
 		this.argumentTypes = method.getParameterTypes();
+		// 初始化未绑定参数个数
 		this.numberOfRemainingUnboundArguments = this.argumentTypes.length;
+		// 初始化已绑定参数名称数组
 		this.parameterNameBindings = new String[this.numberOfRemainingUnboundArguments];
 
-		int minimumNumberUnboundArgs = 0;
+		int minimumNumberUnboundArgs = 0;// 初始化最少未绑参数个数
+		// 针对后置通知和异常通知进行特殊处理，需要将返回值进行绑定
 		if (this.returningName != null) {
+			// 如果通知类型为后置通知
 			minimumNumberUnboundArgs++;
 		}
 		if (this.throwingName != null) {
+			// 如果通知类型为异常通知
 			minimumNumberUnboundArgs++;
 		}
 		if (this.numberOfRemainingUnboundArguments < minimumNumberUnboundArgs) {
@@ -241,25 +246,64 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 		}
 
 		try {
+			//分成八步进行操作
 			int algorithmicStep = STEP_JOIN_POINT_BINDING;
 			while ((this.numberOfRemainingUnboundArguments > 0) && algorithmicStep < STEP_FINISHED) {
 				switch (algorithmicStep++) {
-					case STEP_JOIN_POINT_BINDING -> {
+					case STEP_JOIN_POINT_BINDING:
+						// 1-连接点参数绑定
+						// 连接点参数绑定格式为：thisJoinPoint -> 0
 						if (!maybeBindThisJoinPoint()) {
+							// 连接点参数绑定格式为：thisJoinPointStaticPart -> 0
 							maybeBindThisJoinPointStaticPart();
 						}
-					}
-					case STEP_THROWING_BINDING -> maybeBindThrowingVariable();
-					case STEP_ANNOTATION_BINDING -> maybeBindAnnotationsFromPointcutExpression();
-					case STEP_RETURNING_BINDING -> maybeBindReturningVariable();
-					case STEP_PRIMITIVE_ARGS_BINDING -> maybeBindPrimitiveArgsFromPointcutExpression();
-					case STEP_THIS_TARGET_ARGS_BINDING -> maybeBindThisOrTargetOrArgsFromPointcutExpression();
-					case STEP_REFERENCE_PCUT_BINDING -> maybeBindReferencePointcutParameter();
-					default -> throw new IllegalStateException("Unknown algorithmic step: " + (algorithmicStep - 1));
+						break;
+					case STEP_THROWING_BINDING:
+						// 2-异常返回参数绑定
+						// 异常参数绑定格式为：throwingName -> throwableIndex
+						// throwableIndex为通知参数列表中接收异常的参数的位置
+						maybeBindThrowingVariable();
+						break;
+					case STEP_ANNOTATION_BINDING:
+						// 3-注解参数绑定
+						// 格式：varName -> annotationIndex
+						maybeBindAnnotationsFromPointcutExpression();
+						break;
+					case STEP_RETURNING_BINDING:
+						// 4-返回参数绑定
+						// 绑定返回值时，只有在未绑定参数只剩余1个的情况下才能绑定，否则不予绑定
+						// 当只剩余一个未绑定的情况下，将返回值与剩余的那个位置的下标进行绑定即可
+						maybeBindReturningVariable();
+						break;
+					case STEP_PRIMITIVE_ARGS_BINDING:
+						// 5-原始类型参数绑定
+						// 只有在有1个原始类型参数，且只有一个候选位置时才执行绑定操作
+						maybeBindPrimitiveArgsFromPointcutExpression();
+						break;
+					case STEP_THIS_TARGET_ARGS_BINDING:
+						// 6-切点表达式参数绑定
+						// 只有只存在一个变量名称的时候才能执行绑定
+						maybeBindThisOrTargetOrArgsFromPointcutExpression();
+						break;
+					case STEP_REFERENCE_PCUT_BINDING:
+						// 7-引用切点绑定
+						// 只有只存在一个变量名称的时候才能执行绑定
+						maybeBindReferencePointcutParameter();
+						break;
+					default:
+						throw new IllegalStateException("Unknown algorithmic step: " + (algorithmicStep - 1));
 				}
 			}
 		}
-		catch (AmbiguousBindingException | IllegalArgumentException ex) {
+		catch (AmbiguousBindingException ambigEx) {
+			if (this.raiseExceptions) {
+				throw ambigEx;
+			}
+			else {
+				return null;
+			}
+		}
+		catch (IllegalArgumentException ex) {
 			if (this.raiseExceptions) {
 				throw ex;
 			}

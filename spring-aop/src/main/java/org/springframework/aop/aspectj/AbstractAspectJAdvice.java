@@ -16,22 +16,12 @@
 
 package org.springframework.aop.aspectj;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInvocation;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.weaver.tools.JoinPointMatch;
 import org.aspectj.weaver.tools.PointcutParameter;
-
 import org.springframework.aop.AopInvocationException;
 import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
@@ -43,11 +33,16 @@ import org.springframework.aop.support.StaticMethodMatcher;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base class for AOP Alliance {@link org.aopalliance.aop.Advice} classes
@@ -480,13 +475,18 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 	protected ParameterNameDiscoverer createParameterNameDiscoverer() {
 		// We need to discover them, or if that fails, guess,
 		// and if we can't guess with 100% accuracy, fail.
+		// DefaultParameterNameDiscoverer是参数名称发现器的默认实现，他其实是一个
 		DefaultParameterNameDiscoverer discoverer = new DefaultParameterNameDiscoverer();
 		AspectJAdviceParameterNameDiscoverer adviceParameterNameDiscoverer =
-				new AspectJAdviceParameterNameDiscoverer(this.pointcut.getExpression());
+				new AspectJAdviceParameterNameDiscoverer(this.pointcut.getExpression());// 切点的表达式
+		// 如果返回通知后绑定返回值，则returningName为非null
 		adviceParameterNameDiscoverer.setReturningName(this.returningName);
+		// 如果在抛出通知后绑定了抛出的值，则throwingName为非null
 		adviceParameterNameDiscoverer.setThrowingName(this.throwingName);
 		// Last in chain, so if we're called and we fail, that's bad...
+		// 设置在未能推导出通知参数名称的情况下是否抛出IllegalArgumentException和AmbiguousBindingException异常
 		adviceParameterNameDiscoverer.setRaiseExceptions(true);
+		// 将配置好的发现器添加到DefaultParameterNameDiscoverer中并返回
 		discoverer.addDiscoverer(adviceParameterNameDiscoverer);
 		return discoverer;
 	}
@@ -557,6 +557,9 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		if (this.throwingName != null) {
 			numParametersToRemove++;
 		}
+		// 之前将所有要移除的参数数量累加出来，需要移除首位的三种切点参数、returningName参数和throwingName参数
+		// 剩余的参数就是切点表达式中可以出现的候选参数，这里初始化一个切点参数名数组pointcutParameterNames，将这些参数囊括进来
+		// 另外再初始化两个数组，分别用于存放这些剩余参数的参数类型（pointcutParameterTypes）和通知方法所有参数类型（methodParameterTypes）
 		String[] pointcutParameterNames = new String[argumentNames.length - numParametersToRemove];
 		Class<?>[] pointcutParameterTypes = new Class<?>[pointcutParameterNames.length];
 		Class<?>[] methodParameterTypes = this.aspectJAdviceMethod.getParameterTypes();
@@ -564,19 +567,24 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		int index = 0;
 		for (int i = 0; i < argumentNames.length; i++) {
 			if (i < argumentIndexOffset) {
+				// 小于偏移量的参数为移除的三大切点类型参数
 				continue;
 			}
 			if (argumentNames[i].equals(this.returningName) ||
-				argumentNames[i].equals(this.throwingName)) {
+					argumentNames[i].equals(this.throwingName)) {
+				// 这里在对returningName和throwingName参数进行排除
 				continue;
 			}
+			// 剩余的就是通知中的切点表达式候选参数，将这些参数的参数名逐个保存到切点参数名数组中
+			// 将这些参数的参数类型逐个保存到切点参数类型数组中
 			pointcutParameterNames[index] = argumentNames[i];
 			pointcutParameterTypes[index] = methodParameterTypes[i];
 			index++;
 		}
 
-		this.pointcut.setParameterNames(pointcutParameterNames);
-		this.pointcut.setParameterTypes(pointcutParameterTypes);
+		// 然后，分别将两个数组设置到切点的对应属性中
+		this.pointcut.setParameterNames(pointcutParameterNames);// 設置参数名称
+		this.pointcut.setParameterTypes(pointcutParameterTypes);// 设置参数类型
 	}
 
 	/**
