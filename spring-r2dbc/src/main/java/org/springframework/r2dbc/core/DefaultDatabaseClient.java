@@ -166,7 +166,6 @@ class DefaultDatabaseClient implements DatabaseClient {
 	 * closed
 	 */
 	private Publisher<Void> closeConnection(Connection connection) {
-
 		return ConnectionFactoryUtils.currentConnectionFactory(
 				obtainConnectionFactory()).then().onErrorResume(Exception.class,
 						e -> Mono.from(connection.close()));
@@ -192,8 +191,7 @@ class DefaultDatabaseClient implements DatabaseClient {
 				new CloseSuppressingInvocationHandler(con));
 	}
 
-	private static Mono<Long> sumRowsUpdated(
-			Function<Connection, Flux<Result>> resultFunction, Connection it) {
+	private static Mono<Long> sumRowsUpdated(Function<Connection, Flux<Result>> resultFunction, Connection it) {
 		return resultFunction.apply(it)
 				.flatMap(Result::getRowsUpdated)
 				.cast(Number.class)
@@ -246,8 +244,8 @@ class DefaultDatabaseClient implements DatabaseClient {
 			this.filterFunction = filterFunction;
 		}
 
-		@Override
 		@SuppressWarnings("deprecation")
+		@Override
 		public DefaultGenericExecuteSpec bind(int index, Object value) {
 			assertNotPreparedOperation();
 			Assert.notNull(value, () -> String.format(
@@ -277,8 +275,8 @@ class DefaultDatabaseClient implements DatabaseClient {
 			return new DefaultGenericExecuteSpec(byIndex, this.byName, this.sqlSupplier, this.filterFunction);
 		}
 
-		@Override
 		@SuppressWarnings("deprecation")
+		@Override
 		public DefaultGenericExecuteSpec bind(String name, Object value) {
 			assertNotPreparedOperation();
 
@@ -524,8 +522,7 @@ class DefaultDatabaseClient implements DatabaseClient {
 
 		final transient Function<Connection, Publisher<Void>> closeFunction;
 
-		ConnectionCloseHolder(Connection connection,
-				Function<Connection, Publisher<Void>> closeFunction) {
+		ConnectionCloseHolder(Connection connection, Function<Connection, Publisher<Void>> closeFunction) {
 			this.connection = connection;
 			this.closeFunction = closeFunction;
 		}

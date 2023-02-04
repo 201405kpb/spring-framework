@@ -102,13 +102,15 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 			//isFrozen判断frozen属性，也就是是否需要优化CGLIB，默认false
 			//isEligible判断给定的类是否有资格应用此后处理器的advisor
 			if (!advised.isFrozen() && isEligible(AopUtils.getTargetClass(bean))) {
+				// Add our local Advisor to the existing proxy's Advisor chain...
 				//如果beforeExistingAdvisors为true，异步任务的AsyncAnnotationBeanPostProcessor将会设置为true
 				if (this.beforeExistingAdvisors) {
 					//将我们的本地通知器添加到现有代理的通知器链的头部
 					advised.addAdvisor(0, this.advisor);
 				}
-				else if (advised.getTargetSource() == AdvisedSupport.EMPTY_TARGET_SOURCE && advised.getAdvisorCount() > 0) {
-					// No target, leave last advisor in place
+				else if (advised.getTargetSource() == AdvisedSupport.EMPTY_TARGET_SOURCE &&
+						advised.getAdvisorCount() > 0) {
+					// No target, leave last Advisor in place and add new Advisor right before.
 					advised.addAdvisor(advised.getAdvisorCount() - 1, this.advisor);
 					return bean;
 				}

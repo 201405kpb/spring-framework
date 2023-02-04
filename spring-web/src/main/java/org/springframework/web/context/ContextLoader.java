@@ -132,23 +132,6 @@ public class ContextLoader {
 	private static final String DEFAULT_STRATEGIES_PATH = "ContextLoader.properties";
 
 
-	private static final Properties defaultStrategies;
-
-	static {
-		// Load default strategy implementations from properties file.
-		// This is currently strictly internal and not meant to be customized
-		// by application developers.
-		// 读取ContextLoader.properties这个配置文件，生成defaultStrategies对象。我们可以把各种默认配置信息都放在这里
-		try {
-			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ContextLoader.class);
-			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
-		}
-		catch (IOException ex) {
-			throw new IllegalStateException("Could not load 'ContextLoader.properties': " + ex.getMessage());
-		}
-	}
-
-
 	/**
 	 * Map from (thread context) ClassLoader to corresponding 'current' WebApplicationContext.
 	 */
@@ -364,6 +347,18 @@ public class ContextLoader {
 		}
 		// 如果没有配置contextClass，则读取defaultStrategies的WebApplicationContext这个属性，这个属性在ContextLoader.properties文件中配置的
 		else {
+			if (defaultStrategies == null) {
+				// Load default strategy implementations from properties file.
+				// This is currently strictly internal and not meant to be customized
+				// by application developers.
+				try {
+					ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ContextLoader.class);
+					defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
+				}
+				catch (IOException ex) {
+					throw new IllegalStateException("Could not load 'ContextLoader.properties': " + ex.getMessage());
+				}
+			}
 			contextClassName = defaultStrategies.getProperty(WebApplicationContext.class.getName());
 			try {
 				return ClassUtils.forName(contextClassName, ContextLoader.class.getClassLoader());

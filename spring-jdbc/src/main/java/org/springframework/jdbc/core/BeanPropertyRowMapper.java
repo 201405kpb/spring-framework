@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,31 +48,38 @@ import org.springframework.util.StringUtils;
 /**
  * {@link RowMapper} implementation that converts a row into a new instance
  * of the specified mapped target class. The mapped target class must be a
- * top-level class and it must have a default or no-arg constructor.
+ * top-level class or {@code static} nested class, and it must have a default or
+ * no-arg constructor.
  *
- * <p>Column values are mapped based on matching the column name as obtained from result set
- * meta-data to public setters for the corresponding properties. The names are matched either
- * directly or by transforming a name separating the parts with underscores to the same name
- * using "camel" case.
+ * <p>Column values are mapped based on matching the column name (as obtained from
+ * result set meta-data) to public setters in the target class for the corresponding
+ * properties. The names are matched either directly or by transforming a name
+ * separating the parts with underscores to the same name using "camel" case.
  *
- * <p>Mapping is provided for fields in the target class for many common types, e.g.:
- * String, boolean, Boolean, byte, Byte, short, Short, int, Integer, long, Long,
- * float, Float, double, Double, BigDecimal, {@code java.util.Date}, etc.
+ * <p>Mapping is provided for fields in the target class for many common types &mdash;
+ * for example: String, boolean, Boolean, byte, Byte, short, Short, int, Integer,
+ * long, Long, float, Float, double, Double, BigDecimal, {@code java.util.Date}, etc.
  *
  * <p>To facilitate mapping between columns and fields that don't have matching names,
- * try using column aliases in the SQL statement like "select fname as first_name from customer".
+ * try using column aliases in the SQL statement like
+ * {@code "select fname as first_name from customer"}, where {@code first_name}
+ * can be mapped to a {@code setFirstName(String)} method in the target class.
  *
- * <p>For 'null' values read from the database, we will attempt to call the setter, but in the case of
- * Java primitives, this causes a TypeMismatchException. This class can be configured (using the
- * primitivesDefaultedForNullValue property) to trap this exception and use the primitives default value.
- * Be aware that if you use the values from the generated bean to update the database the primitive value
- * will have been set to the primitive's default value instead of null.
+ * <p>For a {@code NULL} value read from the database, an attempt will be made to
+ * call the corresponding setter method with {@code null}, but in the case of
+ * Java primitives this will result in a {@link TypeMismatchException} by default.
+ * To ignore {@code NULL} database values for all primitive properties in the
+ * target class, set the {@code primitivesDefaultedForNullValue} flag to
+ * {@code true}. See {@link #setPrimitivesDefaultedForNullValue(boolean)} for
+ * details.
  *
- * <p>Please note that this class is designed to provide convenience rather than high performance.
- * For best performance, consider using a custom {@link RowMapper} implementation.
+ * <p>Please note that this class is designed to provide convenience rather than
+ * high performance. For best performance, consider using a custom {@code RowMapper}
+ * implementation.
  *
  * @author Thomas Risberg
  * @author Juergen Hoeller
+ * @author Sam Brannen
  * @since 2.5
  * @param <T> the result type
  * @see DataClassRowMapper
@@ -89,7 +96,11 @@ public class BeanPropertyRowMapper<T> implements RowMapper<T> {
 	/** Whether we're strictly validating. */
 	private boolean checkFullyPopulated = false;
 
-	/** Whether we're defaulting primitives when mapping a null value. */
+	/**
+	 * Whether {@code NULL} database values should be ignored for primitive
+	 * properties in the target class.
+	 * @see #setPrimitivesDefaultedForNullValue(boolean)
+	 */
 	private boolean primitivesDefaultedForNullValue = false;
 
 	/** ConversionService for binding JDBC values to bean properties. */
@@ -175,17 +186,26 @@ public class BeanPropertyRowMapper<T> implements RowMapper<T> {
 	}
 
 	/**
-	 * Set whether we're defaulting Java primitives in the case of mapping a null value
-	 * from corresponding database fields.
-	 * <p>Default is {@code false}, throwing an exception when nulls are mapped to Java primitives.
+	 * Set whether a {@code NULL} database field value should be ignored when
+	 * mapping to a corresponding primitive property in the target class.
+	 * <p>Default is {@code false}, throwing an exception when nulls are mapped
+	 * to Java primitives.
+	 * <p>If this flag is set to {@code true} and you use an <em>ignored</em>
+	 * primitive property value from the mapped bean to update the database, the
+	 * value in the database will be changed from {@code NULL} to the current value
+	 * of that primitive property. That value may be the field's initial value
+	 * (potentially Java's default value for the respective primitive type), or
+	 * it may be some other value set for the property in the default constructor
+	 * (or initialization block) or as a side effect of setting some other property
+	 * in the mapped bean.
 	 */
 	public void setPrimitivesDefaultedForNullValue(boolean primitivesDefaultedForNullValue) {
 		this.primitivesDefaultedForNullValue = primitivesDefaultedForNullValue;
 	}
 
 	/**
-	 * Return whether we're defaulting Java primitives in the case of mapping a null value
-	 * from corresponding database fields.
+	 * Get the value of the {@code primitivesDefaultedForNullValue} flag.
+	 * @see #setPrimitivesDefaultedForNullValue(boolean)
 	 */
 	public boolean isPrimitivesDefaultedForNullValue() {
 		return this.primitivesDefaultedForNullValue;
@@ -321,11 +341,11 @@ public class BeanPropertyRowMapper<T> implements RowMapper<T> {
 					catch (TypeMismatchException ex) {
 						if (value == null && this.primitivesDefaultedForNullValue) {
 							if (logger.isDebugEnabled()) {
-								logger.debug("Intercepted TypeMismatchException for row " + rowNumber +
-										" and column '" + column + "' with null value when setting property '" +
-										pd.getName() + "' of type '" +
-										ClassUtils.getQualifiedName(pd.getPropertyType()) +
-										"' on object: " + mappedObject, ex);
+								String propertyType = ClassUtils.getQualifiedName(pd.getPropertyType());
+								logger.debug("""
+										Ignoring intercepted TypeMismatchException for row %d and column '%s' \
+										with null value when setting property '%s' of type '%s' on object: %s"
+										""".formatted(rowNumber, column, pd.getName(), propertyType, mappedObject), ex);
 							}
 						}
 						else {
