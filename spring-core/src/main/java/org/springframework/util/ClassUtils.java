@@ -1302,7 +1302,6 @@ public abstract class ClassUtils {
 	 *     判断给定的对象是否是一个CGLIB代理类
 	 * </p>
 	 * @param object the object to check 检查对象
-	 * @see #isCglibProxyClass(Class)
 	 * @see org.springframework.aop.support.AopUtils#isCglibProxy(Object)
 	 * @deprecated as of 5.2, in favor of custom (possibly narrower) checks
 	 * 				从5.2开始，建议使用自定义(可能更窄)的检查
@@ -1315,13 +1314,11 @@ public abstract class ClassUtils {
 
 	/**
 	 * Check whether the specified class is a CGLIB-generated class.
-	 * <p>
-	 *     检查指定类是否是一个CGLIB生成的类
-	 * </p>
-	 * @param clazz the class to check 检查的类
-	 * @see #isCglibProxyClassName(String)
+	 * 检查指定类是否是一个CGLIB生成的类
+	 * @param clazz the class to check
+	 * @see #getUserClass(Class)
 	 * @deprecated as of 5.2, in favor of custom (possibly narrower) checks
-	 * 				从5.2开始，建议使用自定义(可能更窄)的检查
+	 * or simply a check for containing {@link #CGLIB_CLASS_SEPARATOR}
 	 */
 	@Deprecated
 	public static boolean isCglibProxyClass(@Nullable Class<?> clazz) {
@@ -1331,12 +1328,10 @@ public abstract class ClassUtils {
 
 	/**
 	 * Check whether the specified class name is a CGLIB-generated class.
-	 * <p>
-	 *     检查指定全类名是否是一个CGLIB生成的类
-	 * </p>
-	 * @param className the class name to check 检查全类名
+	 * @param className the class name to check
+	 * @see #CGLIB_CLASS_SEPARATOR
 	 * @deprecated as of 5.2, in favor of custom (possibly narrower) checks
-	 * 				从5.2开始，建议使用自定义(可能更窄)的检查
+	 * or simply a check for containing {@link #CGLIB_CLASS_SEPARATOR}
 	 */
 	@Deprecated
 	public static boolean isCglibProxyClassName(@Nullable String className) {
@@ -1367,12 +1362,11 @@ public abstract class ClassUtils {
 	 * <p>如果clazz是CGLIB生成的子类，则返回该子类的父类，否则直接返回要检查的类</p>
 	 * Return the user-defined class for the given class: usually simply the given
 	 * class, but the original class in case of a CGLIB-generated subclass.
-	 * <p>
-	 *     返回给定实例的用户定义类：通常给定的实例是简单的类，但是在一个CGLIB生成的子类
-	 * 	   情况下，则是原始类
-	 * </p>
-	 * @param clazz the class to check 检查类
-	 * @return the user-defined class 用户定义的
+	 * 返回给定实例的用户定义类：通常给定的实例是简单的类，但是在一个CGLIB生成的子类情况下，则是原始类
+	 *
+	 * @param clazz the class to check
+	 * @return the user-defined class
+	 * @see #CGLIB_CLASS_SEPARATOR
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
 		//如果clazz的全类名包含'$$'字符串，表示它有可能是GGLIB生成的子类

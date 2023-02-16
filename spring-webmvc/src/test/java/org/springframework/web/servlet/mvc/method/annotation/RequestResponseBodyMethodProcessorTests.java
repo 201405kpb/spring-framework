@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,7 +403,13 @@ public class RequestResponseBodyMethodProcessorTests {
 	@Test
 	void problemDetailWhenJsonRequested() throws Exception {
 		this.servletRequest.addHeader("Accept", MediaType.APPLICATION_JSON_VALUE);
-		testProblemDetailMediaType(MediaType.APPLICATION_JSON_VALUE);
+		testProblemDetailMediaType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+	}
+
+	@Test // gh-29588
+	void problemDetailWhenJsonAndProblemJsonRequested() throws Exception {
+		this.servletRequest.addHeader("Accept", MediaType.APPLICATION_JSON_VALUE + "," + MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+		testProblemDetailMediaType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 	}
 
 	@Test
@@ -419,8 +425,8 @@ public class RequestResponseBodyMethodProcessorTests {
 		this.servletRequest.setRequestURI("/path");
 
 		RequestResponseBodyMethodProcessor processor =
-				new RequestResponseBodyMethodProcessor(
-						Collections.singletonList(new MappingJackson2HttpMessageConverter()));
+				new RequestResponseBodyMethodProcessor(List.of(
+						new MappingJackson2HttpMessageConverter(), new MappingJackson2XmlHttpMessageConverter()));
 
 		MethodParameter returnType =
 				new MethodParameter(getClass().getDeclaredMethod("handleAndReturnProblemDetail"), -1);
@@ -429,11 +435,29 @@ public class RequestResponseBodyMethodProcessorTests {
 
 		assertThat(this.servletResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 		assertThat(this.servletResponse.getContentType()).isEqualTo(expectedContentType);
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo(
-				"{\"type\":\"about:blank\"," +
-						"\"title\":\"Bad Request\"," +
-						"\"status\":400," +
-						"\"instance\":\"/path\"}");
+
+		if (expectedContentType.equals(MediaType.APPLICATION_PROBLEM_XML_VALUE)) {
+			assertThat(this.servletResponse.getContentAsString()).isEqualTo(
+					"<problem xmlns=\"urn:ietf:rfc:7807\">" +
+							"<type>about:blank</type>" +
+							"<title>Bad Request</title>" +
+							"<status>400</status>" +
+							"<instance>/path</instance>" +
+							"</problem>");
+		}
+		else {
+			assertThat(this.servletResponse.getContentAsString()).isEqualTo(
+					"{\"type\":\"about:blank\"," +
+							"\"title\":\"Bad Request\"," +
+							"\"status\":400," +
+							"\"instance\":\"/path\"}");
+		}
+	}
+
+	@Test
+	void problemDetailWhenProblemXmlRequested() throws Exception {
+		this.servletRequest.addHeader("Accept", MediaType.APPLICATION_PROBLEM_XML_VALUE);
+		testProblemDetailMediaType(MediaType.APPLICATION_PROBLEM_XML_VALUE);
 	}
 
 	@Test // SPR-13135
