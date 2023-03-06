@@ -23,12 +23,7 @@ dependencies {
     implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
     implementation("org.freemarker:freemarker:2.3.31")
 	implementation 'mysql:mysql-connector-java:8.0.31'
-	/*日志框架*/
-	implementation 'org.slf4j:slf4j-api:2.0.6'
-	implementation 'org.slf4j:slf4j-log4j12:2.0.6'
-	implementation 'log4j:log4j:1.2.17'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+
 }
 
 test {
