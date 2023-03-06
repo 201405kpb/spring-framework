@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ import java.util.function.Predicate;
  *
  * <p>Implementing ApplicationEventMulticaster's actual {@link #multicastEvent} method
  * is left to subclasses. {@link SimpleApplicationEventMulticaster} simply multicasts
- * all events to all registered listeners, invoking them in the calling thread.
- * Alternative implementations could be more sophisticated in those respects.
+ * all events to all registered listeners, invoking them in the calling thread by
+ * default. Alternative implementations could be more sophisticated in those respects.
  * <p>实现 ApplicationEventMulticaster 的实际的 mulicastEvent 方法留给子类。
  * SimpleApplicationEventMulticaster 简单地将所有事件多播给所有注册的监听器，在
  * 调用线程中调用它们。这些方面，可选实现可能更复杂。</p>
@@ -86,11 +86,10 @@ public abstract class AbstractApplicationEventMulticaster
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		//如果 beanFactory 不是 ConfigurableBeanFactory 实例
-		if (!(beanFactory instanceof ConfigurableBeanFactory)) {
-			// 抛出非法状态异常：不在 ConfigurableBeanFactory：beanFactory
+		if (!(beanFactory instanceof ConfigurableBeanFactory cbf)) {
 			throw new IllegalStateException("Not running in a ConfigurableBeanFactory: " + beanFactory);
 		}
-		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
+		this.beanFactory = cbf;
 		//如果 beanClassLoader 为 null
 		if (this.beanClassLoader == null) {
 			//获取beanFactory的类加载器以加载Bean类(即使无法使用系统ClassLoader,也只能为null)
@@ -481,8 +480,8 @@ public abstract class AbstractApplicationEventMulticaster
 			ApplicationListener<?> listener, ResolvableType eventType, @Nullable Class<?> sourceType) {
 		//如果listener是GenericApplicationListener实例，将将其强转为GenericApplicationListener对象，否则创建一个
 		// 	GenericApplicationListenerAdapter 对象来封装listener作为 GenericApplicationListener 对象
-		GenericApplicationListener smartListener = (listener instanceof GenericApplicationListener ?
-				(GenericApplicationListener) listener : new GenericApplicationListenerAdapter(listener));
+		GenericApplicationListener smartListener = (listener instanceof GenericApplicationListener gal ? gal :
+				new GenericApplicationListenerAdapter(listener));
 		//如果 smartListener 支持 eventType 事件类型 && smartListener 支持 sourceType 源类型【源类型是指产生 eventType 类型的对象的类】
 		return (smartListener.supportsEventType(eventType) && smartListener.supportsSourceType(sourceType));
 	}

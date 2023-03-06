@@ -335,8 +335,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@SuppressWarnings("unchecked")
 	public <T> T createBean(Class<T> beanClass) throws BeansException {
 		// Use non-singleton bean definition, to avoid registering bean as dependent bean.
-		RootBeanDefinition bd = new RootBeanDefinition(beanClass);
-		bd.setAutowireMode(AUTOWIRE_CONSTRUCTOR);
+		RootBeanDefinition bd = new CreateFromClassBeanDefinition(beanClass);
 		bd.setScope(SCOPE_PROTOTYPE);
 		bd.allowCaching = ClassUtils.isCacheSafe(beanClass, getBeanClassLoader());
 		return (T) createBean(beanClass.getName(), bd, null);
@@ -1644,8 +1643,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (supplier instanceof InstanceSupplier<?> instanceSupplier) {
 				return instanceSupplier.get(RegisteredBean.of((ConfigurableListableBeanFactory) this, beanName));
 			}
-			if (supplier instanceof ThrowingSupplier<?> throwableSupplier) {
-				return throwableSupplier.getWithException();
+			if (supplier instanceof ThrowingSupplier<?> throwingSupplier) {
+				return throwingSupplier.getWithException();
 			}
 			//从生产者获取实例
 			return supplier.get();
@@ -1818,6 +1817,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			} else {
 				// Skip property population phase for null instance.
 				// 空对象直接返回
+				return;
+			}
+		}
+
+		if (bw.getWrappedClass().isRecord()) {
+			if (mbd.hasPropertyValues()) {
+				throw new BeanCreationException(
+						mbd.getResourceDescription(), beanName, "Cannot apply property values to a record");
+			}
+			else {
+				// Skip property population phase for records since they are immutable.
 				return;
 			}
 		}
@@ -2577,6 +2587,36 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 
 	/**
+	 * {@link RootBeanDefinition} subclass for {@code #createBean} calls with
+	 * flexible selection of a Kotlin primary / single public / single non-public
+	 * constructor candidate in addition to the default constructor.
+	 * @see BeanUtils#getResolvableConstructor(Class)
+	 */
+	@SuppressWarnings("serial")
+	private static class CreateFromClassBeanDefinition extends RootBeanDefinition {
+
+		public CreateFromClassBeanDefinition(Class<?> beanClass) {
+			super(beanClass);
+		}
+
+		public CreateFromClassBeanDefinition(CreateFromClassBeanDefinition original) {
+			super(original);
+		}
+
+		@Override
+		@Nullable
+		public Constructor<?>[] getPreferredConstructors() {
+			return ConstructorResolver.determinePreferredConstructors(getBeanClass());
+		}
+
+		@Override
+		public RootBeanDefinition cloneBeanDefinition() {
+			return new CreateFromClassBeanDefinition(this);
+		}
+	}
+
+
+	/**
 	 * <p>根据类型依赖自动注入的描述符，重写了 {@link #getDependencyName()} 方法，使其永远返回null</p>
 	 * Special DependencyDescriptor variant for Spring's good old autowire="byType" mode.
 	 * Always optional; never considering the parameter name for choosing a primary candidate.
@@ -2611,7 +2651,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		@Override
-		public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+		public void doWith(Method method) throws IllegalArgumentException {
 			if (isFactoryBeanMethod(method)) {
 				ResolvableType returnType = ResolvableType.forMethodReturnType(method);
 				ResolvableType candidate = returnType.as(FactoryBean.class).getGeneric();

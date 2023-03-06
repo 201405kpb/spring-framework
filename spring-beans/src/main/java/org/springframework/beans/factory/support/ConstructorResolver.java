@@ -1855,6 +1855,55 @@ class ConstructorResolver {
 	}
 
 	/**
+	 * See {@link BeanUtils#getResolvableConstructor(Class)} for alignment.
+	 * This variant adds a lenient fallback to the default constructor if available, similar to
+	 * {@link org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor#determineCandidateConstructors}.
+	 */
+	@Nullable
+	static Constructor<?>[] determinePreferredConstructors(Class<?> clazz) {
+		Constructor<?> primaryCtor = BeanUtils.findPrimaryConstructor(clazz);
+
+		Constructor<?> defaultCtor;
+		try {
+			defaultCtor = clazz.getDeclaredConstructor();
+		}
+		catch (NoSuchMethodException ex) {
+			defaultCtor = null;
+		}
+
+		if (primaryCtor != null) {
+			if (defaultCtor != null && !primaryCtor.equals(defaultCtor)) {
+				return new Constructor<?>[] {primaryCtor, defaultCtor};
+			}
+			else {
+				return new Constructor<?>[] {primaryCtor};
+			}
+		}
+
+		Constructor<?>[] ctors = clazz.getConstructors();
+		if (ctors.length == 1) {
+			// A single public constructor, potentially in combination with a non-public default constructor
+			if (defaultCtor != null && !ctors[0].equals(defaultCtor)) {
+				return new Constructor<?>[] {ctors[0], defaultCtor};
+			}
+			else {
+				return ctors;
+			}
+		}
+		else if (ctors.length == 0) {
+			// No public constructors -> check non-public
+			ctors = clazz.getDeclaredConstructors();
+			if (ctors.length == 1) {
+				// A single non-public constructor, e.g. from a non-public record type
+				return ctors;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * Private inner class for holding argument combinations.
 	 * <p>私有内部类，用于保存参数组合</p>
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -388,10 +388,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
 		// registry实现了SingletonBeanRegistry，此处为true
 		SingletonBeanRegistry sbr = null;
-		if (registry instanceof SingletonBeanRegistry ) {
-			// 将registry强转为SingletonBeanRegistry
-			sbr = (SingletonBeanRegistry) registry;
-			// 默认为false，此处也成立
+		if (registry instanceof SingletonBeanRegistry _sbr) {
+			sbr = _sbr;
 			if (!this.localBeanNameGeneratorSet) {
 				// 从工厂中获取org.springframework.context.annotation.internalConfigurationBeanNameGenerator，对应的bean
 				BeanNameGenerator generator = (BeanNameGenerator) sbr.getSingleton(

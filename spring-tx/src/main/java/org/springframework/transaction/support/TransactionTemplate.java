@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,10 +142,11 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 	public <T> T execute(TransactionCallback<T> action) throws TransactionException {
 		Assert.state(this.transactionManager != null, "No PlatformTransactionManager set");
 
-		if (this.transactionManager instanceof CallbackPreferringPlatformTransactionManager) {
-			return ((CallbackPreferringPlatformTransactionManager) this.transactionManager).execute(this, action);
-		} else {
-			//调用getTransaction方法获取事务，该方法我们在此前就讲过了
+		if (this.transactionManager instanceof CallbackPreferringPlatformTransactionManager cpptm) {
+			return cpptm.execute(this, action);
+		}
+		else {
+			//调用getTransaction方法获取事务
 			TransactionStatus status = this.transactionManager.getTransaction(this);
 			T result;
 			try {
@@ -196,8 +197,8 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 
 	@Override
 	public boolean equals(@Nullable Object other) {
-		return (this == other || (super.equals(other) && (!(other instanceof TransactionTemplate) ||
-				getTransactionManager() == ((TransactionTemplate) other).getTransactionManager())));
+		return (this == other || (super.equals(other) && (!(other instanceof TransactionTemplate template) ||
+				getTransactionManager() == template.getTransactionManager())));
 	}
 
 }

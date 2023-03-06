@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,8 +191,9 @@ public abstract class TransactionSynchronizationManager {
 		//对于DataSourceTransactionManager，就是
 		//根据指定key（数据源DataSource）获取对应的连接ConnectionHolder
 		Object value = map.get(actualKey);
+		// Transparently remove ResourceHolder that was marked as void...
 		//删除无效的ResourceHolder
-		if (value instanceof ResourceHolder && ((ResourceHolder) value).isVoid()) {
+		if (value instanceof ResourceHolder resourceHolder && resourceHolder.isVoid()) {
 			map.remove(actualKey);
 			// Remove entire ThreadLocal if empty...
 			if (map.isEmpty()) {
@@ -230,7 +231,7 @@ public abstract class TransactionSynchronizationManager {
 		//将actualKey和value存入map中，返回旧的value
 		Object oldValue = map.put(actualKey, value);
 		// Transparently suppress a ResourceHolder that was marked as void...
-		if (oldValue instanceof ResourceHolder && ((ResourceHolder) oldValue).isVoid()) {
+		if (oldValue instanceof ResourceHolder resourceHolder && resourceHolder.isVoid()) {
 			oldValue = null;
 		}
 		//如果已经有绑定到线程的当前key的值，则抛出异常
@@ -290,7 +291,7 @@ public abstract class TransactionSynchronizationManager {
 			resources.remove();
 		}
 		// Transparently suppress a ResourceHolder that was marked as void...
-		if (value instanceof ResourceHolder && ((ResourceHolder) value).isVoid()) {
+		if (value instanceof ResourceHolder resourceHolder && resourceHolder.isVoid()) {
 			value = null;
 		}
 		return value;

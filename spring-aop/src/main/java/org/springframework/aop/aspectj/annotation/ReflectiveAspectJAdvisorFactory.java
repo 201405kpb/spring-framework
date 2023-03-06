@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				(Converter<Method, Annotation>) method -> {
 					//查找方法的注解，找到某一个注解即停止查找，然后将当前方法封装为基于该注解的AspectJAnnotation，查找注解的顺序为：
 					//Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class
-					AspectJAnnotation<?> ann = AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(method);
+					AspectJAnnotation ann = AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(method);
 					return (ann != null ? ann.getAnnotation() : null);
 				});
 		//次要比较器，比较方法名
@@ -287,7 +287,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		//查找当前方法上的通知，获取AspectJAnnotation对象
 		//这里的查找是按顺序的短路查找，顺序为：Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class
 		//如果找到一个通知注解，就立马封装后返回，如果有其他通知注解则被丢弃
-		AspectJAnnotation<?> aspectJAnnotation =
+		AspectJAnnotation aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		//如果没有通知注解，则返回null
 		if (aspectJAnnotation == null) {
@@ -329,7 +329,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		//校验切面类
 		validate(candidateAspectClass);
 		//查找一个AspectJ 注解
-		AspectJAnnotation<?> aspectJAnnotation =
+		AspectJAnnotation aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		//如果没找到就返回null
 		if (aspectJAnnotation == null) {

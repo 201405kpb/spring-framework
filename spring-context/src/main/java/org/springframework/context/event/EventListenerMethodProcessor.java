@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,8 +225,8 @@ public class EventListenerMethodProcessor
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							//如果属于ApplicationListenerMethodAdapter，那么还要进行初始化
 							//主要是设置一个EventExpressionEvaluator，用于解析@EventListener中的condition属性的 SpEL 表达式
-							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
-								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
+							if (applicationListener instanceof ApplicationListenerMethodAdapter alma) {
+								alma.init(context, this.evaluator);
 							}
 							//将方法转换成的ApplicationListenerMethodAdapter同样添加到applicationEventMulticaster内部的
 							//defaultRetriever的applicationListeners集合中

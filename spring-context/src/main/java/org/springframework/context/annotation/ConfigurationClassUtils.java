@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,18 +124,18 @@ public abstract class ConfigurationClassUtils {
 		// spring 内部的db都是 RootBeanDefinition 实现了AbstractBeanDefinition
 		// 此处主要用于判断是否归属于 AnnotatedGenericBeanDefinition
 		AnnotationMetadata metadata;
-		if (beanDef instanceof AnnotatedBeanDefinition &&
-				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
+		if (beanDef instanceof AnnotatedBeanDefinition annotatedBd &&
+				className.equals(annotatedBd.getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			// 从当前的bean 定义信息中获取元数据信息
-			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
+			metadata = annotatedBd.getMetadata();
 		}
 		// 判断 是否为spring 中默认的 BeanDefinition
-		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
+		else if (beanDef instanceof AbstractBeanDefinition abstractBd && abstractBd.hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
 			// 获取当前bean对象的class对象
-			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
+			Class<?> beanClass = abstractBd.getBeanClass();
 			// 判断是否是指定的子类
 			if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
 					BeanPostProcessor.class.isAssignableFrom(beanClass) ||

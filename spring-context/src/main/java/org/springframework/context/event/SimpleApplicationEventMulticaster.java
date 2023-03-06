@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,8 +151,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	 * @param eventType the type of event (can be {@code null})
 	 */
 	@Override
-	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
-		//获取解析的类型，如果eventType为null那么将当前事件的class作为类型（通常用于本来就是ApplicationEvent类型的事件）
+	public void multicastEvent(ApplicationEvent event, @Nullable ResolvableType eventType) {
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
 		//获取任务执行器，SimpleApplicationEventMulticaster可以指定一个事件任务执行器和一个异常处理器，用于实现异步事件
 		Executor executor = getTaskExecutor();
@@ -225,8 +224,8 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		} catch (ClassCastException ex) { // 捕捉异常信息
 			String msg = ex.getMessage();
 			if (msg == null || matchesClassCastMessage(msg, event.getClass()) ||
-					(event instanceof PayloadApplicationEvent &&
-							matchesClassCastMessage(msg, ((PayloadApplicationEvent) event).getPayload().getClass()))) {
+					(event instanceof PayloadApplicationEvent payloadEvent &&
+							matchesClassCastMessage(msg, payloadEvent.getPayload().getClass()))) {
 				// Possibly a lambda-defined listener which we could not resolve the generic event type for
 				// -> let's suppress the exception.
 				Log loggerToUse = this.lazyLogger;

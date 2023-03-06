@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -977,7 +977,7 @@ public class ResolvableType implements Serializable {
 			rawType = ((ParameterizedType) rawType).getRawType();
 		}
 		//如果rawType是Class的子类或本身，就将rawType强转为Class对象并返回，否则返回null
-		return (rawType instanceof Class ? (Class<?>) rawType : null);
+		return (rawType instanceof Class<?> rawClass ? rawClass : null);
 	}
 
 	/**
@@ -1248,7 +1248,7 @@ public class ResolvableType implements Serializable {
 		// 	isArray方法返回true ) 或者 (如果本类对象的type属性是Class的子类或本身 且
 		// 	通过单级解析此类型的ResolveType对象的isArray方法返回true) 就返回true，表示属于
 		// 	本类对象是数组类型，否则返回false，表示本类对象不是数组类型
-		return ((this.type instanceof Class && ((Class<?>) this.type).isArray()) ||
+		return ((this.type instanceof Class<?> clazz && clazz.isArray()) ||
 				this.type instanceof GenericArrayType || resolveType().isArray());
 	}
 
@@ -1856,9 +1856,7 @@ public class ResolvableType implements Serializable {
 
 	/**
 	 * Convenience method that will {@link #getGeneric(int...) get} and
-	 * {@link #resolve() resolve} a specific generic parameters.
-	 * <p>将{@link #getGeneric(int...) 获取}和{@link #resolve() 解析}指定泛型参数 </p>
-	 *
+	 * {@link #resolve() resolve} a specific generic parameter.
 	 * @param indexes the indexes that refer to the generic parameter
 	 *                (may be omitted to return the first generic)
 	 *                -- 指向泛型参数的索引(可以忽略以返回第一个泛型)
@@ -2483,8 +2481,7 @@ public class ResolvableType implements Serializable {
 			//将传入的type作为要解析成Wildcard的ResovlableType对象
 			ResolvableType resolveToWildcard = type;
 			//如果resolveToWildcard的受管理的基础JavaType是WildcardType的子类
-			while (!(resolveToWildcard.getType() instanceof WildcardType)) {
-				//如果resolvedWildcard为NONE
+			while (!(resolveToWildcard.getType() instanceof WildcardType wildcardType)) {
 				if (resolveToWildcard == NONE) {
 					//返回null
 					return null;
@@ -2492,9 +2489,6 @@ public class ResolvableType implements Serializable {
 				//通过单级解析重新解析resolvedToWildcard对象
 				resolveToWildcard = resolveToWildcard.resolveType();
 			}
-			//将resolvedToWildcard对象的type强转为WildcardType对象
-			WildcardType wildcardType = (WildcardType) resolveToWildcard.type;
-			//如果wildcardType存在下边界，设置范围类型为下边界，否则为上边界
 			Kind boundsType = (wildcardType.getLowerBounds().length > 0 ? Kind.LOWER : Kind.UPPER);
 			//如果边界类型是上边界，就获取上边界的类型；否则获取下边界的类型
 			Type[] bounds = (boundsType == Kind.UPPER ? wildcardType.getUpperBounds() : wildcardType.getLowerBounds());

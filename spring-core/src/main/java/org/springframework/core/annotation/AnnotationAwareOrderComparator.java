@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,8 @@ public class AnnotationAwareOrderComparator extends OrderComparator {
 		 * 不可变的、并且都是可序列化的。这个接口中所有方法返回的数组可以被调用者修改，而不会影响其返回给其他调用者的数组。
 		 * 参考博客：https://www.jianshu.com/p/953e26463fbc
 		 */
-		//如果obj是AnnotatedElement对象，就引用该obj，否则获取obj的Class对象作为AnnotatedElemet对象，因为Class对象默认继承AnnotatedElement
-		AnnotatedElement element = (obj instanceof AnnotatedElement ? (AnnotatedElement) obj : obj.getClass());
-		//创建一个新的 MergedAnnotations 实例，该实例包含element的所有注解(对整个类型层次结构进行完整搜索，包括超类和已实现的接口)和元注解,
+		//如果obj是AnnotatedElement对象，就引用该obj，否则获取obj的Class对象作为AnnotatedElement对象，因为Class对象默认继承AnnotatedElement
+		AnnotatedElement element = (obj instanceof AnnotatedElement ae ? ae : obj.getClass());
 		MergedAnnotations annotations = MergedAnnotations.from(element, SearchStrategy.TYPE_HIERARCHY);
 		//从annotations中获取@Order或@javax.annotation.Priority的优先级值
 		Integer order = OrderUtils.getOrderFromAnnotations(element, annotations);
